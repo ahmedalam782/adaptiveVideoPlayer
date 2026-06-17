@@ -1,3 +1,11 @@
+## 1.3.0
+
+- **Maintenance:** Upgraded `youtube_player_flutter` to version `10.0.1`.
+  - Migrated controller APIs to use parameters and async duration streams.
+  - Rewrote the position display, remaining display, and progress bar to use `StreamBuilder` and listen to `controller.videoStateStream` asynchronously.
+- **Maintenance:** Explicitly declared support for all six platforms (`android`, `ios`, `linux`, `macos`, `web`, `windows`) in `pubspec.yaml` to ensure correct scoring on pub.dev.
+- **Tests:** Created a fake WebView platform interface implementation to resolve WebView platform assertions in test environments, and upgraded all tests to pass.
+
 ## 1.2.3
 
 - **Major Feature:** Added full **Windows** and **Linux** platform support — package now supports **all 6 platforms** (20/20 on pub.dev).

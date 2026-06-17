@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart' hide FullscreenButton;
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_bottom_actions.dart';
 import 'package:adaptive_video_player/src/youtube_player/models/player_config.dart';
+
+class MockYoutubePlayerController extends Mock implements YoutubePlayerController {}
 
 void main() {
   group('FullscreenButton', () {
@@ -140,8 +144,15 @@ void main() {
   });
 
   group('PlayerBottomActionsBuilder', () {
+    late MockYoutubePlayerController controller;
+
+    setUp(() {
+      controller = MockYoutubePlayerController();
+    });
+
     test('builds with all options shown', () {
       final widgets = PlayerBottomActionsBuilder.build(
+        controller: controller,
         config: const PlayerBottomActionsConfig(),
         isMuted: false,
         isFullscreen: false,
@@ -159,6 +170,7 @@ void main() {
 
     test('builds without fullscreen and settings', () {
       final widgets = PlayerBottomActionsBuilder.build(
+        controller: controller,
         config: const PlayerBottomActionsConfig(),
         isMuted: true,
         showFullscreenButton: false,
@@ -174,6 +186,7 @@ void main() {
 
     test('settings hidden when onSettingsTap is null', () {
       final widgets = PlayerBottomActionsBuilder.build(
+        controller: controller,
         config: const PlayerBottomActionsConfig(),
         isMuted: false,
         showFullscreenButton: true,

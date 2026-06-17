@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart'
-    hide CurrentPosition, RemainingDuration;
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../models/player_config.dart';
 import 'current_position.dart';
 import 'remaining_duration.dart';
@@ -106,20 +105,80 @@ class TimeSeparator extends StatelessWidget {
   }
 }
 
+/// A smooth seek bar widget for YouTube videos
+class ProgressBar extends StatefulWidget {
+  final YoutubePlayerController controller;
+  final Color playedColor;
+  final Color handleColor;
+  final Color backgroundColor;
+
+  const ProgressBar({
+    super.key,
+    required this.controller,
+    this.playedColor = Colors.red,
+    this.handleColor = Colors.redAccent,
+    this.backgroundColor = Colors.white12,
+  });
+
+  @override
+  State<ProgressBar> createState() => _ProgressBarState();
+}
+
+class _ProgressBarState extends State<ProgressBar> {
+  double? _dragValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<YoutubeVideoState>(
+      stream: widget.controller.videoStateStream,
+      initialData: const YoutubeVideoState(),
+      builder: (context, snapshot) {
+        final position = snapshot.data?.position ?? Duration.zero;
+        final duration = widget.controller.metadata.duration;
+
+        final double currentProgress = duration.inSeconds > 0
+            ? (position.inSeconds / duration.inSeconds).clamp(0.0, 1.0)
+            : 0.0;
+
+        final sliderValue = _dragValue ?? currentProgress;
+
+        return Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: widget.playedColor,
+              inactiveTrackColor: widget.backgroundColor,
+              thumbColor: widget.handleColor,
+              trackHeight: 4.0,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+            ),
+            child: Slider(
+              value: sliderValue,
+              onChanged: (newValue) {
+                setState(() {
+                  _dragValue = newValue;
+                });
+              },
+              onChangeEnd: (newValue) {
+                final seekSeconds = newValue * duration.inSeconds;
+                widget.controller.seekTo(seconds: seekSeconds, allowSeekAhead: true);
+                setState(() {
+                  _dragValue = null;
+                });
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Utility class for building player bottom actions
-/// This eliminates duplication between normal and fullscreen player
 class PlayerBottomActionsBuilder {
   /// Builds the list of bottom action widgets for the YouTube player
-  ///
-  /// [config] - Styling configuration for the actions
-  /// [isMuted] - Current mute state
-  /// [isFullscreen] - Whether the player is in fullscreen mode
-  /// [showFullscreenButton] - Whether to show the fullscreen button
-  /// [showSettingsButton] - Whether to show the settings button
-  /// [onFullscreenTap] - Callback for fullscreen button tap
-  /// [onMuteTap] - Callback for mute button tap
-  /// [onSettingsTap] - Callback for settings button tap
   static List<Widget> build({
+    required YoutubePlayerController controller,
     required PlayerBottomActionsConfig config,
     required bool isMuted,
     bool isFullscreen = false,
@@ -137,20 +196,18 @@ class PlayerBottomActionsBuilder {
           iconColor: config.iconColor,
           isFullscreen: isFullscreen,
         ),
-      if (!isLive) const CurrentPosition(),
+      if (!isLive) CurrentPosition(controller: controller),
       if (!isLive)
         TimeSeparator(
           textStyle: config.timeTextStyle,
           textColor: config.textColor,
         ),
-      if (!isLive) const RemainingDuration(),
+      if (!isLive) RemainingDuration(controller: controller),
       if (!isLive)
         ProgressBar(
-          isExpanded: true,
-          colors: ProgressBarColors(
-            playedColor: config.progressBarPlayedColor,
-            handleColor: config.progressBarHandleColor,
-          ),
+          controller: controller,
+          playedColor: config.progressBarPlayedColor,
+          handleColor: config.progressBarHandleColor,
         )
       else
         const Spacer(),

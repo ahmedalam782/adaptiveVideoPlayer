@@ -92,9 +92,9 @@ Here is how `adaptive_video_player` compares to other popular video packages:
 
 | Platform                    | Engine                            | Controls                                                                             |
 | --------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
-| **Android / iOS**           | `youtube_player_flutter`          | Custom Flutter controls (seek, settings, fullscreen). Can be forced to Desktop Mode. |
+| **Android / iOS**           | `youtube_player_flutter` (v10)    | Premium custom controls overlay (seek overlay, settings sheet, bottom actions bar). Can be forced to Desktop Mode. |
 | **macOS / Windows / Linux** | `InAppWebView` + localhost server | YouTube native controls                                                              |
-| **Web**                     | HTML iframe (`package:web`)       | YouTube native controls                                                              |
+| **Web**                     | HTML iframe (`package:web`)       | YouTube native controls |                                                             |
 
 > **Why localhost on Desktop (Windows, macOS, Linux)?** YouTube blocks iframe embedding from local files like `data:` and `file://` (Error 153). Serving via `http://localhost` provides a trusted origin that YouTube allows.
 
@@ -376,13 +376,14 @@ lib/
         │   ├── youtube_web_export.dart     # Conditional export
         │   └── youtube_web_stub.dart       # Stub for non-web
         └── widgets/
-            ├── youtube_webview_player.dart # Desktop WebView player (localhost)
-            ├── player_controls.dart        # Seek overlay, loading, error widgets
-            ├── player_bottom_actions.dart  # Bottom action bar builder
-            ├── player_settings_sheet.dart  # Settings bottom sheet
-            ├── player_settings_helper.dart # Settings helper
-            ├── setting_item.dart           # Individual setting toggle
-            └── fullscreen_player_page.dart # Fullscreen player page
+            ├── youtube_controls_overlay.dart # Premium custom controls overlay (buffering, timer, play/pause, seeks)
+            ├── youtube_webview_player.dart   # Desktop WebView player (localhost)
+            ├── player_controls.dart          # Seek overlay, loading, error widgets
+            ├── player_bottom_actions.dart    # Bottom action bar builder
+            ├── player_settings_sheet.dart    # Settings bottom sheet
+            ├── player_settings_helper.dart   # Settings helper
+            ├── setting_item.dart             # Individual setting toggle
+            └── fullscreen_player_page.dart   # Fullscreen player page
 ```
 
 ---
@@ -447,7 +448,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## 🙏 Dependencies
 
-- [youtube_player_flutter](https://pub.dev/packages/youtube_player_flutter) — YouTube player for mobile
+- [youtube_player_flutter](https://pub.dev/packages/youtube_player_flutter) — YouTube player for mobile (v10.x using webview_flutter under the hood)
 - [flutter_inappwebview](https://pub.dev/packages/flutter_inappwebview) — WebView for Desktop YouTube
 - [video_player](https://pub.dev/packages/video_player) — Flutter's official video player
 - [video_player_media_kit](https://pub.dev/packages/video_player_media_kit) — Linux video playback via media_kit

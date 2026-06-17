@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../widgets/player_settings_helper.dart';
@@ -114,12 +113,16 @@ class PlayerUtils {
     YoutubePlayerController controller, {
     Duration seekDuration = const Duration(seconds: 10),
     void Function(dynamic error)? onError,
-  }) {
+  }) async {
     try {
-      final currentPos = controller.value.position;
+      final currentTimeSec = await controller.currentTime;
+      final currentPos = Duration(seconds: currentTimeSec.round());
       final duration = controller.metadata.duration;
       final newPos = currentPos + seekDuration;
-      controller.seekTo(newPos > duration ? duration : newPos);
+      controller.seekTo(
+        seconds: (newPos > duration ? duration : newPos).inSeconds.toDouble(),
+        allowSeekAhead: true,
+      );
     } catch (e) {
       debugPrint('Seek forward error: $e');
       onError?.call(e);
@@ -135,11 +138,15 @@ class PlayerUtils {
     YoutubePlayerController controller, {
     Duration seekDuration = const Duration(seconds: 10),
     void Function(dynamic error)? onError,
-  }) {
+  }) async {
     try {
-      final currentPos = controller.value.position;
+      final currentTimeSec = await controller.currentTime;
+      final currentPos = Duration(seconds: currentTimeSec.round());
       final newPos = currentPos - seekDuration;
-      controller.seekTo(newPos.isNegative ? Duration.zero : newPos);
+      controller.seekTo(
+        seconds: (newPos.isNegative ? Duration.zero : newPos).inSeconds.toDouble(),
+        allowSeekAhead: true,
+      );
     } catch (e) {
       debugPrint('Seek backward error: $e');
       onError?.call(e);
@@ -196,17 +203,10 @@ class PlayerUtils {
   }
 
   /// Gets current playback position safely
-  ///
-  /// [controller] - The YouTube player controller
-  ///
-  /// Returns current position or Duration.zero if unavailable
+  /// Deprecated: since YoutubePlayerController 10.x doesn't cache position synchronously,
+  /// it's recommended to subscribe to videoStateStream.
   static Duration getCurrentPosition(YoutubePlayerController? controller) {
-    try {
-      return controller?.value.position ?? Duration.zero;
-    } catch (e) {
-      debugPrint('Get position error: $e');
-      return Duration.zero;
-    }
+    return Duration.zero;
   }
 
   /// Checks if player is currently playing
@@ -216,7 +216,7 @@ class PlayerUtils {
   /// Returns true if playing, false otherwise
   static bool isPlaying(YoutubePlayerController? controller) {
     try {
-      return controller?.value.isPlaying ?? false;
+      return controller?.value.playerState == PlayerState.playing;
     } catch (e) {
       debugPrint('Is playing check error: $e');
       return false;
@@ -230,7 +230,9 @@ class PlayerUtils {
   /// Returns true if ready, false otherwise
   static bool isReady(YoutubePlayerController? controller) {
     try {
-      return controller?.value.isReady ?? false;
+      if (controller == null) return false;
+      return controller.value.playerState != PlayerState.unknown &&
+             controller.metadata.videoId.isNotEmpty;
     } catch (e) {
       debugPrint('Is ready check error: $e');
       return false;
@@ -279,7 +281,7 @@ class PlayerUtils {
       debugPrint(
         'PlayerUtils.seekTo: Seeking to ${targetPosition.inSeconds}s (requested: ${position.inSeconds}s)',
       );
-      controller.seekTo(targetPosition);
+      controller.seekTo(seconds: targetPosition.inSeconds.toDouble(), allowSeekAhead: true);
     } catch (e) {
       debugPrint('Seek to error: $e');
       onError?.call(e);
@@ -295,7 +297,7 @@ class PlayerUtils {
     void Function(dynamic error)? onError,
   }) {
     try {
-      controller?.play();
+      controller?.playVideo();
     } catch (e) {
       debugPrint('Play error: $e');
       onError?.call(e);
@@ -311,7 +313,7 @@ class PlayerUtils {
     void Function(dynamic error)? onError,
   }) {
     try {
-      controller?.pause();
+      controller?.pauseVideo();
     } catch (e) {
       debugPrint('Pause error: $e');
       onError?.call(e);
@@ -327,7 +329,7 @@ class PlayerUtils {
     void Function(dynamic error)? onError,
   }) {
     try {
-      controller?.reset();
+      controller?.stopVideo();
     } catch (e) {
       debugPrint('Reset error: $e');
       onError?.call(e);
@@ -345,7 +347,7 @@ class PlayerUtils {
     void Function(dynamic error)? onError,
   }) {
     try {
-      controller?.load(videoId);
+      controller?.loadVideoById(videoId: videoId);
     } catch (e) {
       debugPrint('Load video error: $e');
       onError?.call(e);
@@ -379,8 +381,8 @@ class PlayerUtils {
     void Function(dynamic error)? onError,
   }) {
     try {
-      controller?.pause();
-      controller?.dispose();
+      controller?.pauseVideo();
+      controller?.close();
     } catch (e) {
       debugPrint('Dispose controller error: $e');
       onError?.call(e);
@@ -417,7 +419,7 @@ class PlayerUtils {
   /// Returns video ID or null if invalid
   static String? extractVideoId(String url) {
     try {
-      String? videoId = YoutubePlayer.convertUrlToId(url);
+      String? videoId = YoutubePlayerController.convertUrlToId(url);
       if (videoId == null || videoId.isEmpty) {
         // Check if it's already a valid video ID (11 characters, no special chars)
         if (url.length == 11 && !url.contains('/') && !url.contains('.')) {
@@ -429,47 +431,6 @@ class PlayerUtils {
       debugPrint('Extract video ID error: $e');
       return null;
     }
-  }
-
-  /// Creates player flags with common settings
-  ///
-  /// [autoPlay] - Whether to auto-play
-  /// [mute] - Whether to mute initially
-  /// [loop] - Whether to loop
-  /// [forceHD] - Whether to force HD quality
-  /// [enableCaption] - Whether to enable captions
-  /// [showControls] - Whether to show controls
-  /// [startAt] - Start position in seconds
-  static YoutubePlayerFlags createPlayerFlags({
-    bool autoPlay = false,
-    bool mute = false,
-    bool loop = false,
-    bool forceHD = false,
-    bool enableCaption = false,
-    bool showControls = true,
-    int startAt = 0,
-    bool isLive = false,
-  }) {
-    final bool isDesktop = !kIsWeb &&
-        (defaultTargetPlatform != TargetPlatform.android &&
-            defaultTargetPlatform != TargetPlatform.iOS);
-
-    return YoutubePlayerFlags(
-      autoPlay: autoPlay,
-      mute: mute,
-      loop: loop,
-      showLiveFullscreenButton: false, // Prevents their buggy LiveBottomBar
-      forceHD: isDesktop ? false : forceHD,
-      enableCaption: enableCaption,
-      hideControls: isDesktop ? false : !showControls,
-      controlsVisibleAtStart: true,
-      disableDragSeek: false,
-      useHybridComposition:
-          kIsWeb ? false : (defaultTargetPlatform == TargetPlatform.android),
-      startAt: startAt,
-      isLive:
-          false, // Pass false to prevent their assertion bug (we handle live UI in our own bottomactions)
-    );
   }
 
   /// Shows the player settings bottom sheet
@@ -587,17 +548,16 @@ class PlayerUtils {
     bool showControls = true,
     int startAt = 0,
   }) {
-    return YoutubePlayerController(
-      initialVideoId: videoId,
-      flags: createPlayerFlags(
-        autoPlay: autoPlay,
+    return YoutubePlayerController.fromVideoId(
+      videoId: videoId,
+      autoPlay: autoPlay,
+      startSeconds: startAt.toDouble(),
+      params: YoutubePlayerParams(
+        showControls: showControls,
+        showFullscreenButton: false, // Handled by our own controls overlay
         mute: mute,
         loop: loop,
-        forceHD: forceHD,
         enableCaption: enableCaption,
-        showControls: showControls,
-        startAt: startAt,
-        isLive: false,
       ),
     );
   }
@@ -620,7 +580,8 @@ class PlayerUtils {
 
     await Future.delayed(const Duration(milliseconds: 300));
 
-    final currentPos = getCurrentPosition(controller);
+    final currentTimeSec = await controller.currentTime;
+    final currentPos = Duration(seconds: currentTimeSec.round());
     final difference = (currentPos.inSeconds - targetPosition.inSeconds).abs();
 
     debugPrint(

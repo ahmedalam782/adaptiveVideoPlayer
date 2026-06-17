@@ -1,21 +1,25 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart'
-    hide CurrentPosition;
+import 'package:mocktail/mocktail.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/current_position.dart';
+
+class MockYoutubePlayerController extends Mock implements YoutubePlayerController {}
 
 void main() {
   group('CurrentPosition', () {
-    late YoutubePlayerController controller;
+    late MockYoutubePlayerController controller;
+    late StreamController<YoutubeVideoState> videoStateStreamController;
 
     setUp(() {
-      controller = YoutubePlayerController(
-        initialVideoId: 'test12345ab',
-      );
+      controller = MockYoutubePlayerController();
+      videoStateStreamController = StreamController<YoutubeVideoState>.broadcast();
+      when(() => controller.videoStateStream).thenAnswer((_) => videoStateStreamController.stream);
     });
 
     tearDown(() {
-      controller.dispose();
+      videoStateStreamController.close();
     });
 
     testWidgets('renders with explicit controller', (tester) async {
@@ -50,7 +54,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('listener triggers setState', (tester) async {
+    testWidgets('stream triggers setState', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -59,11 +63,14 @@ void main() {
         ),
       );
 
-      // ignore: invalid_use_of_protected_member
-      controller.notifyListeners();
+      expect(find.text('00:00'), findsOneWidget);
+
+      videoStateStreamController.add(const YoutubeVideoState(
+        position: Duration(seconds: 90),
+      ));
       await tester.pump();
 
-      expect(find.text('00:00'), findsOneWidget);
+      expect(find.text('01:30'), findsOneWidget);
     });
   });
 }

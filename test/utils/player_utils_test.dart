@@ -1,7 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_video_player/src/youtube_player/utils/player_utils.dart';
+import 'fake_webview_platform.dart';
 
 void main() {
+  setUpAll(() {
+    registerFakeWebViewPlatform();
+  });
   group('PlayerSettingsConfig', () {
     test('creates default PlayerSettingsConfig', () {
       const config = PlayerSettingsConfig(
@@ -97,9 +101,10 @@ void main() {
     });
   });
 
-  group('PlayerUtils - createPlayerFlags', () {
-    test('returns valid flags', () {
-      final flags = PlayerUtils.createPlayerFlags(
+  group('PlayerUtils - createController', () {
+    test('returns valid controller with custom params', () {
+      final controller = PlayerUtils.createController(
+        videoId: 'dQw4w9WgXcQ',
         autoPlay: true,
         mute: true,
         loop: true,
@@ -108,11 +113,11 @@ void main() {
         showControls: false,
         startAt: 10,
       );
-      expect(flags.autoPlay, true);
-      expect(flags.mute, true);
-      expect(flags.loop, true);
-      expect(flags.enableCaption, true);
-      expect(flags.startAt, 10);
+      expect(controller, isNotNull);
+      expect(controller.params.mute, true);
+      expect(controller.params.loop, true);
+      expect(controller.params.enableCaption, true);
+      expect(controller.params.showControls, false);
     });
   });
 

@@ -1,17 +1,17 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart'
-    hide CurrentPosition, RemainingDuration;
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'widgets/youtube_controls_overlay.dart';
 
 import 'widgets/fullscreen_player_page.dart';
 import 'utils/player_utils.dart';
 import 'utils/youtube_web_export.dart';
 import 'models/player_config.dart';
 import 'cubit/youtube_player_cubit.dart';
-import 'widgets/player_bottom_actions.dart';
 import 'widgets/player_controls.dart';
 import 'widgets/youtube_webview_player_export.dart';
 
@@ -64,6 +64,9 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   final GlobalKey<YouTubeWebViewPlayerState> _desktopWebViewKey =
       GlobalKey<YouTubeWebViewPlayerState>();
   OverlayEntry? _desktopFullscreenOverlay;
+  Duration _currentPosition = Duration.zero;
+  StreamSubscription<YoutubeVideoState>? _videoStateSub;
+  StreamSubscription<YoutubePlayerValue>? _playerValueSub;
 
   YouTubePlayerConfig get _cfg => widget.config;
   PlayerCubitState get _state => _cubit.state;
@@ -99,6 +102,8 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   }
 
   void _disposeController() {
+    _videoStateSub?.cancel();
+    _playerValueSub?.cancel();
     if (_controller != null && !_isControllerDisposed) {
       _isControllerDisposed = true;
       PlayerUtils.disposeController(
@@ -152,20 +157,28 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
       // On mobile (Android/iOS), use native YoutubePlayerController
       final startAtSeconds = _pendingSeekPosition?.inSeconds ?? 0;
 
-      final controller = YoutubePlayerController(
-        initialVideoId: _videoId!,
-        flags: PlayerUtils.createPlayerFlags(
-          autoPlay: _state.autoPlay,
-          mute: _state.isMuted,
-          loop: _state.loop,
-          forceHD: _state.forceHD,
-          enableCaption: _state.enableCaption,
-          showControls: _cfg.visibility.showControls,
-          startAt: startAtSeconds,
-        ),
+      final controller = PlayerUtils.createController(
+        videoId: _videoId!,
+        autoPlay: _state.autoPlay,
+        mute: _state.isMuted,
+        loop: _state.loop,
+        forceHD: _state.forceHD,
+        enableCaption: _state.enableCaption,
+        showControls: _cfg.visibility.showControls,
+        startAt: startAtSeconds,
       );
 
-      controller.addListener(() {
+      _videoStateSub?.cancel();
+      _videoStateSub = controller.videoStateStream.listen((state) {
+        if (mounted) {
+          setState(() {
+            _currentPosition = state.position;
+          });
+        }
+      });
+
+      _playerValueSub?.cancel();
+      _playerValueSub = controller.stream.listen((value) {
         if (!_isControllerDisposed && mounted) {
           if (PlayerUtils.isReady(controller) &&
               !_hasRestoredPosition &&
@@ -180,7 +193,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
             });
           }
 
-          if (controller.value.playerState == PlayerState.ended) {
+          if (value.playerState == PlayerState.ended) {
             widget.onEnded?.call();
 
             if (_state.loop && !_isControllerDisposed && mounted) {
@@ -200,8 +213,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
             }
           }
 
-          if (controller.value.playerState == PlayerState.playing &&
-              _videoEnded) {
+          if (value.playerState == PlayerState.playing && _videoEnded) {
             if (mounted) {
               setState(() {
                 _videoEnded = false;
@@ -233,7 +245,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     if (controller == null || _isControllerDisposed) return;
 
     _isInFullscreen = true;
-    final currentPosition = PlayerUtils.getCurrentPosition(controller);
+    final currentPosition = _currentPosition;
     final wasPlaying = PlayerUtils.isPlaying(controller);
 
     PlayerUtils.pause(controller);
@@ -318,7 +330,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
             }
             PlayerUtils.setMute(_controller!, result.isMuted);
             if (result.wasPlaying) {
-              _controller!.play();
+              PlayerUtils.play(_controller);
             }
           }
         } else {
@@ -564,9 +576,9 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     bool wasPlaying = false;
     try {
       if (targetPosition == null) {
-        currentPosition = _controller!.value.position;
+        currentPosition = _currentPosition;
       }
-      wasPlaying = _controller!.value.isPlaying;
+      wasPlaying = PlayerUtils.isPlaying(_controller);
     } catch (e) {
       log('Error getting current state before reload: $e');
     }
@@ -591,6 +603,8 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
 
   @override
   void dispose() {
+    _videoStateSub?.cancel();
+    _playerValueSub?.cancel();
     _disposeController();
     _cubit.close();
     if (!_isInFullscreen) {
@@ -663,57 +677,31 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                   else
                     YoutubePlayer(
                       controller: controller!,
-                      showVideoProgressIndicator: !widget.isLive,
-                      progressIndicatorColor: _cfg.style.progressBarPlayedColor,
-                      progressColors: ProgressBarColors(
-                        playedColor: _cfg.style.progressBarPlayedColor,
-                        handleColor: _cfg.style.progressBarHandleColor,
-                      ),
-                      bottomActions: PlayerBottomActionsBuilder.build(
-                        config: PlayerBottomActionsConfig(
-                          progressBarPlayedColor:
-                              _cfg.style.progressBarPlayedColor,
-                          progressBarHandleColor:
-                              _cfg.style.progressBarHandleColor,
-                          iconColor: _cfg.style.iconColor,
-                          textColor: _cfg.style.textColor,
-                          timeTextStyle: _cfg.style.timeTextStyle,
-                        ),
-                        isMuted: state.isMuted,
-                        isFullscreen: false,
-                        showFullscreenButton:
-                            _cfg.visibility.showFullscreenButton,
-                        showSettingsButton: _cfg.visibility.showSettingsButton,
-                        onFullscreenTap: _openFullScreen,
-                        onMuteTap: _toggleMute,
-                        onSettingsTap: _showSettingsBottomSheet,
-                        isLive: widget.isLive,
-                      ),
-                      onReady: () => log('YouTube player ready'),
-                      onEnded: (metaData) => widget.onEnded?.call(),
-                    ),
-                  // Seek overlay (mobile only)
-                  if (!_videoEnded &&
-                      !kIsWeb &&
-                      !_useDesktopPlayer &&
-                      !widget.isLive &&
-                      controller != null)
-                    ValueListenableBuilder<YoutubePlayerValue>(
-                      valueListenable: controller,
-                      builder: (context, value, child) {
-                        return AnimatedOpacity(
-                          opacity: value.isControlsVisible ? 1.0 : 0.0,
-                          duration: const Duration(milliseconds: 300),
-                          child: IgnorePointer(
-                            ignoring: !value.isControlsVisible,
-                            child: child,
-                          ),
+                      builder: (context, player, controller) {
+                        return Stack(
+                          children: [
+                            player,
+                            CustomYoutubeControls(
+                              controller: controller,
+                              config: _cfg,
+                              isLive: widget.isLive,
+                              isMuted: state.isMuted,
+                              isFullscreen: false,
+                              onFullscreenTap: _openFullScreen,
+                              onMuteTap: _toggleMute,
+                              onSettingsTap: _showSettingsBottomSheet,
+                              onSeekBackward: _seekBackward,
+                              onSeekForward: _seekForward,
+                              topActions: (widget.isLive || widget.viewerCount != null)
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: _buildLiveIndicatorBlock(),
+                                    )
+                                  : null,
+                            ),
+                          ],
                         );
                       },
-                      child: SeekButtonsOverlay(
-                        onSeekBackward: _seekBackward,
-                        onSeekForward: _seekForward,
-                      ),
                     ),
                   // Replay overlay (mobile only)
                   if (_videoEnded && !kIsWeb && !_useDesktopPlayer)
@@ -760,28 +748,6 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                           ),
                         ),
                       ),
-                    ),
-                  // Live Status / Viewer count overlay
-                  if ((widget.isLive || widget.viewerCount != null) &&
-                      !_videoEnded)
-                    Positioned(
-                      top: 16,
-                      left: 16,
-                      child: (!kIsWeb &&
-                              !_useDesktopPlayer &&
-                              controller != null)
-                          ? ValueListenableBuilder<YoutubePlayerValue>(
-                              valueListenable: controller,
-                              builder: (context, value, child) {
-                                return AnimatedOpacity(
-                                  opacity: value.isControlsVisible ? 1.0 : 0.0,
-                                  duration: const Duration(milliseconds: 300),
-                                  child: child,
-                                );
-                              },
-                              child: _buildLiveIndicatorBlock(),
-                            )
-                          : _buildLiveIndicatorBlock(),
                     ),
                 ],
               ),
@@ -866,7 +832,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
 
   void setPlaybackRate(double rate) =>
       PlayerUtils.setPlaybackRate(_controller, rate);
-  Duration get currentPosition => PlayerUtils.getCurrentPosition(_controller);
+  Duration get currentPosition => _currentPosition;
   Duration get duration => PlayerUtils.getDuration(_controller);
   bool get isPlaying => PlayerUtils.isPlaying(_controller);
   void enterFullScreen() => _openFullScreen();

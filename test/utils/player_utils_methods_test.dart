@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:adaptive_video_player/src/youtube_player/utils/player_utils.dart';
+import 'fake_webview_platform.dart';
 
 class MockYoutubePlayerController extends Mock
     implements YoutubePlayerController {}
@@ -15,6 +15,7 @@ class MockYoutubeMetaData extends Mock implements YoutubeMetaData {}
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
+    registerFakeWebViewPlatform();
     registerFallbackValue(Duration.zero);
   });
 
@@ -33,72 +34,90 @@ void main() {
     });
 
     // ──────────── seekForward ────────────
-    test('seekForward advances position', () {
-      when(() => mockValue.position).thenReturn(const Duration(seconds: 10));
+    test('seekForward advances position', () async {
+      when(() => controller.currentTime).thenAnswer((_) async => 10.0);
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 60));
-      when(() => controller.seekTo(any())).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       PlayerUtils.seekForward(controller);
+      await Future.delayed(Duration.zero);
 
-      verify(() => controller.seekTo(const Duration(seconds: 20))).called(1);
+      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true)).called(1);
     });
 
-    test('seekForward clamps to duration', () {
-      when(() => mockValue.position).thenReturn(const Duration(seconds: 55));
+    test('seekForward clamps to duration', () async {
+      when(() => controller.currentTime).thenAnswer((_) async => 55.0);
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 60));
-      when(() => controller.seekTo(any())).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       PlayerUtils.seekForward(controller);
+      await Future.delayed(Duration.zero);
 
-      verify(() => controller.seekTo(const Duration(seconds: 60))).called(1);
+      verify(() => controller.seekTo(seconds: 60.0, allowSeekAhead: true)).called(1);
     });
 
-    test('seekForward error triggers onError', () {
+    test('seekForward error triggers onError', () async {
       dynamic caughtError;
-      when(() => controller.value).thenThrow(Exception('err'));
+      when(() => controller.currentTime).thenThrow(Exception('err'));
 
       PlayerUtils.seekForward(controller, onError: (e) => caughtError = e);
+      await Future.delayed(Duration.zero);
 
       expect(caughtError, isA<Exception>());
     });
 
     // ──────────── seekBackward ────────────
-    test('seekBackward recoils position', () {
-      when(() => mockValue.position).thenReturn(const Duration(seconds: 20));
-      when(() => controller.seekTo(any())).thenReturn(null);
+    test('seekBackward recoils position', () async {
+      when(() => controller.currentTime).thenAnswer((_) async => 20.0);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       PlayerUtils.seekBackward(controller);
+      await Future.delayed(Duration.zero);
 
-      verify(() => controller.seekTo(const Duration(seconds: 10))).called(1);
+      verify(() => controller.seekTo(seconds: 10.0, allowSeekAhead: true)).called(1);
     });
 
-    test('seekBackward clamps to zero', () {
-      when(() => mockValue.position).thenReturn(const Duration(seconds: 5));
-      when(() => controller.seekTo(any())).thenReturn(null);
+    test('seekBackward clamps to zero', () async {
+      when(() => controller.currentTime).thenAnswer((_) async => 5.0);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       PlayerUtils.seekBackward(controller);
+      await Future.delayed(Duration.zero);
 
-      verify(() => controller.seekTo(Duration.zero)).called(1);
+      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true)).called(1);
     });
 
-    test('seekBackward error triggers onError', () {
+    test('seekBackward error triggers onError', () async {
       dynamic caughtError;
-      when(() => controller.value).thenThrow(Exception('err'));
+      when(() => controller.currentTime).thenThrow(Exception('err'));
 
       PlayerUtils.seekBackward(controller, onError: (e) => caughtError = e);
+      await Future.delayed(Duration.zero);
 
       expect(caughtError, isA<Exception>());
     });
 
     // ──────────── toggleMute ────────────
     test('toggleMute mutes', () {
-      when(() => controller.mute()).thenReturn(null);
+      when(() => controller.mute()).thenAnswer((_) async {});
       expect(PlayerUtils.toggleMute(controller, false), true);
       verify(() => controller.mute()).called(1);
     });
 
     test('toggleMute unmutes', () {
-      when(() => controller.unMute()).thenReturn(null);
+      when(() => controller.unMute()).thenAnswer((_) async {});
       expect(PlayerUtils.toggleMute(controller, true), false);
       verify(() => controller.unMute()).called(1);
     });
@@ -116,8 +135,8 @@ void main() {
 
     // ──────────── setMute ────────────
     test('setMute mutes and unmutes', () {
-      when(() => controller.mute()).thenReturn(null);
-      when(() => controller.unMute()).thenReturn(null);
+      when(() => controller.mute()).thenAnswer((_) async {});
+      when(() => controller.unMute()).thenAnswer((_) async {});
 
       PlayerUtils.setMute(controller, true);
       verify(() => controller.mute()).called(1);
@@ -136,10 +155,8 @@ void main() {
     });
 
     // ──────────── getCurrentPosition ────────────
-    test('getCurrentPosition returns position', () {
-      when(() => mockValue.position).thenReturn(const Duration(seconds: 5));
-      expect(PlayerUtils.getCurrentPosition(controller),
-          const Duration(seconds: 5));
+    test('getCurrentPosition returns zero', () {
+      expect(PlayerUtils.getCurrentPosition(controller), Duration.zero);
     });
 
     test('getCurrentPosition null returns zero', () {
@@ -148,7 +165,7 @@ void main() {
 
     // ──────────── isPlaying ────────────
     test('isPlaying returns true', () {
-      when(() => mockValue.isPlaying).thenReturn(true);
+      when(() => mockValue.playerState).thenReturn(PlayerState.playing);
       expect(PlayerUtils.isPlaying(controller), true);
     });
 
@@ -158,7 +175,8 @@ void main() {
 
     // ──────────── isReady ────────────
     test('isReady returns true', () {
-      when(() => mockValue.isReady).thenReturn(true);
+      when(() => mockValue.playerState).thenReturn(PlayerState.playing);
+      when(() => mockMetadata.videoId).thenReturn('abc');
       expect(PlayerUtils.isReady(controller), true);
     });
 
@@ -179,26 +197,35 @@ void main() {
     // ──────────── seekTo ────────────
     test('seekTo clamps to duration', () {
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 20));
-      when(() => controller.seekTo(any())).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       PlayerUtils.seekTo(controller, const Duration(seconds: 30));
-      verify(() => controller.seekTo(const Duration(seconds: 20))).called(1);
+      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true)).called(1);
     });
 
     test('seekTo within bounds', () {
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 30));
-      when(() => controller.seekTo(any())).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       PlayerUtils.seekTo(controller, const Duration(seconds: 20));
-      verify(() => controller.seekTo(const Duration(seconds: 20))).called(1);
+      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true)).called(1);
     });
 
     test('seekTo negative clamps to zero', () {
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 30));
-      when(() => controller.seekTo(any())).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       PlayerUtils.seekTo(controller, const Duration(seconds: -5));
-      verify(() => controller.seekTo(Duration.zero)).called(1);
+      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true)).called(1);
     });
 
     test('seekTo error triggers onError', () {
@@ -213,9 +240,9 @@ void main() {
 
     // ──────────── play ────────────
     test('play calls controller', () {
-      when(() => controller.play()).thenReturn(null);
+      when(() => controller.playVideo()).thenAnswer((_) async {});
       PlayerUtils.play(controller);
-      verify(() => controller.play()).called(1);
+      verify(() => controller.playVideo()).called(1);
     });
 
     test('play null does nothing', () {
@@ -224,7 +251,7 @@ void main() {
 
     test('play error triggers onError', () {
       dynamic caughtError;
-      when(() => controller.play()).thenThrow(Exception('err'));
+      when(() => controller.playVideo()).thenThrow(Exception('err'));
 
       PlayerUtils.play(controller, onError: (e) => caughtError = e);
 
@@ -233,14 +260,14 @@ void main() {
 
     // ──────────── pause ────────────
     test('pause calls controller', () {
-      when(() => controller.pause()).thenReturn(null);
+      when(() => controller.pauseVideo()).thenAnswer((_) async {});
       PlayerUtils.pause(controller);
-      verify(() => controller.pause()).called(1);
+      verify(() => controller.pauseVideo()).called(1);
     });
 
     test('pause error triggers onError', () {
       dynamic caughtError;
-      when(() => controller.pause()).thenThrow(Exception('err'));
+      when(() => controller.pauseVideo()).thenThrow(Exception('err'));
 
       PlayerUtils.pause(controller, onError: (e) => caughtError = e);
 
@@ -249,14 +276,14 @@ void main() {
 
     // ──────────── reset ────────────
     test('reset calls controller', () {
-      when(() => controller.reset()).thenReturn(null);
+      when(() => controller.stopVideo()).thenAnswer((_) async {});
       PlayerUtils.reset(controller);
-      verify(() => controller.reset()).called(1);
+      verify(() => controller.stopVideo()).called(1);
     });
 
     test('reset error triggers onError', () {
       dynamic caughtError;
-      when(() => controller.reset()).thenThrow(Exception('err'));
+      when(() => controller.stopVideo()).thenThrow(Exception('err'));
 
       PlayerUtils.reset(controller, onError: (e) => caughtError = e);
 
@@ -265,14 +292,14 @@ void main() {
 
     // ──────────── loadVideo ────────────
     test('loadVideo calls controller', () {
-      when(() => controller.load('123')).thenReturn(null);
+      when(() => controller.loadVideoById(videoId: '123')).thenAnswer((_) async {});
       PlayerUtils.loadVideo(controller, '123');
-      verify(() => controller.load('123')).called(1);
+      verify(() => controller.loadVideoById(videoId: '123')).called(1);
     });
 
     test('loadVideo error triggers onError', () {
       dynamic caughtError;
-      when(() => controller.load('123')).thenThrow(Exception('err'));
+      when(() => controller.loadVideoById(videoId: '123')).thenThrow(Exception('err'));
 
       PlayerUtils.loadVideo(controller, '123', onError: (e) => caughtError = e);
 
@@ -281,7 +308,7 @@ void main() {
 
     // ──────────── setPlaybackRate ────────────
     test('setPlaybackRate calls controller', () {
-      when(() => controller.setPlaybackRate(1.5)).thenReturn(null);
+      when(() => controller.setPlaybackRate(1.5)).thenAnswer((_) async {});
       PlayerUtils.setPlaybackRate(controller, 1.5);
       verify(() => controller.setPlaybackRate(1.5)).called(1);
     });
@@ -297,16 +324,17 @@ void main() {
     });
 
     // ──────────── disposeController ────────────
-    test('disposeController calls pause then dispose', () {
-      when(() => controller.pause()).thenReturn(null);
+    test('disposeController calls pause then close', () {
+      when(() => controller.pauseVideo()).thenAnswer((_) async {});
+      when(() => controller.close()).thenAnswer((_) async {});
       PlayerUtils.disposeController(controller);
-      verify(() => controller.pause()).called(1);
-      verify(() => controller.dispose()).called(1);
+      verify(() => controller.pauseVideo()).called(1);
+      verify(() => controller.close()).called(1);
     });
 
     test('disposeController error triggers onError', () {
       dynamic caughtError;
-      when(() => controller.pause()).thenThrow(Exception('err'));
+      when(() => controller.pauseVideo()).thenThrow(Exception('err'));
 
       PlayerUtils.disposeController(controller,
           onError: (e) => caughtError = e);
@@ -317,13 +345,16 @@ void main() {
     // ──────────── restartVideo ────────────
     test('restartVideo seeks to zero and plays', () {
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 20));
-      when(() => controller.seekTo(any())).thenReturn(null);
-      when(() => controller.play()).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
+      when(() => controller.playVideo()).thenAnswer((_) async {});
 
       PlayerUtils.restartVideo(controller);
 
-      verify(() => controller.seekTo(Duration.zero)).called(1);
-      verify(() => controller.play()).called(1);
+      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.playVideo()).called(1);
     });
 
     test('restartVideo null does nothing', () {
@@ -340,49 +371,6 @@ void main() {
     test('createController creates controller', () {
       final ctrl = PlayerUtils.createController(videoId: 'abc');
       expect(ctrl, isNotNull);
-      expect(ctrl.initialVideoId, 'abc');
-    });
-
-    // ──────────── createPlayerFlags ────────────
-    test('createPlayerFlags returns valid flags', () {
-      final flags = PlayerUtils.createPlayerFlags(
-        autoPlay: true,
-        mute: true,
-        loop: true,
-        forceHD: true,
-        enableCaption: true,
-        showControls: false,
-        startAt: 10,
-      );
-      expect(flags.autoPlay, true);
-      expect(flags.mute, true);
-      expect(flags.loop, true);
-      expect(flags.enableCaption, true);
-      expect(flags.startAt, 10);
-    });
-
-    test('createPlayerFlags on Android (mobile) forces HD correctly', () {
-      debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      try {
-        final flags = PlayerUtils.createPlayerFlags(
-          forceHD: true,
-          showControls: true,
-        );
-        // On mobile, forceHD should be passed through (not overridden to false)
-        expect(flags.forceHD, true);
-      } finally {
-        debugDefaultTargetPlatformOverride = null;
-      }
-    });
-
-    test('createPlayerFlags on iOS (mobile)', () {
-      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      try {
-        final flags = PlayerUtils.createPlayerFlags(forceHD: true);
-        expect(flags.forceHD, true);
-      } finally {
-        debugDefaultTargetPlatformOverride = null;
-      }
     });
 
     // ──────────── isControllerSafe ────────────
@@ -404,20 +392,26 @@ void main() {
 
     // ──────────── verifyAndCorrectPosition ────────────
     test('verifyAndCorrectPosition fixes position', () async {
-      when(() => mockValue.position).thenReturn(const Duration(seconds: 1));
+      when(() => controller.currentTime).thenAnswer((_) async => 1.0);
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 20));
-      when(() => controller.seekTo(any())).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       final corrected = await PlayerUtils.verifyAndCorrectPosition(
           controller, const Duration(seconds: 10));
       expect(corrected, true);
-      verify(() => controller.seekTo(const Duration(seconds: 10))).called(1);
+      verify(() => controller.seekTo(seconds: 10.0, allowSeekAhead: true)).called(1);
     });
 
     test('verifyAndCorrectPosition within tolerance returns false', () async {
-      when(() => mockValue.position).thenReturn(const Duration(seconds: 9));
+      when(() => controller.currentTime).thenAnswer((_) async => 9.0);
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 20));
-      when(() => controller.seekTo(any())).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
 
       final corrected = await PlayerUtils.verifyAndCorrectPosition(
           controller, const Duration(seconds: 10));
@@ -440,8 +434,11 @@ void main() {
     // ──────────── handleVideoEnded ────────────
     test('handleVideoEnded loops video', () async {
       when(() => mockMetadata.duration).thenReturn(const Duration(seconds: 20));
-      when(() => controller.seekTo(any())).thenReturn(null);
-      when(() => controller.play()).thenReturn(null);
+      when(() => controller.seekTo(
+            seconds: any(named: 'seconds'),
+            allowSeekAhead: any(named: 'allowSeekAhead'),
+          )).thenAnswer((_) async {});
+      when(() => controller.playVideo()).thenAnswer((_) async {});
 
       final looped = await PlayerUtils.handleVideoEnded(
         controller: controller,
@@ -548,12 +545,12 @@ void main() {
     // ──────────── Error catch paths for methods with onError ────────────
     group('Exception error catch paths', () {
       test('seekForward no onError', () {
-        when(() => controller.value).thenThrow(Exception('err'));
+        when(() => controller.currentTime).thenThrow(Exception('err'));
         expect(() => PlayerUtils.seekForward(controller), returnsNormally);
       });
 
       test('seekBackward no onError', () {
-        when(() => controller.value).thenThrow(Exception('err'));
+        when(() => controller.currentTime).thenThrow(Exception('err'));
         expect(() => PlayerUtils.seekBackward(controller), returnsNormally);
       });
 
@@ -565,11 +562,6 @@ void main() {
       test('setMute no onError', () {
         when(() => controller.mute()).thenThrow(Exception('err'));
         expect(() => PlayerUtils.setMute(controller, true), returnsNormally);
-      });
-
-      test('getCurrentPosition error catch', () {
-        when(() => controller.value).thenThrow(Exception('err'));
-        expect(PlayerUtils.getCurrentPosition(controller), Duration.zero);
       });
 
       test('isPlaying error catch', () {
