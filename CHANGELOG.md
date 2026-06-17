@@ -1,3 +1,10 @@
+## 1.3.1
+
+- **Maintenance:** Achieved full WebAssembly (WASM) compatibility on Flutter Web.
+  - Refactored `video_player` imports to conditionally route to a native re-export or a custom web-safe controller/widget implementation.
+  - Bypassed the transitive `dart:io` import in the official `video_player` package for web builds.
+  - Declared `video_player_platform_interface` explicitly in the dependencies list.
+
 ## 1.3.0
 
 - **Maintenance:** Upgraded `youtube_player_flutter` to version `10.0.1`.

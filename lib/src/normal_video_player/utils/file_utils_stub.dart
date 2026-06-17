@@ -1,4 +1,4 @@
-import 'package:video_player/video_player.dart';
+import 'video_player_web_safe.dart';
 
 /// Checks if a file exists locally. Always returns false on Web.
 bool checkFileExists(String path) {

@@ -106,7 +106,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  adaptive_video_player: ^1.2.3
+  adaptive_video_player: ^1.3.1
 ```
 
 ## 🔒 Platform Permissions & Setup
@@ -188,7 +188,7 @@ Linux requires WebKit for the `flutter_inappwebview` playback. Ensure your syste
 
 ### 🌐 Web
 
-No specific permission files are needed. However, ensure that any external direct videos (MP4, MKV) you stream are hosted on servers with **CORS** (Cross-Origin Resource Sharing) enabled. YouTube videos are handled automatically via iframe.
+No specific permission files are needed. However, ensure that any external direct videos (MP4, MKV) you stream are hosted on servers with **CORS** (Cross-Origin Resource Sharing) enabled. YouTube videos are handled automatically via iframe. The package is fully compatible with Flutter WebAssembly (WASM) builds.
 
 ---
 
@@ -451,6 +451,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 - [youtube_player_flutter](https://pub.dev/packages/youtube_player_flutter) — YouTube player for mobile (v10.x using webview_flutter under the hood)
 - [flutter_inappwebview](https://pub.dev/packages/flutter_inappwebview) — WebView for Desktop YouTube
 - [video_player](https://pub.dev/packages/video_player) — Flutter's official video player
+- [video_player_platform_interface](https://pub.dev/packages/video_player_platform_interface) — Platform interface for video player
 - [video_player_media_kit](https://pub.dev/packages/video_player_media_kit) — Linux video playback via media_kit
 - [video_player_win](https://pub.dev/packages/video_player_win) — Windows video playback via Media Foundation
 - [flutter_bloc](https://pub.dev/packages/flutter_bloc) — State management

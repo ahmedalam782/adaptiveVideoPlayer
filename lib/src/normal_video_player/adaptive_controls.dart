@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'utils/video_player_web_safe.dart';
 import '../youtube_player/models/player_config.dart';
 import 'model/video_config.dart';
 import 'utils/subtitle_parser.dart';

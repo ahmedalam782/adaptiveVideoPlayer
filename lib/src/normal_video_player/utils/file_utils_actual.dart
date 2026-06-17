@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:video_player/video_player.dart';
+import 'video_player_web_safe.dart';
 
 /// Checks if a file exists locally.
 bool checkFileExists(String path) {
