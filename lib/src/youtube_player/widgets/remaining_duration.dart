@@ -21,7 +21,8 @@ class _RemainingDurationState extends State<RemainingDuration> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final controller = widget.controller ?? YoutubePlayerControllerProvider.maybeOf(context);
+    final controller =
+        widget.controller ?? YoutubePlayerControllerProvider.maybeOf(context);
     _controller = controller;
   }
 
@@ -53,4 +54,4 @@ class _RemainingDurationState extends State<RemainingDuration> {
       },
     );
   }
-}
+}

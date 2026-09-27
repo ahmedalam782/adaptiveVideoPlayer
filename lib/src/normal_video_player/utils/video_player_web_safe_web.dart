@@ -218,10 +218,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.videoPlayerOptions,
     this.httpHeaders = const <String, String>{},
     this.viewType = platform_interface.VideoViewType.textureView,
-  }) : dataSource = url.toString(),
-       dataSourceType = platform_interface.DataSourceType.network,
-       package = null,
-       super(const VideoPlayerValue(duration: Duration.zero));
+  })  : dataSource = url.toString(),
+        dataSourceType = platform_interface.DataSourceType.network,
+        package = null,
+        super(const VideoPlayerValue(duration: Duration.zero));
 
   /// Stub construct for assets.
   VideoPlayerController.asset(
@@ -229,10 +229,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.package,
     this.videoPlayerOptions,
     this.viewType = platform_interface.VideoViewType.textureView,
-  }) : dataSourceType = platform_interface.DataSourceType.asset,
-       formatHint = null,
-       httpHeaders = const <String, String>{},
-       super(const VideoPlayerValue(duration: Duration.zero));
+  })  : dataSourceType = platform_interface.DataSourceType.asset,
+        formatHint = null,
+        httpHeaders = const <String, String>{},
+        super(const VideoPlayerValue(duration: Duration.zero));
 
   /// Web-stub for local file constructor. Throws [UnsupportedError].
   VideoPlayerController.file(
@@ -240,11 +240,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.videoPlayerOptions,
     this.httpHeaders = const <String, String>{},
     this.viewType = platform_interface.VideoViewType.textureView,
-  }) : dataSource = '',
-       dataSourceType = platform_interface.DataSourceType.file,
-       package = null,
-       formatHint = null,
-       super(const VideoPlayerValue(duration: Duration.zero)) {
+  })  : dataSource = '',
+        dataSourceType = platform_interface.DataSourceType.file,
+        package = null,
+        formatHint = null,
+        super(const VideoPlayerValue(duration: Duration.zero)) {
     throw UnsupportedError('Local file playback is not supported on Web');
   }
 
@@ -502,8 +502,8 @@ class _VideoPlayerState extends State<VideoPlayer> {
   Widget build(BuildContext context) {
     if (_playerId == -1) return Container();
     final rotation = widget.controller.value.rotationCorrection;
-    final view = platform_interface.VideoPlayerPlatform.instance
-        .buildViewWithOptions(
+    final view =
+        platform_interface.VideoPlayerPlatform.instance.buildViewWithOptions(
       platform_interface.VideoViewOptions(playerId: _playerId),
     );
     if (rotation == 0) return view;

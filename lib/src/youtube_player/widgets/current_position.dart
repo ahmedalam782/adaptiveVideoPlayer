@@ -21,7 +21,8 @@ class _CurrentPositionState extends State<CurrentPosition> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final controller = widget.controller ?? YoutubePlayerControllerProvider.maybeOf(context);
+    final controller =
+        widget.controller ?? YoutubePlayerControllerProvider.maybeOf(context);
     _controller = controller;
   }
 
@@ -47,4 +48,4 @@ class _CurrentPositionState extends State<CurrentPosition> {
       },
     );
   }
-}
+}

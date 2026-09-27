@@ -45,7 +45,8 @@ void main() {
       PlayerUtils.seekForward(controller);
       await Future.delayed(Duration.zero);
 
-      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true))
+          .called(1);
     });
 
     test('seekForward clamps to duration', () async {
@@ -59,7 +60,8 @@ void main() {
       PlayerUtils.seekForward(controller);
       await Future.delayed(Duration.zero);
 
-      verify(() => controller.seekTo(seconds: 60.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 60.0, allowSeekAhead: true))
+          .called(1);
     });
 
     test('seekForward error triggers onError', () async {
@@ -83,7 +85,8 @@ void main() {
       PlayerUtils.seekBackward(controller);
       await Future.delayed(Duration.zero);
 
-      verify(() => controller.seekTo(seconds: 10.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 10.0, allowSeekAhead: true))
+          .called(1);
     });
 
     test('seekBackward clamps to zero', () async {
@@ -96,7 +99,8 @@ void main() {
       PlayerUtils.seekBackward(controller);
       await Future.delayed(Duration.zero);
 
-      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true))
+          .called(1);
     });
 
     test('seekBackward error triggers onError', () async {
@@ -203,7 +207,8 @@ void main() {
           )).thenAnswer((_) async {});
 
       PlayerUtils.seekTo(controller, const Duration(seconds: 30));
-      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true))
+          .called(1);
     });
 
     test('seekTo within bounds', () {
@@ -214,7 +219,8 @@ void main() {
           )).thenAnswer((_) async {});
 
       PlayerUtils.seekTo(controller, const Duration(seconds: 20));
-      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 20.0, allowSeekAhead: true))
+          .called(1);
     });
 
     test('seekTo negative clamps to zero', () {
@@ -225,7 +231,8 @@ void main() {
           )).thenAnswer((_) async {});
 
       PlayerUtils.seekTo(controller, const Duration(seconds: -5));
-      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true))
+          .called(1);
     });
 
     test('seekTo error triggers onError', () {
@@ -292,14 +299,16 @@ void main() {
 
     // ──────────── loadVideo ────────────
     test('loadVideo calls controller', () {
-      when(() => controller.loadVideoById(videoId: '123')).thenAnswer((_) async {});
+      when(() => controller.loadVideoById(videoId: '123'))
+          .thenAnswer((_) async {});
       PlayerUtils.loadVideo(controller, '123');
       verify(() => controller.loadVideoById(videoId: '123')).called(1);
     });
 
     test('loadVideo error triggers onError', () {
       dynamic caughtError;
-      when(() => controller.loadVideoById(videoId: '123')).thenThrow(Exception('err'));
+      when(() => controller.loadVideoById(videoId: '123'))
+          .thenThrow(Exception('err'));
 
       PlayerUtils.loadVideo(controller, '123', onError: (e) => caughtError = e);
 
@@ -353,7 +362,8 @@ void main() {
 
       PlayerUtils.restartVideo(controller);
 
-      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 0.0, allowSeekAhead: true))
+          .called(1);
       verify(() => controller.playVideo()).called(1);
     });
 
@@ -402,7 +412,8 @@ void main() {
       final corrected = await PlayerUtils.verifyAndCorrectPosition(
           controller, const Duration(seconds: 10));
       expect(corrected, true);
-      verify(() => controller.seekTo(seconds: 10.0, allowSeekAhead: true)).called(1);
+      verify(() => controller.seekTo(seconds: 10.0, allowSeekAhead: true))
+          .called(1);
     });
 
     test('verifyAndCorrectPosition within tolerance returns false', () async {

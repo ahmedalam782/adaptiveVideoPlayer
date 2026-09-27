@@ -144,7 +144,8 @@ class PlayerUtils {
       final currentPos = Duration(seconds: currentTimeSec.round());
       final newPos = currentPos - seekDuration;
       controller.seekTo(
-        seconds: (newPos.isNegative ? Duration.zero : newPos).inSeconds.toDouble(),
+        seconds:
+            (newPos.isNegative ? Duration.zero : newPos).inSeconds.toDouble(),
         allowSeekAhead: true,
       );
     } catch (e) {
@@ -232,7 +233,7 @@ class PlayerUtils {
     try {
       if (controller == null) return false;
       return controller.value.playerState != PlayerState.unknown &&
-             controller.metadata.videoId.isNotEmpty;
+          controller.metadata.videoId.isNotEmpty;
     } catch (e) {
       debugPrint('Is ready check error: $e');
       return false;
@@ -281,7 +282,8 @@ class PlayerUtils {
       debugPrint(
         'PlayerUtils.seekTo: Seeking to ${targetPosition.inSeconds}s (requested: ${position.inSeconds}s)',
       );
-      controller.seekTo(seconds: targetPosition.inSeconds.toDouble(), allowSeekAhead: true);
+      controller.seekTo(
+          seconds: targetPosition.inSeconds.toDouble(), allowSeekAhead: true);
     } catch (e) {
       debugPrint('Seek to error: $e');
       onError?.call(e);

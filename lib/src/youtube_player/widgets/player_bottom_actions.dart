@@ -161,7 +161,8 @@ class _ProgressBarState extends State<ProgressBar> {
               },
               onChangeEnd: (newValue) {
                 final seekSeconds = newValue * duration.inSeconds;
-                widget.controller.seekTo(seconds: seekSeconds, allowSeekAhead: true);
+                widget.controller
+                    .seekTo(seconds: seekSeconds, allowSeekAhead: true);
                 setState(() {
                   _dragValue = null;
                 });

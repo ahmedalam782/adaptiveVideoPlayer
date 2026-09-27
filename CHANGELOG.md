@@ -1,3 +1,11 @@
+## 1.3.3
+
+- **Full WASM Readiness & Platform Support (20/20 on pub.dev):**
+  - Resolved `dart:io` leakage into Flutter Web and WASM compiler graphs by migrating `adaptive_controls.dart` to use conditional web-safe video player abstractions.
+  - Decoupled platform initialization (`AdaptiveVideoPlayerPlatform`) into `platform_init_io.dart` and `platform_init_stub.dart`, isolating desktop/IO-specific backends (`video_player_media_kit`) from Web and WASM targets.
+  - Achieved official **WASM-ready** status on pub.dev and full 20/20 platform support points.
+  - Formatted entire repository adhering strictly to standard Dart format guidelines (50/50 static analysis score).
+
 ## 1.3.2
 
 - **Feature (Localization):** Added customizable and localizable text labels in `PlayerTextConfig`:

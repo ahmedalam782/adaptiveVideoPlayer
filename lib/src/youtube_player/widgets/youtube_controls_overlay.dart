@@ -84,7 +84,9 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
         final isPlaying = value.playerState == PlayerState.playing;
 
         // Reset timer if we are playing and controls are visible
-        if (isPlaying && _isVisible && (_hideTimer == null || !_hideTimer!.isActive)) {
+        if (isPlaying &&
+            _isVisible &&
+            (_hideTimer == null || !_hideTimer!.isActive)) {
           _resetTimer();
         }
         // Cancel timer if we are paused or buffering so controls stay visible
@@ -204,16 +206,20 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                         children: PlayerBottomActionsBuilder.build(
                           controller: widget.controller,
                           config: PlayerBottomActionsConfig(
-                            progressBarPlayedColor: widget.config.style.progressBarPlayedColor,
-                            progressBarHandleColor: widget.config.style.progressBarHandleColor,
+                            progressBarPlayedColor:
+                                widget.config.style.progressBarPlayedColor,
+                            progressBarHandleColor:
+                                widget.config.style.progressBarHandleColor,
                             iconColor: widget.config.style.iconColor,
                             textColor: widget.config.style.textColor,
                             timeTextStyle: widget.config.style.timeTextStyle,
                           ),
                           isMuted: widget.isMuted,
                           isFullscreen: widget.isFullscreen,
-                          showFullscreenButton: widget.config.visibility.showFullscreenButton,
-                          showSettingsButton: widget.config.visibility.showSettingsButton,
+                          showFullscreenButton:
+                              widget.config.visibility.showFullscreenButton,
+                          showSettingsButton:
+                              widget.config.visibility.showSettingsButton,
                           onFullscreenTap: widget.onFullscreenTap,
                           onMuteTap: widget.onMuteTap,
                           onSettingsTap: widget.onSettingsTap,

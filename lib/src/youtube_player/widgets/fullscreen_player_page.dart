@@ -125,8 +125,7 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
         }
 
         // Reset video ended flag when playing starts
-        if (value.playerState == PlayerState.playing &&
-            _videoEnded) {
+        if (value.playerState == PlayerState.playing && _videoEnded) {
           if (mounted) {
             setState(() {
               _videoEnded = false;
@@ -400,7 +399,8 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                               onSeekForward: _seekForward,
                               topActions: Stack(
                                 children: [
-                                  if (widget.isLive || widget.viewerCount != null)
+                                  if (widget.isLive ||
+                                      widget.viewerCount != null)
                                     Positioned(
                                       top: 40,
                                       right: 16,
@@ -408,12 +408,16 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                                         children: [
                                           if (widget.isLive)
                                             Container(
-                                              margin: const EdgeInsets.only(right: 8),
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 6, vertical: 4),
+                                              margin: const EdgeInsets.only(
+                                                  right: 8),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 4),
                                               decoration: BoxDecoration(
                                                 color: Colors.red,
-                                                borderRadius: BorderRadius.circular(4),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
@@ -421,7 +425,8 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                                                   Container(
                                                     width: 6,
                                                     height: 6,
-                                                    decoration: const BoxDecoration(
+                                                    decoration:
+                                                        const BoxDecoration(
                                                       color: Colors.white,
                                                       shape: BoxShape.circle,
                                                     ),
@@ -431,30 +436,36 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                                                       style: TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 12,
-                                                          fontWeight: FontWeight.bold)),
+                                                          fontWeight:
+                                                              FontWeight.bold)),
                                                 ],
                                               ),
                                             ),
                                           if (widget.viewerCount != null)
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 10, vertical: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 4),
                                               decoration: BoxDecoration(
                                                 color: Colors.black54,
-                                                borderRadius: BorderRadius.circular(4),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
                                               ),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   const Icon(Icons.person,
-                                                      color: Colors.white, size: 14),
+                                                      color: Colors.white,
+                                                      size: 14),
                                                   const SizedBox(width: 6),
                                                   Text(
                                                     widget.viewerCount!,
                                                     style: const TextStyle(
                                                       color: Colors.white,
                                                       fontSize: 13,
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
@@ -471,8 +482,10 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                                       child: Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.6),
-                                          borderRadius: BorderRadius.circular(25),
+                                          color: Colors.black
+                                              .withValues(alpha: 0.6),
+                                          borderRadius:
+                                              BorderRadius.circular(25),
                                         ),
                                         child: const Icon(
                                           Icons.arrow_back,

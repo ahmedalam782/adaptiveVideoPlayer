@@ -27,7 +27,8 @@ class FakePlatformWebViewController extends PlatformWebViewController {
   Future<void> setBackgroundColor(Color color) async {}
 
   @override
-  Future<void> setPlatformNavigationDelegate(PlatformNavigationDelegate delegate) async {}
+  Future<void> setPlatformNavigationDelegate(
+      PlatformNavigationDelegate delegate) async {}
 
   @override
   Future<void> loadRequest(LoadRequestParams params) async {}

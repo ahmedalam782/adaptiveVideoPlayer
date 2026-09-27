@@ -692,12 +692,13 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                               onSettingsTap: _showSettingsBottomSheet,
                               onSeekBackward: _seekBackward,
                               onSeekForward: _seekForward,
-                              topActions: (widget.isLive || widget.viewerCount != null)
-                                  ? Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: _buildLiveIndicatorBlock(),
-                                    )
-                                  : null,
+                              topActions:
+                                  (widget.isLive || widget.viewerCount != null)
+                                      ? Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: _buildLiveIndicatorBlock(),
+                                        )
+                                      : null,
                             ),
                           ],
                         );

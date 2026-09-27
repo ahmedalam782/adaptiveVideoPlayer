@@ -5,7 +5,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/remaining_duration.dart';
 
-class MockYoutubePlayerController extends Mock implements YoutubePlayerController {}
+class MockYoutubePlayerController extends Mock
+    implements YoutubePlayerController {}
+
 class MockYoutubeMetaData extends Mock implements YoutubeMetaData {}
 
 void main() {
@@ -17,8 +19,10 @@ void main() {
     setUp(() {
       controller = MockYoutubePlayerController();
       metadata = MockYoutubeMetaData();
-      videoStateStreamController = StreamController<YoutubeVideoState>.broadcast();
-      when(() => controller.videoStateStream).thenAnswer((_) => videoStateStreamController.stream);
+      videoStateStreamController =
+          StreamController<YoutubeVideoState>.broadcast();
+      when(() => controller.videoStateStream)
+          .thenAnswer((_) => videoStateStreamController.stream);
       when(() => controller.metadata).thenReturn(metadata);
       when(() => metadata.duration).thenReturn(const Duration(seconds: 120));
     });

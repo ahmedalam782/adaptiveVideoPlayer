@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'utils/video_player_web_safe.dart';
 import '../youtube_player/models/player_config.dart';
 import 'model/video_config.dart';
 import 'utils/subtitle_parser.dart';
@@ -205,130 +205,128 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
         fit: widget.isFullScreen ? StackFit.expand : StackFit.loose,
         alignment: Alignment.center,
         children: [
-          widget.isFullScreen
-              ? Center(child: videoContent)
-              : videoContent,
+          widget.isFullScreen ? Center(child: videoContent) : videoContent,
 
-        // Buffering/Loading Indicator Overlay
-        ValueListenableBuilder(
-          valueListenable: widget.controller,
-          builder: (context, VideoPlayerValue value, child) {
-            // Only show buffering if we are actively trying to play or at the very start
-            if (value.isBuffering &&
-                (value.isPlaying || value.position == Duration.zero)) {
-              return Center(
-                child: CircularProgressIndicator(
-                  color: widget.styling?.loadingIndicatorColor ??
-                      const Color.fromRGBO(255, 0, 0, 0.7),
-                  strokeCap: StrokeCap.round,
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
-
-        // Visual feedback overlay for Double-Tap seeking
-        if (_seekDirection != 0)
-          Positioned.fill(
-            child: Row(
-              children: [
-                Expanded(
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    color: _seekDirection == -1
-                        ? Colors.white24
-                        : Colors.transparent,
-                    child: _seekDirection == -1
-                        ? const Center(
-                            child: Icon(Icons.fast_rewind,
-                                color: Colors.white, size: 48))
-                        : null,
+          // Buffering/Loading Indicator Overlay
+          ValueListenableBuilder(
+            valueListenable: widget.controller,
+            builder: (context, VideoPlayerValue value, child) {
+              // Only show buffering if we are actively trying to play or at the very start
+              if (value.isBuffering &&
+                  (value.isPlaying || value.position == Duration.zero)) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    color: widget.styling?.loadingIndicatorColor ??
+                        const Color.fromRGBO(255, 0, 0, 0.7),
+                    strokeCap: StrokeCap.round,
                   ),
-                ),
-                Expanded(
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    color: _seekDirection == 1
-                        ? Colors.white24
-                        : Colors.transparent,
-                    child: _seekDirection == 1
-                        ? const Center(
-                            child: Icon(Icons.fast_forward,
-                                color: Colors.white, size: 48))
-                        : null,
-                  ),
-                ),
-              ],
-            ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
 
-        if (_currentSubtitleText.isNotEmpty)
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: widget.showControls && _controlsVisible
-                ? 80
-                : 20, // Move up if controls are visible
-            child: widget.subtitleBuilder != null
-                ? widget.subtitleBuilder!(context, _currentSubtitleText)
-                : Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _currentSubtitleText,
-                        textAlign: TextAlign.center,
-                        style: widget.styling?.settingItemTextStyle?.copyWith(
-                                fontSize: widget.isFullScreen ? 20 : 16) ??
-                            TextStyle(
-                                color: Colors.white,
-                                fontSize: widget.isFullScreen ? 20 : 16),
-                      ),
+          // Visual feedback overlay for Double-Tap seeking
+          if (_seekDirection != 0)
+            Positioned.fill(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      color: _seekDirection == -1
+                          ? Colors.white24
+                          : Colors.transparent,
+                      child: _seekDirection == -1
+                          ? const Center(
+                              child: Icon(Icons.fast_rewind,
+                                  color: Colors.white, size: 48))
+                          : null,
                     ),
                   ),
-          ),
-
-        if (widget.showControls)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _toggleControls,
-              onDoubleTapDown: _handleDoubleTap,
-              child: AnimatedOpacity(
-                opacity: _controlsVisible ? 1 : 0,
-                duration: const Duration(milliseconds: 250),
-                child: widget.controlsBuilder != null
-                    ? widget.controlsBuilder!(
-                        context, widget.controller, widget.isFullScreen)
-                    : AdaptiveControlsLayer(
-                        controller: widget.controller,
-                        isFullScreen: widget.isFullScreen,
-                        styling: widget.styling,
-                        messages: widget.messages,
-                        onAnalyticsEvent: widget.onAnalyticsEvent,
-                        qualities: widget.qualities,
-                        currentQuality: widget.currentQuality,
-                        onQualitySelected: widget.onQualitySelected,
-                        subtitles: widget.subtitles,
-                        currentSubtitleTrack: widget.currentSubtitleTrack,
-                        onSubtitleSelected: widget.onSubtitleSelected,
-                        parsedSubtitles: widget.parsedSubtitles,
-                        controlsBuilder: widget.controlsBuilder,
-                        subtitleBuilder: widget.subtitleBuilder,
-                        isLive: widget.isLive,
-                        viewerCount: widget.viewerCount,
-                        onEnterFullscreen: widget.onEnterFullscreen,
-                        onExitFullscreen: widget.onExitFullscreen,
-                      ),
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      color: _seekDirection == 1
+                          ? Colors.white24
+                          : Colors.transparent,
+                      child: _seekDirection == 1
+                          ? const Center(
+                              child: Icon(Icons.fast_forward,
+                                  color: Colors.white, size: 48))
+                          : null,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-      ],
+
+          if (_currentSubtitleText.isNotEmpty)
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: widget.showControls && _controlsVisible
+                  ? 80
+                  : 20, // Move up if controls are visible
+              child: widget.subtitleBuilder != null
+                  ? widget.subtitleBuilder!(context, _currentSubtitleText)
+                  : Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          _currentSubtitleText,
+                          textAlign: TextAlign.center,
+                          style: widget.styling?.settingItemTextStyle?.copyWith(
+                                  fontSize: widget.isFullScreen ? 20 : 16) ??
+                              TextStyle(
+                                  color: Colors.white,
+                                  fontSize: widget.isFullScreen ? 20 : 16),
+                        ),
+                      ),
+                    ),
+            ),
+
+          if (widget.showControls)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _toggleControls,
+                onDoubleTapDown: _handleDoubleTap,
+                child: AnimatedOpacity(
+                  opacity: _controlsVisible ? 1 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  child: widget.controlsBuilder != null
+                      ? widget.controlsBuilder!(
+                          context, widget.controller, widget.isFullScreen)
+                      : AdaptiveControlsLayer(
+                          controller: widget.controller,
+                          isFullScreen: widget.isFullScreen,
+                          styling: widget.styling,
+                          messages: widget.messages,
+                          onAnalyticsEvent: widget.onAnalyticsEvent,
+                          qualities: widget.qualities,
+                          currentQuality: widget.currentQuality,
+                          onQualitySelected: widget.onQualitySelected,
+                          subtitles: widget.subtitles,
+                          currentSubtitleTrack: widget.currentSubtitleTrack,
+                          onSubtitleSelected: widget.onSubtitleSelected,
+                          parsedSubtitles: widget.parsedSubtitles,
+                          controlsBuilder: widget.controlsBuilder,
+                          subtitleBuilder: widget.subtitleBuilder,
+                          isLive: widget.isLive,
+                          viewerCount: widget.viewerCount,
+                          onEnterFullscreen: widget.onEnterFullscreen,
+                          onExitFullscreen: widget.onExitFullscreen,
+                        ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -496,7 +494,10 @@ class AdaptiveControlsLayer extends StatelessWidget {
                 trackShape: _GradientSliderTrackShape(
                   gradient: LinearGradient(
                     colors: styling?.progressBarPlayedColor != null
-                        ? [styling!.progressBarPlayedColor, styling!.progressBarPlayedColor]
+                        ? [
+                            styling!.progressBarPlayedColor,
+                            styling!.progressBarPlayedColor
+                          ]
                         : const [Color(0xFFFF007F), Color(0xFF00E5FF)],
                   ),
                 ),
@@ -506,7 +507,8 @@ class AdaptiveControlsLayer extends StatelessWidget {
                 ),
                 overlayShape:
                     const RoundSliderOverlayShape(overlayRadius: 14.0),
-                activeTrackColor: styling?.progressBarPlayedColor ?? Colors.white,
+                activeTrackColor:
+                    styling?.progressBarPlayedColor ?? Colors.white,
                 inactiveTrackColor: Colors.white24,
                 thumbColor: styling?.progressBarHandleColor ?? Colors.white,
               ),
@@ -718,10 +720,13 @@ class AdaptiveControlsLayer extends StatelessWidget {
                     ListTile(
                       leading: Icon(Icons.hd,
                           color: styling?.iconColor ?? Colors.white),
-                      title: Text(messages?.qualityText ?? 'Quality (Resolution)',
+                      title: Text(
+                          messages?.qualityText ?? 'Quality (Resolution)',
                           style: styling?.settingItemTextStyle ??
                               const TextStyle(color: Colors.white)),
-                      trailing: Text(currentQuality?.title ?? (messages?.autoText ?? 'Auto'),
+                      trailing: Text(
+                          currentQuality?.title ??
+                              (messages?.autoText ?? 'Auto'),
                           style: TextStyle(
                               color:
                                   styling?.iconColor.withValues(alpha: 0.7) ??
@@ -733,14 +738,17 @@ class AdaptiveControlsLayer extends StatelessWidget {
                         if (qualities != null && qualities!.isNotEmpty) {
                           _showQualitiesBottomSheet(context);
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  backgroundColor: styling?.settingsBackgroundColor ?? const Color(0xFF212121),
-                                  behavior: SnackBarBehavior.floating,
-                                  content: Text(
-                                    messages?.noQualitiesAvailableText ?? 'No qualities available',
-                                    style: styling?.settingItemTextStyle ?? const TextStyle(color: Colors.white),
-                                  )));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              backgroundColor:
+                                  styling?.settingsBackgroundColor ??
+                                      const Color(0xFF212121),
+                              behavior: SnackBarBehavior.floating,
+                              content: Text(
+                                messages?.noQualitiesAvailableText ??
+                                    'No qualities available',
+                                style: styling?.settingItemTextStyle ??
+                                    const TextStyle(color: Colors.white),
+                              )));
                         }
                       },
                     ),
@@ -750,7 +758,9 @@ class AdaptiveControlsLayer extends StatelessWidget {
                       title: Text(messages?.subtitlesText ?? 'Subtitles',
                           style: styling?.settingItemTextStyle ??
                               const TextStyle(color: Colors.white)),
-                      trailing: Text(currentSubtitleTrack?.title ?? (messages?.offText ?? 'Off'),
+                      trailing: Text(
+                          currentSubtitleTrack?.title ??
+                              (messages?.offText ?? 'Off'),
                           style: TextStyle(
                               color:
                                   styling?.iconColor.withValues(alpha: 0.7) ??
@@ -761,14 +771,17 @@ class AdaptiveControlsLayer extends StatelessWidget {
                         if (subtitles != null && subtitles!.isNotEmpty) {
                           _showSubtitlesBottomSheet(context);
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  backgroundColor: styling?.settingsBackgroundColor ?? const Color(0xFF212121),
-                                  behavior: SnackBarBehavior.floating,
-                                  content: Text(
-                                    messages?.noSubtitlesAvailableText ?? 'No subtitles available',
-                                    style: styling?.settingItemTextStyle ?? const TextStyle(color: Colors.white),
-                                  )));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              backgroundColor:
+                                  styling?.settingsBackgroundColor ??
+                                      const Color(0xFF212121),
+                              behavior: SnackBarBehavior.floating,
+                              content: Text(
+                                messages?.noSubtitlesAvailableText ??
+                                    'No subtitles available',
+                                style: styling?.settingItemTextStyle ??
+                                    const TextStyle(color: Colors.white),
+                              )));
                         }
                       },
                     ),
