@@ -1,3 +1,18 @@
+## 1.3.2
+
+- **Feature (Localization):** Added customizable and localizable text labels in `PlayerTextConfig`:
+  - `qualityText`: Label for video resolution/quality selection menu (defaults to `'Quality (Resolution)'`).
+  - `autoText`: Label for automatic quality resolution (defaults to `'Auto'`).
+  - `subtitlesText`: Label for subtitles menu (defaults to `'Subtitles'`).
+  - `offText`: Label for disabled subtitles track (defaults to `'Off'`).
+  - `noQualitiesAvailableText`: SnackBar feedback message when no resolutions are available (defaults to `'No qualities available'`).
+  - `noSubtitlesAvailableText`: SnackBar feedback message when no subtitles are available (defaults to `'No subtitles available'`).
+- **Enhancement (UI/UX):**
+  - Refactored `AdaptiveControlsLayer` bottom bar with flexible and overflow-safe time layout (`Expanded`, `Flexible`, `FittedBox`), preventing render overflow issues on smaller mobile screens.
+  - Reduced control icon button constraints and optimized spacing for a cleaner and more compact player interface.
+  - Wrapped fullscreen video player view in explicit LTR directionality to prevent mirror layout bugs when playing videos inside RTL localized apps.
+  - Styled feedback SnackBars using player theme's `settingsBackgroundColor` and `settingItemTextStyle` with floating behavior.
+
 ## 1.3.1
 
 - **Maintenance:** Achieved full WebAssembly (WASM) compatibility on Flutter Web.

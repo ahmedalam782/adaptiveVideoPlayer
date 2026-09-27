@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'utils/video_player_web_safe.dart';
+import 'package:video_player/video_player.dart';
 import '../youtube_player/models/player_config.dart';
 import 'model/video_config.dart';
 import 'utils/subtitle_parser.dart';
@@ -18,6 +18,7 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
   final AdaptiveControlsBuilder? controlsBuilder;
   final SubtitleBuilder? subtitleBuilder;
   final PlayerStyleConfig? styling;
+  final PlayerTextConfig? messages;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final List<VideoQuality>? qualities;
@@ -40,6 +41,7 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
     this.controlsBuilder,
     this.subtitleBuilder,
     this.styling,
+    this.messages,
     this.onAnalyticsEvent,
     this.qualities,
     this.currentQuality,
@@ -176,27 +178,36 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        AspectRatio(
-          aspectRatio: widget.controller.value.aspectRatio,
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              VideoPlayer(widget.controller),
+    final videoContent = AspectRatio(
+      aspectRatio: widget.controller.value.aspectRatio,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          VideoPlayer(widget.controller),
 
-              // Built-in Subtitle/ClosedCaption overlay Layer
-              if (widget.subtitleBuilder != null)
-                ValueListenableBuilder(
-                  valueListenable: widget.controller,
-                  builder: (context, VideoPlayerValue value, child) {
-                    return widget.subtitleBuilder!(context, value.caption.text);
-                  },
-                ),
-            ],
-          ),
-        ),
+          // Built-in Subtitle/ClosedCaption overlay Layer
+          if (widget.subtitleBuilder != null)
+            ValueListenableBuilder(
+              valueListenable: widget.controller,
+              builder: (context, VideoPlayerValue value, child) {
+                return widget.subtitleBuilder!(context, value.caption.text);
+              },
+            ),
+        ],
+      ),
+    );
+
+    return Container(
+      color: Colors.black,
+      width: widget.isFullScreen ? double.infinity : null,
+      height: widget.isFullScreen ? double.infinity : null,
+      child: Stack(
+        fit: widget.isFullScreen ? StackFit.expand : StackFit.loose,
+        alignment: Alignment.center,
+        children: [
+          widget.isFullScreen
+              ? Center(child: videoContent)
+              : videoContent,
 
         // Buffering/Loading Indicator Overlay
         ValueListenableBuilder(
@@ -298,6 +309,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
                         controller: widget.controller,
                         isFullScreen: widget.isFullScreen,
                         styling: widget.styling,
+                        messages: widget.messages,
                         onAnalyticsEvent: widget.onAnalyticsEvent,
                         qualities: widget.qualities,
                         currentQuality: widget.currentQuality,
@@ -317,6 +329,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
             ),
           ),
       ],
+      ),
     );
   }
 }
@@ -325,6 +338,7 @@ class AdaptiveControlsLayer extends StatelessWidget {
   final VideoPlayerController controller;
   final bool isFullScreen;
   final PlayerStyleConfig? styling;
+  final PlayerTextConfig? messages;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final List<VideoQuality>? qualities;
@@ -346,6 +360,7 @@ class AdaptiveControlsLayer extends StatelessWidget {
     required this.controller,
     this.isFullScreen = false,
     this.styling,
+    this.messages,
     this.onAnalyticsEvent,
     this.qualities,
     this.currentQuality,
@@ -378,12 +393,18 @@ class AdaptiveControlsLayer extends StatelessWidget {
             alignment: Alignment.center,
             child: _buildCenterPlayPause(),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (!isLive) _buildProgressBar(context),
-              _buildBottomBar(context),
-            ],
+          SafeArea(
+            top: false,
+            bottom: isFullScreen,
+            left: isFullScreen,
+            right: isFullScreen,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (!isLive) _buildProgressBar(context),
+                _buildBottomBar(context),
+              ],
+            ),
           ),
         ],
       ),
@@ -472,19 +493,22 @@ class AdaptiveControlsLayer extends StatelessWidget {
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 trackHeight: isFullScreen ? 6.0 : 4.0, // Thicker in landscape
-                trackShape: const _GradientSliderTrackShape(
-                    gradient: LinearGradient(
-                  colors: [Color(0xFFFF007F), Color(0xFF00E5FF)],
-                )),
+                trackShape: _GradientSliderTrackShape(
+                  gradient: LinearGradient(
+                    colors: styling?.progressBarPlayedColor != null
+                        ? [styling!.progressBarPlayedColor, styling!.progressBarPlayedColor]
+                        : const [Color(0xFFFF007F), Color(0xFF00E5FF)],
+                  ),
+                ),
                 thumbShape: RoundSliderThumbShape(
                   enabledThumbRadius: isFullScreen ? 8.0 : 6.0,
                   elevation: 4.0,
                 ),
                 overlayShape:
                     const RoundSliderOverlayShape(overlayRadius: 14.0),
-                activeTrackColor: Colors.white, // Overridden by custom shape
+                activeTrackColor: styling?.progressBarPlayedColor ?? Colors.white,
                 inactiveTrackColor: Colors.white24,
-                thumbColor: Colors.white,
+                thumbColor: styling?.progressBarHandleColor ?? Colors.white,
               ),
               child: Slider(
                 min: 0,
@@ -503,32 +527,45 @@ class AdaptiveControlsLayer extends StatelessWidget {
 
   Widget _buildBottomBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 12.0),
+      padding: const EdgeInsets.only(left: 12.0, right: 12.0, bottom: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              _buildBottomPlayPause(),
-              _buildVolumeControl(),
-              const SizedBox(width: 8),
-              if (!isLive)
-                ValueListenableBuilder(
-                  valueListenable: controller,
-                  builder: (context, VideoPlayerValue value, child) {
-                    return Text(
-                      "${_formatDuration(value.position)} / ${_formatDuration(value.duration)}",
-                      style: styling?.timeTextStyle ??
-                          const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500),
-                    );
-                  },
-                ),
-            ],
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildBottomPlayPause(),
+                const SizedBox(width: 4),
+                _buildVolumeControl(),
+                const SizedBox(width: 8),
+                if (!isLive)
+                  Flexible(
+                    child: ValueListenableBuilder(
+                      valueListenable: controller,
+                      builder: (context, VideoPlayerValue value, child) {
+                        return FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "${_formatDuration(value.position)} / ${_formatDuration(value.duration)}",
+                            maxLines: 1,
+                            style: styling?.timeTextStyle ??
+                                const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               _buildSettingsButton(context),
               const SizedBox(width: 4),
@@ -546,10 +583,12 @@ class AdaptiveControlsLayer extends StatelessWidget {
       builder: (context, VideoPlayerValue value, _) {
         final isPlaying = value.isPlaying;
         return IconButton(
+          padding: const EdgeInsets.all(4.0),
+          constraints: const BoxConstraints(),
           icon: Icon(
             isPlaying ? Icons.pause : Icons.play_arrow,
             color: Colors.white,
-            size: 28,
+            size: 26,
           ),
           onPressed: () {
             isPlaying ? controller.pause() : controller.play();
@@ -565,10 +604,12 @@ class AdaptiveControlsLayer extends StatelessWidget {
       builder: (context, VideoPlayerValue value, _) {
         final isMuted = value.volume == 0;
         return IconButton(
+          padding: const EdgeInsets.all(4.0),
+          constraints: const BoxConstraints(),
           icon: Icon(
             isMuted ? Icons.volume_off : Icons.volume_up,
             color: Colors.white,
-            size: 26,
+            size: 24,
           ),
           onPressed: () {
             controller.setVolume(isMuted ? 1.0 : 0.0);
@@ -677,10 +718,10 @@ class AdaptiveControlsLayer extends StatelessWidget {
                     ListTile(
                       leading: Icon(Icons.hd,
                           color: styling?.iconColor ?? Colors.white),
-                      title: Text('Quality (Resolution)',
+                      title: Text(messages?.qualityText ?? 'Quality (Resolution)',
                           style: styling?.settingItemTextStyle ??
                               const TextStyle(color: Colors.white)),
-                      trailing: Text(currentQuality?.title ?? 'Auto',
+                      trailing: Text(currentQuality?.title ?? (messages?.autoText ?? 'Auto'),
                           style: TextStyle(
                               color:
                                   styling?.iconColor.withValues(alpha: 0.7) ??
@@ -693,18 +734,23 @@ class AdaptiveControlsLayer extends StatelessWidget {
                           _showQualitiesBottomSheet(context);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('No qualities available')));
+                              SnackBar(
+                                  backgroundColor: styling?.settingsBackgroundColor ?? const Color(0xFF212121),
+                                  behavior: SnackBarBehavior.floating,
+                                  content: Text(
+                                    messages?.noQualitiesAvailableText ?? 'No qualities available',
+                                    style: styling?.settingItemTextStyle ?? const TextStyle(color: Colors.white),
+                                  )));
                         }
                       },
                     ),
                     ListTile(
                       leading: Icon(Icons.closed_caption,
                           color: styling?.iconColor ?? Colors.white),
-                      title: Text('Subtitles',
+                      title: Text(messages?.subtitlesText ?? 'Subtitles',
                           style: styling?.settingItemTextStyle ??
                               const TextStyle(color: Colors.white)),
-                      trailing: Text(currentSubtitleTrack?.title ?? 'Off',
+                      trailing: Text(currentSubtitleTrack?.title ?? (messages?.offText ?? 'Off'),
                           style: TextStyle(
                               color:
                                   styling?.iconColor.withValues(alpha: 0.7) ??
@@ -716,8 +762,13 @@ class AdaptiveControlsLayer extends StatelessWidget {
                           _showSubtitlesBottomSheet(context);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('No subtitles available')));
+                              SnackBar(
+                                  backgroundColor: styling?.settingsBackgroundColor ?? const Color(0xFF212121),
+                                  behavior: SnackBarBehavior.floating,
+                                  content: Text(
+                                    messages?.noSubtitlesAvailableText ?? 'No subtitles available',
+                                    style: styling?.settingItemTextStyle ?? const TextStyle(color: Colors.white),
+                                  )));
                         }
                       },
                     ),
@@ -794,7 +845,7 @@ class AdaptiveControlsLayer extends StatelessWidget {
                 if (index == 0) {
                   // Off option
                   return ListTile(
-                    title: Text('Off',
+                    title: Text(messages?.offText ?? 'Off',
                         style: styling?.settingItemTextStyle ??
                             const TextStyle(color: Colors.white)),
                     trailing: currentSubtitleTrack == null
@@ -845,7 +896,7 @@ class AdaptiveControlsLayer extends StatelessWidget {
         child: Icon(
           isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
           color: styling?.iconColor ?? Colors.white,
-          size: 30
+          size: 18,
         ),
       ),
     );

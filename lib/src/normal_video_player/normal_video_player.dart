@@ -400,8 +400,11 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       builder: (context) {
         return Scaffold(
           backgroundColor: Colors.black,
-          body: Center(
-            child: _buildBasePlayer(isFullScreen: true),
+          body: Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox.expand(
+              child: _buildBasePlayer(isFullScreen: true),
+            ),
           ),
         );
       },
@@ -449,6 +452,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       controlsBuilder: widget.controlsBuilder,
       subtitleBuilder: widget.subtitleBuilder,
       styling: widget.styling,
+      messages: widget.messages,
       onAnalyticsEvent: widget.onAnalyticsEvent,
       qualities: widget.qualities,
       currentQuality: _currentQuality,

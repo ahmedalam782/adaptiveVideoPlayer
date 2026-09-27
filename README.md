@@ -326,16 +326,22 @@ AdaptiveVideoPlayer(
 
 #### PlayerTextConfig
 
-| Property                | Type     | Default                  |
-| ----------------------- | -------- | ------------------------ |
-| `invalidYoutubeUrlText` | `String` | `"Invalid YouTube URL"`  |
-| `videoLoadFailedText`   | `String` | `"Failed to load video"` |
-| `playerSettingsText`    | `String` | `"Player Settings"`      |
-| `autoPlayText`          | `String` | `"Auto Play"`            |
-| `loopVideoText`         | `String` | `"Loop Video"`           |
-| `forceHdQualityText`    | `String` | `"Force HD Quality"`     |
-| `enableCaptionsText`    | `String` | `"Enable Captions"`      |
-| `muteAudioText`         | `String` | `"Mute Audio"`           |
+| Property                   | Type     | Default                    | Description |
+| -------------------------- | -------- | -------------------------- | ----------- |
+| `invalidYoutubeUrlText`    | `String` | `"Invalid YouTube URL"`    | Error when YouTube URL is invalid |
+| `videoLoadFailedText`      | `String` | `"Failed to load video"`   | Error when video fails to load |
+| `playerSettingsText`       | `String` | `"Player Settings"`        | Settings sheet header title |
+| `autoPlayText`             | `String` | `"Auto Play"`              | Auto-play toggle label |
+| `loopVideoText`            | `String` | `"Loop Video"`             | Loop toggle label |
+| `forceHdQualityText`       | `String` | `"Force HD Quality"`       | Force HD toggle label |
+| `enableCaptionsText`       | `String` | `"Enable Captions"`        | Captions toggle label |
+| `muteAudioText`            | `String` | `"Mute Audio"`             | Mute toggle label |
+| `qualityText`              | `String` | `"Quality (Resolution)"`   | Quality selector menu title |
+| `autoText`                 | `String` | `"Auto"`                   | Automatic resolution option |
+| `subtitlesText`            | `String` | `"Subtitles"`              | Subtitles menu title |
+| `offText`                  | `String` | `"Off"`                    | Disabled subtitle option |
+| `noQualitiesAvailableText` | `String` | `"No qualities available"` | Notice when no resolutions exist |
+| `noSubtitlesAvailableText` | `String` | `"No subtitles available"` | Notice when no subtitles exist |
 
 #### PlayerVisibilityConfig
 

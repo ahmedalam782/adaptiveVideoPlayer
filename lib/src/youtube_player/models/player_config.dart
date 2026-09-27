@@ -145,6 +145,24 @@ class PlayerTextConfig {
   /// Text for mute audio setting
   final String muteAudioText;
 
+  /// Text when no video qualities are available
+  final String noQualitiesAvailableText;
+
+  /// Text when no subtitles are available
+  final String noSubtitlesAvailableText;
+
+  /// Text for quality setting title
+  final String qualityText;
+
+  /// Text for subtitles setting title
+  final String subtitlesText;
+
+  /// Text for auto quality
+  final String autoText;
+
+  /// Text for off subtitle
+  final String offText;
+
   const PlayerTextConfig({
     this.invalidYoutubeUrlText = 'Invalid YouTube URL',
     this.videoLoadFailedText = 'Failed to load video',
@@ -158,6 +176,12 @@ class PlayerTextConfig {
     this.forceHdQualityText = 'Force HD Quality',
     this.enableCaptionsText = 'Enable Captions',
     this.muteAudioText = 'Mute Audio',
+    this.noQualitiesAvailableText = 'No qualities available',
+    this.noSubtitlesAvailableText = 'No subtitles available',
+    this.qualityText = 'Quality (Resolution)',
+    this.subtitlesText = 'Subtitles',
+    this.autoText = 'Auto',
+    this.offText = 'Off',
   });
 
   /// Creates a copy with updated values
@@ -173,6 +197,12 @@ class PlayerTextConfig {
     String? forceHdQualityText,
     String? enableCaptionsText,
     String? muteAudioText,
+    String? noQualitiesAvailableText,
+    String? noSubtitlesAvailableText,
+    String? qualityText,
+    String? subtitlesText,
+    String? autoText,
+    String? offText,
   }) {
     return PlayerTextConfig(
       invalidYoutubeUrlText:
@@ -190,6 +220,14 @@ class PlayerTextConfig {
       forceHdQualityText: forceHdQualityText ?? this.forceHdQualityText,
       enableCaptionsText: enableCaptionsText ?? this.enableCaptionsText,
       muteAudioText: muteAudioText ?? this.muteAudioText,
+      noQualitiesAvailableText:
+          noQualitiesAvailableText ?? this.noQualitiesAvailableText,
+      noSubtitlesAvailableText:
+          noSubtitlesAvailableText ?? this.noSubtitlesAvailableText,
+      qualityText: qualityText ?? this.qualityText,
+      subtitlesText: subtitlesText ?? this.subtitlesText,
+      autoText: autoText ?? this.autoText,
+      offText: offText ?? this.offText,
     );
   }
 }

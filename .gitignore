@@ -43,6 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Root platform build directories
+/android/
+/ios/
+/linux/
+/macos/
+/windows/
+
 # Agent Assistant Skills & Context
 .antigravity/
 .gemini/
