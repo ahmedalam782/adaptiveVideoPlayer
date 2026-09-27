@@ -1,14 +1,28 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
 
 import 'youtube_player_state.dart';
 
 export 'youtube_player_state.dart';
 
-/// Cubit for managing YouTube player state
+/// Notifier for managing YouTube player state
 /// This provides a single source of truth for player state between
-/// normal and fullscreen modes
-class YoutubePlayerCubit extends Cubit<PlayerCubitState> {
-  YoutubePlayerCubit() : super(PlayerCubitState());
+/// normal and fullscreen modes using Flutter's built-in [ValueNotifier].
+class YoutubePlayerNotifier extends ValueNotifier<PlayerCubitState> {
+  YoutubePlayerNotifier([PlayerCubitState? initialState])
+      : super(initialState ?? const PlayerCubitState());
+
+  /// Current state getter
+  PlayerCubitState get state => value;
+
+  /// Emits a new state by updating [value]
+  void emit(PlayerCubitState newState) {
+    value = newState;
+  }
+
+  /// Disposes the notifier (alias for close)
+  void close() {
+    dispose();
+  }
 
   /// Update the current playback position
   void updatePosition(Duration position) {
@@ -148,3 +162,6 @@ class YoutubePlayerCubit extends Cubit<PlayerCubitState> {
     );
   }
 }
+
+/// Backwards compatibility alias for [YoutubePlayerNotifier]
+typedef YoutubePlayerCubit = YoutubePlayerNotifier;

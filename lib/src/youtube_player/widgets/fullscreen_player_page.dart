@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'youtube_controls_overlay.dart';
 import 'player_controls.dart';
@@ -369,9 +368,9 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
       );
     }
 
-    return BlocBuilder<YoutubePlayerCubit, PlayerCubitState>(
-      bloc: _cubit,
-      builder: (context, state) {
+    return ValueListenableBuilder<PlayerCubitState>(
+      valueListenable: _cubit,
+      builder: (context, state, _) {
         return Scaffold(
             backgroundColor: Colors.black,
             body: Directionality(

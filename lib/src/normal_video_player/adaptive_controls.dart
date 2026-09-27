@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'utils/video_player_web_safe.dart';
 import '../youtube_player/models/player_config.dart';
 import 'model/video_config.dart';
@@ -65,6 +66,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
   bool _controlsVisible = true;
   int _seekDirection = 0; // -1 for backward, 1 for forward, 0 for none
   Timer? _hideTimer;
+  final FocusNode _focusNode = FocusNode();
+  double? _feedbackVolume;
+  Timer? _volumeFeedbackTimer;
 
   @override
   void initState() {
@@ -73,8 +77,12 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
 
     // Add listener to fire events
     widget.controller.addListener(_videoListener);
-    widget.onAnalyticsEvent?.call('video_initialized',
-        {'duration': widget.controller.value.duration.inSeconds});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.onAnalyticsEvent?.call('video_initialized',
+            {'duration': widget.controller.value.duration.inSeconds});
+      }
+    });
   }
 
   bool _videoEndedEventSent = false;
@@ -121,7 +129,98 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
   @override
   void dispose() {
     _hideTimer?.cancel();
+    _volumeFeedbackTimer?.cancel();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _triggerSeekFeedback(int direction) {
+    if (!mounted) return;
+    setState(() => _seekDirection = direction);
+    _startHideTimer();
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) setState(() => _seekDirection = 0);
+    });
+  }
+
+  void _showVolumeFeedback(double volume) {
+    _volumeFeedbackTimer?.cancel();
+    setState(() {
+      _feedbackVolume = volume;
+    });
+    _volumeFeedbackTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => _feedbackVolume = null);
+    });
+  }
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.space || key == LogicalKeyboardKey.keyK) {
+      final isPlaying = widget.controller.value.isPlaying;
+      if (isPlaying) {
+        widget.controller.pause();
+        widget.onAnalyticsEvent?.call('video_paused',
+            {'position': widget.controller.value.position.inSeconds});
+      } else {
+        widget.controller.play();
+        widget.onAnalyticsEvent?.call('video_played',
+            {'position': widget.controller.value.position.inSeconds});
+      }
+      setState(() => _controlsVisible = true);
+      _startHideTimer();
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.arrowLeft ||
+        key == LogicalKeyboardKey.keyJ) {
+      if (!widget.isLive) {
+        final currentPos = widget.controller.value.position;
+        final newPos = currentPos - const Duration(seconds: 10);
+        widget.controller
+            .seekTo(newPos.isNegative ? Duration.zero : newPos);
+        _triggerSeekFeedback(-1);
+      }
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.arrowRight ||
+        key == LogicalKeyboardKey.keyL) {
+      if (!widget.isLive) {
+        final currentPos = widget.controller.value.position;
+        final duration = widget.controller.value.duration;
+        final newPos = currentPos + const Duration(seconds: 10);
+        widget.controller
+            .seekTo(newPos > duration ? duration : newPos);
+        _triggerSeekFeedback(1);
+      }
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.arrowUp) {
+      final newVol = (widget.controller.value.volume + 0.1).clamp(0.0, 1.0);
+      widget.controller.setVolume(newVol);
+      _showVolumeFeedback(newVol);
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.arrowDown) {
+      final newVol = (widget.controller.value.volume - 0.1).clamp(0.0, 1.0);
+      widget.controller.setVolume(newVol);
+      _showVolumeFeedback(newVol);
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.keyM) {
+      final isMuted = widget.controller.value.volume == 0;
+      final newVol = isMuted ? 1.0 : 0.0;
+      widget.controller.setVolume(newVol);
+      _showVolumeFeedback(newVol);
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.keyF) {
+      if (widget.isFullScreen) {
+        widget.onExitFullscreen?.call();
+      } else {
+        widget.onEnterFullscreen?.call();
+      }
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.escape && widget.isFullScreen) {
+      widget.onExitFullscreen?.call();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 
   void _startHideTimer() {
@@ -197,7 +296,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
       ),
     );
 
-    return Container(
+    final playerContent = Container(
       color: Colors.black,
       width: widget.isFullScreen ? double.infinity : null,
       height: widget.isFullScreen ? double.infinity : null,
@@ -261,6 +360,71 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
               ),
             ),
 
+          // Sleek Volume HUD Feedback Overlay (Positioned at top to avoid center play button)
+          if (_feedbackVolume != null)
+            Positioned(
+              top: widget.isFullScreen ? 28 : 16,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white24, width: 1),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black45,
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _feedbackVolume == 0
+                              ? Icons.volume_off_rounded
+                              : _feedbackVolume! < 0.5
+                                  ? Icons.volume_down_rounded
+                                  : Icons.volume_up_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        SizedBox(
+                          width: 80,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: LinearProgressIndicator(
+                              value: _feedbackVolume,
+                              backgroundColor: Colors.white24,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Colors.white),
+                              minHeight: 5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${(_feedbackVolume! * 100).toInt()}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           if (_currentSubtitleText.isNotEmpty)
             Positioned(
               left: 20,
@@ -295,7 +459,11 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
           if (widget.showControls)
             Positioned.fill(
               child: GestureDetector(
-                onTap: _toggleControls,
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  _focusNode.requestFocus();
+                  _toggleControls();
+                },
                 onDoubleTapDown: _handleDoubleTap,
                 child: AnimatedOpacity(
                   opacity: _controlsVisible ? 1 : 0,
@@ -329,10 +497,27 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
         ],
       ),
     );
+
+    return Focus(
+      focusNode: _focusNode,
+      onKeyEvent: _handleKeyEvent,
+      child: MouseRegion(
+        cursor: _controlsVisible
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.none,
+        onHover: (_) {
+          _startHideTimer();
+          if (!_controlsVisible) {
+            setState(() => _controlsVisible = true);
+          }
+        },
+        child: playerContent,
+      ),
+    );
   }
 }
 
-class AdaptiveControlsLayer extends StatelessWidget {
+class AdaptiveControlsLayer extends StatefulWidget {
   final VideoPlayerController controller;
   final bool isFullScreen;
   final PlayerStyleConfig? styling;
@@ -376,6 +561,15 @@ class AdaptiveControlsLayer extends StatelessWidget {
   });
 
   @override
+  State<AdaptiveControlsLayer> createState() => _AdaptiveControlsLayerState();
+}
+
+class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
+  double? _dragPosition;
+  bool _isVolumeHovered = false;
+  double _lastNonZeroVolume = 1.0;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.black.withValues(alpha: 0.3),
@@ -393,13 +587,13 @@ class AdaptiveControlsLayer extends StatelessWidget {
           ),
           SafeArea(
             top: false,
-            bottom: isFullScreen,
-            left: isFullScreen,
-            right: isFullScreen,
+            bottom: widget.isFullScreen,
+            left: widget.isFullScreen,
+            right: widget.isFullScreen,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (!isLive) _buildProgressBar(context),
+                if (!widget.isLive) _buildProgressBar(context),
                 _buildBottomBar(context),
               ],
             ),
@@ -414,7 +608,7 @@ class AdaptiveControlsLayer extends StatelessWidget {
       children: [
         _buildLiveIndicator(),
         const SizedBox(width: 8),
-        if (viewerCount != null)
+        if (widget.viewerCount != null)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
@@ -426,7 +620,7 @@ class AdaptiveControlsLayer extends StatelessWidget {
               children: [
                 const Icon(Icons.person, color: Colors.white, size: 14),
                 const SizedBox(width: 6),
-                Text(viewerCount!,
+                Text(widget.viewerCount!,
                     style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -440,26 +634,37 @@ class AdaptiveControlsLayer extends StatelessWidget {
 
   Widget _buildCenterPlayPause() {
     return ValueListenableBuilder(
-      valueListenable: controller,
+      valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, _) {
         final isPlaying = value.isPlaying;
-        return IconButton(
-          iconSize: isFullScreen ? 80 : 64, // Bigger in landscape
-          icon: Icon(
-            isPlaying ? null : Icons.play_arrow,
-            color: styling?.iconColor ?? Colors.white.withValues(alpha: 0.9),
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: () {
+              if (isPlaying) {
+                widget.controller.pause();
+                widget.onAnalyticsEvent?.call(
+                    'video_paused', {'position': value.position.inSeconds});
+              } else {
+                widget.controller.play();
+                widget.onAnalyticsEvent?.call(
+                    'video_played', {'position': value.position.inSeconds});
+              }
+            },
+            child: Container(
+              padding: EdgeInsets.all(widget.isFullScreen ? 18 : 14),
+              decoration: const BoxDecoration(
+                color: Colors.black54,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: widget.styling?.iconColor ?? Colors.white,
+                size: widget.isFullScreen ? 54 : 42,
+              ),
+            ),
           ),
-          onPressed: () {
-            if (isPlaying) {
-              controller.pause();
-              onAnalyticsEvent?.call(
-                  'video_paused', {'position': value.position.inSeconds});
-            } else {
-              controller.play();
-              onAnalyticsEvent?.call(
-                  'video_played', {'position': value.position.inSeconds});
-            }
-          },
         );
       },
     );
@@ -467,62 +672,74 @@ class AdaptiveControlsLayer extends StatelessWidget {
 
   Widget _buildProgressBar(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: controller,
+      valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, _) {
         final duration = value.duration.inSeconds.toDouble();
-        final position = value.position.inSeconds
+        final actualPos = value.position.inSeconds
             .clamp(0, value.duration.inSeconds)
             .toDouble();
+        final displayPos = _dragPosition ?? actualPos;
+        final sliderMax = duration > 0 ? duration : 1.0;
 
         return Stack(
-          alignment: Alignment.centerLeft,
-          children: [
-            // Buffer indicator layer
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: CustomPaint(
-                  painter: _BufferPainter(value.buffered, value.duration),
-                ),
-              ),
-            ),
-
-            // Pro Gradient Slider
-            SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: isFullScreen ? 6.0 : 4.0, // Thicker in landscape
-                trackShape: _GradientSliderTrackShape(
-                  gradient: LinearGradient(
-                    colors: styling?.progressBarPlayedColor != null
-                        ? [
-                            styling!.progressBarPlayedColor,
-                            styling!.progressBarPlayedColor
-                          ]
-                        : const [Color(0xFFFF007F), Color(0xFF00E5FF)],
+            alignment: Alignment.centerLeft,
+            children: [
+              // Buffer indicator layer
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: CustomPaint(
+                    painter: _BufferPainter(value.buffered, value.duration),
                   ),
                 ),
-                thumbShape: RoundSliderThumbShape(
-                  enabledThumbRadius: isFullScreen ? 8.0 : 6.0,
-                  elevation: 4.0,
+              ),
+
+              // Pro Gradient Slider
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight:
+                      widget.isFullScreen ? 6.0 : 4.0, // Thicker in landscape
+                  trackShape: _GradientSliderTrackShape(
+                    gradient: LinearGradient(
+                      colors: widget.styling?.progressBarPlayedColor != null
+                          ? [
+                              widget.styling!.progressBarPlayedColor,
+                              widget.styling!.progressBarPlayedColor
+                            ]
+                          : const [Color(0xFFFF007F), Color(0xFF00E5FF)],
+                    ),
+                  ),
+                  thumbShape: RoundSliderThumbShape(
+                    enabledThumbRadius: widget.isFullScreen ? 8.0 : 6.0,
+                    elevation: 4.0,
+                  ),
+                  overlayShape:
+                      const RoundSliderOverlayShape(overlayRadius: 14.0),
+                  activeTrackColor:
+                      widget.styling?.progressBarPlayedColor ?? Colors.white,
+                  inactiveTrackColor: Colors.white24,
+                  thumbColor:
+                      widget.styling?.progressBarHandleColor ?? Colors.white,
                 ),
-                overlayShape:
-                    const RoundSliderOverlayShape(overlayRadius: 14.0),
-                activeTrackColor:
-                    styling?.progressBarPlayedColor ?? Colors.white,
-                inactiveTrackColor: Colors.white24,
-                thumbColor: styling?.progressBarHandleColor ?? Colors.white,
+                child: Slider(
+                  min: 0,
+                  max: sliderMax,
+                  value: displayPos.clamp(0.0, sliderMax),
+                  onChangeStart: (seconds) {
+                    setState(() => _dragPosition = seconds);
+                  },
+                  onChanged: (seconds) {
+                    setState(() => _dragPosition = seconds);
+                  },
+                  onChangeEnd: (seconds) {
+                    widget.controller
+                        .seekTo(Duration(seconds: seconds.toInt()));
+                    setState(() => _dragPosition = null);
+                  },
+                ),
               ),
-              child: Slider(
-                min: 0,
-                max: duration > 0 ? duration : 1,
-                value: position,
-                onChanged: (seconds) {
-                  controller.seekTo(Duration(seconds: seconds.toInt()));
-                },
-              ),
-            ),
-          ],
-        );
+            ],
+          );
       },
     );
   }
@@ -541,18 +758,21 @@ class AdaptiveControlsLayer extends StatelessWidget {
                 const SizedBox(width: 4),
                 _buildVolumeControl(),
                 const SizedBox(width: 8),
-                if (!isLive)
+                if (!widget.isLive)
                   Flexible(
                     child: ValueListenableBuilder(
-                      valueListenable: controller,
+                      valueListenable: widget.controller,
                       builder: (context, VideoPlayerValue value, child) {
+                        final currentDuration = _dragPosition != null
+                            ? Duration(seconds: _dragPosition!.toInt())
+                            : value.position;
                         return FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "${_formatDuration(value.position)} / ${_formatDuration(value.duration)}",
+                            "${_formatDuration(currentDuration)} / ${_formatDuration(value.duration)}",
                             maxLines: 1,
-                            style: styling?.timeTextStyle ??
+                            style: widget.styling?.timeTextStyle ??
                                 const TextStyle(
                                     color: Colors.white,
                                     fontSize: 13,
@@ -581,7 +801,7 @@ class AdaptiveControlsLayer extends StatelessWidget {
 
   Widget _buildBottomPlayPause() {
     return ValueListenableBuilder(
-      valueListenable: controller,
+      valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, _) {
         final isPlaying = value.isPlaying;
         return IconButton(
@@ -593,7 +813,7 @@ class AdaptiveControlsLayer extends StatelessWidget {
             size: 26,
           ),
           onPressed: () {
-            isPlaying ? controller.pause() : controller.play();
+            isPlaying ? widget.controller.pause() : widget.controller.play();
           },
         );
       },
@@ -602,27 +822,84 @@ class AdaptiveControlsLayer extends StatelessWidget {
 
   Widget _buildVolumeControl() {
     return ValueListenableBuilder(
-      valueListenable: controller,
+      valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, _) {
-        final isMuted = value.volume == 0;
-        return IconButton(
-          padding: const EdgeInsets.all(4.0),
-          constraints: const BoxConstraints(),
-          icon: Icon(
-            isMuted ? Icons.volume_off : Icons.volume_up,
-            color: Colors.white,
-            size: 24,
-          ),
-          onPressed: () {
-            controller.setVolume(isMuted ? 1.0 : 0.0);
-          },
+        final currentVol = value.volume;
+        final isMuted = currentVol == 0;
+        final icon = isMuted
+            ? Icons.volume_off_rounded
+            : (currentVol < 0.5
+                ? Icons.volume_down_rounded
+                : Icons.volume_up_rounded);
+
+        return MouseRegion(
+          onEnter: (_) => setState(() => _isVolumeHovered = true),
+          onExit: (_) => setState(() => _isVolumeHovered = false),
+          child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  padding: const EdgeInsets.all(4.0),
+                  constraints: const BoxConstraints(),
+                  icon: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  onPressed: () {
+                    if (currentVol > 0) {
+                      _lastNonZeroVolume = currentVol;
+                      widget.controller.setVolume(0.0);
+                    } else {
+                      widget.controller.setVolume(
+                          _lastNonZeroVolume > 0 ? _lastNonZeroVolume : 1.0);
+                    }
+                  },
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutCubic,
+                  width: _isVolumeHovered ? 72 : 0,
+                  height: 24,
+                  clipBehavior: Clip.hardEdge,
+                  decoration: const BoxDecoration(),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 150),
+                    opacity: _isVolumeHovered ? 1.0 : 0.0,
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 3.0,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 5.0,
+                          elevation: 2.0,
+                        ),
+                        overlayShape:
+                            const RoundSliderOverlayShape(overlayRadius: 8.0),
+                        activeTrackColor: Colors.white,
+                        inactiveTrackColor: Colors.white30,
+                        thumbColor: Colors.white,
+                      ),
+                      child: Slider(
+                        value: currentVol.clamp(0.0, 1.0),
+                        min: 0.0,
+                        max: 1.0,
+                        onChanged: (newVol) {
+                          if (newVol > 0) _lastNonZeroVolume = newVol;
+                          widget.controller.setVolume(newVol);
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
         );
       },
     );
   }
 
   Widget _buildLiveIndicator() {
-    if (isLive) {
+    if (widget.isLive) {
       // Currently live: show red badge
       return Container(
         margin: const EdgeInsets.only(right: 8),
@@ -653,12 +930,12 @@ class AdaptiveControlsLayer extends StatelessWidget {
       );
     } else {
       // Not live, but check if there's a live quality available to switch to
-      final liveQuality = qualities?.where((q) => q.isLive).firstOrNull;
+      final liveQuality = widget.qualities?.where((q) => q.isLive).firstOrNull;
       if (liveQuality != null) {
         return GestureDetector(
           onTap: () {
-            onAnalyticsEvent?.call('switched_to_live', {});
-            onQualitySelected?.call(liveQuality);
+            widget.onAnalyticsEvent?.call('switched_to_live', {});
+            widget.onQualitySelected?.call(liveQuality);
           },
           child: Container(
             margin: const EdgeInsets.only(right: 8),
@@ -702,92 +979,26 @@ class AdaptiveControlsLayer extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        onAnalyticsEvent?.call('settings_opened', {});
+        widget.onAnalyticsEvent?.call('settings_opened', {});
         showModalBottomSheet(
           context: context,
-          backgroundColor:
-              styling?.settingsBackgroundColor ?? const Color(0xFF212121),
+          useRootNavigator: true,
+          backgroundColor: widget.styling?.settingsBackgroundColor ??
+              const Color(0xFF212121),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
-          builder: (context) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ListTile(
-                      leading: Icon(Icons.hd,
-                          color: styling?.iconColor ?? Colors.white),
-                      title: Text(
-                          messages?.qualityText ?? 'Quality (Resolution)',
-                          style: styling?.settingItemTextStyle ??
-                              const TextStyle(color: Colors.white)),
-                      trailing: Text(
-                          currentQuality?.title ??
-                              (messages?.autoText ?? 'Auto'),
-                          style: TextStyle(
-                              color:
-                                  styling?.iconColor.withValues(alpha: 0.7) ??
-                                      Colors.white70)),
-                      onTap: () {
-                        Navigator.pop(context);
-                        onAnalyticsEvent
-                            ?.call('resolution_settings_clicked', {});
-                        if (qualities != null && qualities!.isNotEmpty) {
-                          _showQualitiesBottomSheet(context);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor:
-                                  styling?.settingsBackgroundColor ??
-                                      const Color(0xFF212121),
-                              behavior: SnackBarBehavior.floating,
-                              content: Text(
-                                messages?.noQualitiesAvailableText ??
-                                    'No qualities available',
-                                style: styling?.settingItemTextStyle ??
-                                    const TextStyle(color: Colors.white),
-                              )));
-                        }
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.closed_caption,
-                          color: styling?.iconColor ?? Colors.white),
-                      title: Text(messages?.subtitlesText ?? 'Subtitles',
-                          style: styling?.settingItemTextStyle ??
-                              const TextStyle(color: Colors.white)),
-                      trailing: Text(
-                          currentSubtitleTrack?.title ??
-                              (messages?.offText ?? 'Off'),
-                          style: TextStyle(
-                              color:
-                                  styling?.iconColor.withValues(alpha: 0.7) ??
-                                      Colors.white70)),
-                      onTap: () {
-                        Navigator.pop(context);
-                        onAnalyticsEvent?.call('subtitle_settings_clicked', {});
-                        if (subtitles != null && subtitles!.isNotEmpty) {
-                          _showSubtitlesBottomSheet(context);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              backgroundColor:
-                                  styling?.settingsBackgroundColor ??
-                                      const Color(0xFF212121),
-                              behavior: SnackBarBehavior.floating,
-                              content: Text(
-                                messages?.noSubtitlesAvailableText ??
-                                    'No subtitles available',
-                                style: styling?.settingItemTextStyle ??
-                                    const TextStyle(color: Colors.white),
-                              )));
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
+          builder: (sheetContext) {
+            return _AdaptivePlayerSettingsSheet(
+              styling: widget.styling,
+              messages: widget.messages,
+              qualities: widget.qualities,
+              currentQuality: widget.currentQuality,
+              onQualitySelected: widget.onQualitySelected,
+              subtitles: widget.subtitles,
+              currentSubtitleTrack: widget.currentSubtitleTrack,
+              onSubtitleSelected: widget.onSubtitleSelected,
+              onAnalyticsEvent: widget.onAnalyticsEvent,
             );
           },
         );
@@ -795,102 +1006,8 @@ class AdaptiveControlsLayer extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(6.0),
         child: Icon(Icons.settings,
-            color: styling?.iconColor ?? Colors.white, size: 18),
+            color: widget.styling?.iconColor ?? Colors.white, size: 18),
       ),
-    );
-  }
-
-  void _showQualitiesBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor:
-          styling?.settingsBackgroundColor ?? const Color(0xFF212121),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: qualities!.length,
-              itemBuilder: (context, index) {
-                final quality = qualities![index];
-                final isSelected = currentQuality == quality;
-                return ListTile(
-                  title: Text(quality.title,
-                      style: styling?.settingItemTextStyle ??
-                          const TextStyle(color: Colors.white)),
-                  trailing: isSelected
-                      ? Icon(Icons.check,
-                          color: styling?.iconColor ?? Colors.white)
-                      : null,
-                  onTap: () {
-                    Navigator.pop(context);
-                    onQualitySelected?.call(quality);
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showSubtitlesBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor:
-          styling?.settingsBackgroundColor ?? const Color(0xFF212121),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: subtitles!.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  // Off option
-                  return ListTile(
-                    title: Text(messages?.offText ?? 'Off',
-                        style: styling?.settingItemTextStyle ??
-                            const TextStyle(color: Colors.white)),
-                    trailing: currentSubtitleTrack == null
-                        ? Icon(Icons.check,
-                            color: styling?.iconColor ?? Colors.white)
-                        : null,
-                    onTap: () {
-                      Navigator.pop(context);
-                      onSubtitleSelected?.call(null);
-                    },
-                  );
-                }
-                final track = subtitles![index - 1];
-                final isSelected = currentSubtitleTrack == track;
-                return ListTile(
-                  title: Text(track.title,
-                      style: styling?.settingItemTextStyle ??
-                          const TextStyle(color: Colors.white)),
-                  trailing: isSelected
-                      ? Icon(Icons.check,
-                          color: styling?.iconColor ?? Colors.white)
-                      : null,
-                  onTap: () {
-                    Navigator.pop(context);
-                    onSubtitleSelected?.call(track);
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -898,19 +1015,296 @@ class AdaptiveControlsLayer extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        if (isFullScreen) {
-          onExitFullscreen?.call();
+        if (widget.isFullScreen) {
+          widget.onExitFullscreen?.call();
         } else {
-          onEnterFullscreen?.call();
+          widget.onEnterFullscreen?.call();
         }
       },
       child: Padding(
         padding: const EdgeInsets.all(6.0),
         child: Icon(
-          isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
-          color: styling?.iconColor ?? Colors.white,
+          widget.isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+          color: widget.styling?.iconColor ?? Colors.white,
           size: 18,
         ),
+      ),
+    );
+  }
+}
+
+enum _SettingsPage { main, qualities, subtitles }
+
+class _AdaptivePlayerSettingsSheet extends StatefulWidget {
+  final PlayerStyleConfig? styling;
+  final PlayerTextConfig? messages;
+  final List<VideoQuality>? qualities;
+  final VideoQuality? currentQuality;
+  final void Function(VideoQuality)? onQualitySelected;
+  final List<SubtitleTrack>? subtitles;
+  final SubtitleTrack? currentSubtitleTrack;
+  final void Function(SubtitleTrack?)? onSubtitleSelected;
+  final void Function(String event, Map<String, dynamic> data)?
+      onAnalyticsEvent;
+
+  const _AdaptivePlayerSettingsSheet({
+    this.styling,
+    this.messages,
+    this.qualities,
+    this.currentQuality,
+    this.onQualitySelected,
+    this.subtitles,
+    this.currentSubtitleTrack,
+    this.onSubtitleSelected,
+    this.onAnalyticsEvent,
+  });
+
+  @override
+  State<_AdaptivePlayerSettingsSheet> createState() =>
+      _AdaptivePlayerSettingsSheetState();
+}
+
+class _AdaptivePlayerSettingsSheetState
+    extends State<_AdaptivePlayerSettingsSheet> {
+  _SettingsPage _currentPage = _SettingsPage.main;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: _buildCurrentPage(context),
+      ),
+    );
+  }
+
+  Widget _buildCurrentPage(BuildContext context) {
+    switch (_currentPage) {
+      case _SettingsPage.main:
+        return _buildMainMenu(context);
+      case _SettingsPage.qualities:
+        return _buildQualitiesMenu(context);
+      case _SettingsPage.subtitles:
+        return _buildSubtitlesMenu(context);
+    }
+  }
+
+  Widget _buildMainMenu(BuildContext context) {
+    return Padding(
+      key: const ValueKey('main_menu'),
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.hd,
+                color: widget.styling?.iconColor ?? Colors.white),
+            title: Text(
+                widget.messages?.qualityText ?? 'Quality (Resolution)',
+                style: widget.styling?.settingItemTextStyle ??
+                    const TextStyle(color: Colors.white)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.currentQuality?.title ??
+                      (widget.messages?.autoText ?? 'Auto'),
+                  style: TextStyle(
+                    color: widget.styling?.iconColor.withValues(alpha: 0.7) ??
+                        Colors.white70,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.chevron_right,
+                    color: widget.styling?.iconColor.withValues(alpha: 0.7) ??
+                        Colors.white70,
+                    size: 20),
+              ],
+            ),
+            onTap: () {
+              widget.onAnalyticsEvent?.call('resolution_settings_clicked', {});
+              if (widget.qualities != null && widget.qualities!.isNotEmpty) {
+                setState(() => _currentPage = _SettingsPage.qualities);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: widget.styling?.settingsBackgroundColor ??
+                      const Color(0xFF212121),
+                  behavior: SnackBarBehavior.floating,
+                  content: Text(
+                    widget.messages?.noQualitiesAvailableText ??
+                        'No qualities available',
+                    style: widget.styling?.settingItemTextStyle ??
+                        const TextStyle(color: Colors.white),
+                  ),
+                ));
+              }
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.closed_caption,
+                color: widget.styling?.iconColor ?? Colors.white),
+            title: Text(widget.messages?.subtitlesText ?? 'Subtitles',
+                style: widget.styling?.settingItemTextStyle ??
+                    const TextStyle(color: Colors.white)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.currentSubtitleTrack?.title ??
+                      (widget.messages?.offText ?? 'Off'),
+                  style: TextStyle(
+                    color: widget.styling?.iconColor.withValues(alpha: 0.7) ??
+                        Colors.white70,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.chevron_right,
+                    color: widget.styling?.iconColor.withValues(alpha: 0.7) ??
+                        Colors.white70,
+                    size: 20),
+              ],
+            ),
+            onTap: () {
+              widget.onAnalyticsEvent?.call('subtitle_settings_clicked', {});
+              if (widget.subtitles != null && widget.subtitles!.isNotEmpty) {
+                setState(() => _currentPage = _SettingsPage.subtitles);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: widget.styling?.settingsBackgroundColor ??
+                      const Color(0xFF212121),
+                  behavior: SnackBarBehavior.floating,
+                  content: Text(
+                    widget.messages?.noSubtitlesAvailableText ??
+                        'No subtitles available',
+                    style: widget.styling?.settingItemTextStyle ??
+                        const TextStyle(color: Colors.white),
+                  ),
+                ));
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQualitiesMenu(BuildContext context) {
+    return Padding(
+      key: const ValueKey('qualities_menu'),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back,
+                  color: widget.styling?.iconColor ?? Colors.white),
+              onPressed: () =>
+                  setState(() => _currentPage = _SettingsPage.main),
+            ),
+            title: Text(
+              widget.messages?.qualityText ?? 'Quality (Resolution)',
+              style: widget.styling?.settingItemTextStyle?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ) ??
+                  const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const Divider(color: Colors.white24, height: 1),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: widget.qualities?.length ?? 0,
+              itemBuilder: (context, index) {
+                final quality = widget.qualities![index];
+                final isSelected = widget.currentQuality == quality;
+                return ListTile(
+                  title: Text(quality.title,
+                      style: widget.styling?.settingItemTextStyle ??
+                          const TextStyle(color: Colors.white)),
+                  trailing: isSelected
+                      ? Icon(Icons.check,
+                          color: widget.styling?.iconColor ?? Colors.white)
+                      : null,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    widget.onQualitySelected?.call(quality);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubtitlesMenu(BuildContext context) {
+    final subtitlesCount = (widget.subtitles?.length ?? 0) + 1;
+    return Padding(
+      key: const ValueKey('subtitles_menu'),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back,
+                  color: widget.styling?.iconColor ?? Colors.white),
+              onPressed: () =>
+                  setState(() => _currentPage = _SettingsPage.main),
+            ),
+            title: Text(
+              widget.messages?.subtitlesText ?? 'Subtitles',
+              style: widget.styling?.settingItemTextStyle?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ) ??
+                  const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const Divider(color: Colors.white24, height: 1),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: subtitlesCount,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  final isSelected = widget.currentSubtitleTrack == null;
+                  return ListTile(
+                    title: Text(widget.messages?.offText ?? 'Off',
+                        style: widget.styling?.settingItemTextStyle ??
+                            const TextStyle(color: Colors.white)),
+                    trailing: isSelected
+                        ? Icon(Icons.check,
+                            color: widget.styling?.iconColor ?? Colors.white)
+                        : null,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      widget.onSubtitleSelected?.call(null);
+                    },
+                  );
+                }
+                final track = widget.subtitles![index - 1];
+                final isSelected = widget.currentSubtitleTrack == track;
+                return ListTile(
+                  title: Text(track.title,
+                      style: widget.styling?.settingItemTextStyle ??
+                          const TextStyle(color: Colors.white)),
+                  trailing: isSelected
+                      ? Icon(Icons.check,
+                          color: widget.styling?.iconColor ?? Colors.white)
+                      : null,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    widget.onSubtitleSelected?.call(track);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

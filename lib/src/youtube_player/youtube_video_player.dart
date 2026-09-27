@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'widgets/youtube_controls_overlay.dart';
 
@@ -14,6 +13,7 @@ import 'models/player_config.dart';
 import 'cubit/youtube_player_cubit.dart';
 import 'widgets/player_controls.dart';
 import 'widgets/youtube_webview_player_export.dart';
+import '../normal_video_player/utils/fullscreen_utils_export.dart';
 
 /// A widget for playing YouTube videos with full YouTube controls
 /// Similar to native YouTube app with speed, quality, captions, etc.
@@ -394,6 +394,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     });
 
     overlay.insert(_desktopFullscreenOverlay!);
+    enterBrowserFullscreen();
 
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     await SystemChrome.setPreferredOrientations([
@@ -406,6 +407,8 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
 
   void _closeDesktopFullscreen() async {
     if (!_isInFullscreen || _desktopFullscreenOverlay == null) return;
+
+    exitBrowserFullscreen();
 
     // Immediately remove overlay to free the GlobalKey for the inline placement
     _desktopFullscreenOverlay?.remove();
@@ -644,9 +647,9 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
       );
     }
 
-    return BlocBuilder<YoutubePlayerCubit, PlayerCubitState>(
-      bloc: _cubit,
-      builder: (context, state) {
+    return ValueListenableBuilder<PlayerCubitState>(
+      valueListenable: _cubit,
+      builder: (context, state, _) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: AspectRatio(
@@ -728,28 +731,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                         ),
                       ),
                     ),
-                  // Back button (Web & Desktop / WebView)
-                  if ((kIsWeb || _useDesktopPlayer) &&
-                      Navigator.canPop(context))
-                    Positioned(
-                      top: 24,
-                      left: 16,
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.6),
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    ),
+
                 ],
               ),
             ),

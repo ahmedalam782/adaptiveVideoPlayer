@@ -9,6 +9,7 @@ import '../youtube_player/models/player_config.dart';
 import 'adaptive_controls.dart';
 import 'model/video_config.dart';
 import 'utils/file_utils_export.dart';
+import 'utils/fullscreen_utils_export.dart';
 import 'utils/subtitle_parser.dart';
 
 class NormalVideoPlayer extends StatefulWidget {
@@ -106,6 +107,11 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     _useFileController = widget.isFile && !_hasInMemoryData;
     _initializeVideo();
     _loadSubtitleTrack();
+    listenToFullscreenChange((isFullscreen) {
+      if (!isFullscreen && _isInFullscreen && mounted) {
+        _closeFullscreen();
+      }
+    });
   }
 
   Future<void> _loadSubtitleTrack() async {
@@ -291,7 +297,10 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
           if (e is PlatformException) {
             final errorMsg = e.message ?? e.toString();
             if (errorMsg.contains('MediaCodec') ||
-                errorMsg.contains('ExoPlaybackException')) {
+                errorMsg.contains('ExoPlaybackException') ||
+                errorMsg.contains('MEDIA_ERR_SRC_NOT_SUPPORTED') ||
+                errorMsg.contains('DEMUXER_ERROR') ||
+                errorMsg.contains('not supported')) {
               _errorMessage = widget.messages?.videoNotCompatibleText ??
                   'Video Not Compatible';
             } else {
@@ -415,6 +424,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     });
 
     Overlay.of(context).insert(_fullscreenOverlay!);
+    enterBrowserFullscreen();
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
@@ -434,6 +444,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     setState(() {
       _isInFullscreen = false;
     });
+
+    exitBrowserFullscreen();
 
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     await SystemChrome.setEnabledSystemUIMode(
