@@ -283,10 +283,42 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     );
   }
 
+  bool _isArabicOrRtl(BuildContext context) {
+    if (Directionality.maybeOf(context) == TextDirection.rtl ||
+        Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
+      return true;
+    }
+    const arabicConfig = PlayerTextConfig.arabic();
+    if (_cfg.text.playerSettingsText == arabicConfig.playerSettingsText) {
+      return true;
+    }
+    return false;
+  }
+
+  YouTubePlayerConfig _resolveEffectiveConfig(BuildContext context) {
+    final isAr = _isArabicOrRtl(context);
+    if (isAr &&
+        _cfg.text.playerSettingsText ==
+            const PlayerTextConfig.english().playerSettingsText) {
+      return YouTubePlayerConfig(
+        style: _cfg.style,
+        text: const PlayerTextConfig.arabic(),
+        visibility: _cfg.visibility,
+        playback: _cfg.playback,
+        loadingBuilder: _cfg.loadingBuilder,
+        errorBuilder: _cfg.errorBuilder,
+        replayBuilder: _cfg.replayBuilder,
+        liveBadgeBuilder: _cfg.liveBadgeBuilder,
+      );
+    }
+    return _cfg;
+  }
+
   void _showSettingsBottomSheet() {
+    final effectiveConfig = _resolveEffectiveConfig(context);
     YouTubeSettingsHelper.openSettingsSheet(
       context: context,
-      config: _cfg,
+      config: effectiveConfig,
       state: _state,
       cubit: _cubit,
       onReloadPlayer: _reloadPlayerWithSettings,
@@ -379,6 +411,8 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
           );
     }
 
+    final effectiveConfig = _resolveEffectiveConfig(context);
+
     return ValueListenableBuilder<PlayerCubitState>(
       valueListenable: _cubit,
       builder: (context, state, _) {
@@ -387,7 +421,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: Directionality(
-              textDirection: TextDirection.rtl,
+              textDirection: TextDirection.ltr,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -397,7 +431,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                     YouTubeDesktopPlayerView(
                       desktopWebViewKey: _desktopWebViewKey,
                       videoId: _videoId!,
-                      config: _cfg,
+                      config: effectiveConfig,
                       fullscreenManager: _desktopFullscreenManager,
                       onReady: () => log('Desktop YouTube player ready'),
                       onEnded: () => widget.onEnded?.call(),
@@ -405,7 +439,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                   else
                     YouTubeMobilePlayerView(
                       controller: controller!,
-                      config: _cfg,
+                      config: effectiveConfig,
                       isLive: widget.isLive,
                       viewerCount: widget.viewerCount,
                       isMuted: state.isMuted,

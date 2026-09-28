@@ -410,13 +410,42 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     super.dispose();
   }
 
+  bool _isArabicOrRtl(BuildContext context) {
+    if (Directionality.maybeOf(context) == TextDirection.rtl ||
+        Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
+      return true;
+    }
+    const arabicConfig = PlayerTextConfig.arabic();
+    if (widget.messages?.qualityText == arabicConfig.qualityText) {
+      return true;
+    }
+    return false;
+  }
+
+  PlayerTextConfig _resolveEffectiveMessages(BuildContext context) {
+    final isAr = _isArabicOrRtl(context);
+    if (widget.messages == null ||
+        (isAr &&
+            widget.messages?.qualityText ==
+                const PlayerTextConfig.english().qualityText)) {
+      return isAr
+          ? const PlayerTextConfig.arabic()
+          : const PlayerTextConfig.english();
+    }
+    return widget.messages!;
+  }
+
   void _handleOpenFullscreen() {
+    final wasPlaying = _videoPlayerController?.value.isPlaying ?? false;
     _fullscreenCoordinator.openFullscreen(
       context: context,
-      builder: (context) {
+      builder: (overlayContext) {
+        final activeCtx = mounted ? context : overlayContext;
+        final effectiveMessages = _resolveEffectiveMessages(activeCtx);
         if (_hasError) {
           return NormalFullscreenOverlay(
-            onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+            textDirection: TextDirection.ltr,
+            onExitFullscreen: _handleCloseFullscreen,
             child: NormalPlayerErrorWidget(
               errorMessage: _errorMessage,
               styling: widget.styling,
@@ -427,7 +456,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
         if (!_isInitialized || _videoPlayerController == null) {
           return NormalFullscreenOverlay(
-            onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+            textDirection: TextDirection.ltr,
+            onExitFullscreen: _handleCloseFullscreen,
             child: NormalPlayerLoadingWidget(
               styling: widget.styling,
               customBuilder: widget.loadingBuilder,
@@ -436,7 +466,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
         }
 
         return NormalFullscreenOverlay(
-          onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+          textDirection: TextDirection.ltr,
+          onExitFullscreen: _handleCloseFullscreen,
           child: NormalPlayerView(
             controller: _videoPlayerController!,
             showControls: widget.visibility?.showControls ?? true,
@@ -445,7 +476,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
             controlsBuilder: widget.controlsBuilder,
             subtitleBuilder: widget.subtitleBuilder,
             styling: widget.styling,
-            messages: widget.messages,
+            messages: effectiveMessages,
+            visibility: widget.visibility,
             onAnalyticsEvent: widget.onAnalyticsEvent,
             qualities: widget.qualities,
             currentQuality: _currentQuality,
@@ -456,11 +488,44 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
             parsedSubtitles: _parsedSubtitles,
             viewerCount: widget.viewerCount,
             onEnterFullscreen: () {},
-            onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+            onExitFullscreen: _handleCloseFullscreen,
           ),
         );
       },
     );
+
+    _ensurePlaybackContinues(wasPlaying);
+  }
+
+  void _handleCloseFullscreen() {
+    final wasPlaying = _videoPlayerController?.value.isPlaying ?? false;
+    _fullscreenCoordinator.closeFullscreen();
+    _ensurePlaybackContinues(wasPlaying);
+  }
+
+  void _ensurePlaybackContinues(bool wasPlaying) {
+    if (!wasPlaying) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          _videoPlayerController != null &&
+          !_videoPlayerController!.value.isPlaying) {
+        _videoPlayerController!.play();
+      }
+    });
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted &&
+          _videoPlayerController != null &&
+          !_videoPlayerController!.value.isPlaying) {
+        _videoPlayerController!.play();
+      }
+    });
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted &&
+          _videoPlayerController != null &&
+          !_videoPlayerController!.value.isPlaying) {
+        _videoPlayerController!.play();
+      }
+    });
   }
 
   @override
@@ -480,6 +545,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       );
     }
 
+    final effectiveMessages = _resolveEffectiveMessages(context);
+
     final playerView = NormalPlayerView(
       controller: _videoPlayerController!,
       showControls: widget.visibility?.showControls ?? true,
@@ -488,7 +555,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       controlsBuilder: widget.controlsBuilder,
       subtitleBuilder: widget.subtitleBuilder,
       styling: widget.styling,
-      messages: widget.messages,
+      messages: effectiveMessages,
+      visibility: widget.visibility,
       onAnalyticsEvent: widget.onAnalyticsEvent,
       qualities: widget.qualities,
       currentQuality: _currentQuality,
@@ -499,7 +567,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       parsedSubtitles: _parsedSubtitles,
       viewerCount: widget.viewerCount,
       onEnterFullscreen: _handleOpenFullscreen,
-      onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+      onExitFullscreen: _handleCloseFullscreen,
     );
 
     return ClipRRect(

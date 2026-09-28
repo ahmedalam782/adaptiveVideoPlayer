@@ -51,6 +51,12 @@ class PlayerTextConfig {
   /// Text for off subtitle
   final String offText;
 
+  /// Tooltip / label for skip backward 10s button
+  final String skipBackwardText;
+
+  /// Tooltip / label for skip forward 10s button
+  final String skipForwardText;
+
   const PlayerTextConfig({
     this.invalidYoutubeUrlText = 'Invalid YouTube URL',
     this.videoLoadFailedText = 'Failed to load video',
@@ -70,6 +76,8 @@ class PlayerTextConfig {
     this.subtitlesText = 'Subtitles',
     this.autoText = 'Auto',
     this.offText = 'Off',
+    this.skipBackwardText = 'Rewind 10s',
+    this.skipForwardText = 'Forward 10s',
   });
 
   /// Arabic (RTL) localization preset
@@ -92,6 +100,8 @@ class PlayerTextConfig {
     this.subtitlesText = 'الترجمة',
     this.autoText = 'تلقائي',
     this.offText = 'إيقاف',
+    this.skipBackwardText = 'تأخير 10 ثواني',
+    this.skipForwardText = 'تقديم 10 ثواني',
   });
 
   /// English (LTR) localization preset
@@ -114,6 +124,8 @@ class PlayerTextConfig {
     this.subtitlesText = 'Subtitles',
     this.autoText = 'Auto',
     this.offText = 'Off',
+    this.skipBackwardText = 'Rewind 10s',
+    this.skipForwardText = 'Forward 10s',
   });
 
   /// Creates a copy with updated values
@@ -135,6 +147,8 @@ class PlayerTextConfig {
     String? subtitlesText,
     String? autoText,
     String? offText,
+    String? skipBackwardText,
+    String? skipForwardText,
   }) {
     return PlayerTextConfig(
       invalidYoutubeUrlText:
@@ -160,6 +174,8 @@ class PlayerTextConfig {
       subtitlesText: subtitlesText ?? this.subtitlesText,
       autoText: autoText ?? this.autoText,
       offText: offText ?? this.offText,
+      skipBackwardText: skipBackwardText ?? this.skipBackwardText,
+      skipForwardText: skipForwardText ?? this.skipForwardText,
     );
   }
 }

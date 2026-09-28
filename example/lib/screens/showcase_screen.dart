@@ -293,7 +293,11 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final demo = filteredDemos[index];
-                return CreativeDemoCard(demo: demo, isDark: isDark);
+                return CreativeDemoCard(
+                  demo: demo,
+                  isDark: isDark,
+                  onToggleLanguage: widget.onToggleLanguage,
+                );
               },
             ),
           ),

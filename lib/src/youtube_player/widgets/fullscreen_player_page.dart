@@ -301,7 +301,7 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
         return Scaffold(
           backgroundColor: Colors.black,
           body: Directionality(
-            textDirection: TextDirection.rtl,
+            textDirection: TextDirection.ltr,
             child: Stack(
               children: [
                 Center(
@@ -324,9 +324,9 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                             onSeekForward: _seekForward,
                             topActions: Stack(
                               children: [
-                                Positioned(
+                                PositionedDirectional(
                                   top: 40,
-                                  right: 16,
+                                  end: 16,
                                   child: widget.config.liveBadgeBuilder?.call(
                                         context,
                                         isLive: widget.isLive,
@@ -337,9 +337,9 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                                         viewerCount: widget.viewerCount,
                                       ),
                                 ),
-                                Positioned(
+                                PositionedDirectional(
                                   top: 40,
-                                  left: 16,
+                                  start: 16,
                                   child: GestureDetector(
                                     onTap: _exitFullscreen,
                                     child: Container(

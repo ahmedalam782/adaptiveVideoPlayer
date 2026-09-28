@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +25,7 @@ class AdaptiveControlsLayer extends StatefulWidget {
   final bool isFullScreen;
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
+  final PlayerVisibilityConfig? visibility;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final List<VideoQuality>? qualities;
@@ -46,6 +48,7 @@ class AdaptiveControlsLayer extends StatefulWidget {
     this.isFullScreen = false,
     this.styling,
     this.messages,
+    this.visibility,
     this.onAnalyticsEvent,
     this.qualities,
     this.currentQuality,
@@ -80,10 +83,11 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
   }
 
   void _updateSettingsOffset(Offset delta, BoxConstraints constraints) {
-    final dialogWidth = widget.isFullScreen ? 280.0 : 250.0;
-    final dialogMaxHeight = widget.isFullScreen ? 380.0 : 200.0;
-    final minX = -(constraints.maxWidth - dialogWidth - 32.0);
-    const maxX = 8.0;
+    final dialogWidth = widget.isFullScreen ? 330.0 : 300.0;
+    final dialogMaxHeight = widget.isFullScreen ? 380.0 : 220.0;
+    final isRtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    final minX = isRtl ? -8.0 : -(constraints.maxWidth - dialogWidth - 32.0);
+    final maxX = isRtl ? (constraints.maxWidth - dialogWidth - 32.0) : 8.0;
     final minY = -(constraints.maxHeight - dialogMaxHeight - 64.0);
     const maxY = 16.0;
 
@@ -146,7 +150,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
           ),
         ),
 
-        // Bottom Controls Layer with YouTube-style dark gradient
+        // Bottom Controls Layer with YouTube capsule/pill design
         Positioned(
           bottom: 0,
           left: 0,
@@ -157,8 +161,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
                 colors: [
-                  Color(0xEE000000),
-                  Color(0x88000000),
+                  Color(0xB3000000),
+                  Color(0x4D000000),
                   Colors.transparent,
                 ],
               ),
@@ -201,6 +205,10 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                     onAnalyticsEvent: widget.onAnalyticsEvent,
                     onEnterFullscreen: widget.onEnterFullscreen,
                     onExitFullscreen: widget.onExitFullscreen,
+                    showSkipButtons:
+                        widget.visibility?.showSkipButtons ?? true,
+                    skipDuration: widget.visibility?.skipDuration ??
+                        const Duration(seconds: 10),
                     onSettingsPressed: () =>
                         setState(() => _showSettingsMenu = !_showSettingsMenu),
                   ),
@@ -219,9 +227,9 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
               child: const SizedBox.expand(),
             ),
           ),
-          Positioned(
+          PositionedDirectional(
             bottom: widget.isFullScreen ? 56 : 48,
-            right: 16,
+            end: 16,
             child: Transform.translate(
               offset: _settingsMenuOffset,
               child: CallbackShortcuts(
@@ -233,9 +241,13 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                 child: Focus(
                   autofocus: true,
                   child: Container(
-                    width: widget.isFullScreen ? 280 : 250,
+                    width: math.min(
+                        widget.isFullScreen ? 330.0 : 300.0,
+                        constraints.maxWidth - 24.0),
                     constraints: BoxConstraints(
-                      maxHeight: widget.isFullScreen ? 380 : 200,
+                      maxHeight: widget.isFullScreen
+                          ? math.min(380.0, (constraints.maxHeight - 64).clamp(240.0, 380.0))
+                          : math.min(280.0, (constraints.maxHeight - 56).clamp(180.0, 280.0)),
                     ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),

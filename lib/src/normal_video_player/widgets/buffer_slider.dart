@@ -5,8 +5,13 @@ import '../utils/video_player_web_safe.dart';
 class BufferPainter extends CustomPainter {
   final List<DurationRange> buffered;
   final Duration duration;
+  final TextDirection textDirection;
 
-  BufferPainter(this.buffered, this.duration);
+  BufferPainter(
+    this.buffered,
+    this.duration, {
+    this.textDirection = TextDirection.ltr,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -17,10 +22,20 @@ class BufferPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     for (final range in buffered) {
-      final startX =
-          (range.start.inMilliseconds / duration.inMilliseconds) * size.width;
-      final endX =
-          (range.end.inMilliseconds / duration.inMilliseconds) * size.width;
+      final startFraction =
+          (range.start.inMilliseconds / duration.inMilliseconds)
+              .clamp(0.0, 1.0);
+      final endFraction =
+          (range.end.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0);
+      final double startX;
+      final double endX;
+      if (textDirection == TextDirection.rtl) {
+        startX = size.width * (1.0 - endFraction);
+        endX = size.width * (1.0 - startFraction);
+      } else {
+        startX = size.width * startFraction;
+        endX = size.width * endFraction;
+      }
 
       canvas.drawRRect(
         RRect.fromRectAndRadius(
@@ -34,20 +49,26 @@ class BufferPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(BufferPainter oldDelegate) {
-    return oldDelegate.buffered != buffered || oldDelegate.duration != duration;
+    return oldDelegate.buffered != buffered ||
+        oldDelegate.duration != duration ||
+        oldDelegate.textDirection != textDirection;
   }
 }
 
-/// Gradient track shape for progress slider
+/// Track shape for YouTube-style progress slider with buffered progress and red active bar
 class GradientSliderTrackShape extends SliderTrackShape
     with BaseSliderTrackShape {
   const GradientSliderTrackShape({
     this.gradient = const LinearGradient(
-      colors: [Color(0xFFFF007F), Color(0xFF00E5FF)],
+      colors: [Color(0xFFFF0033), Color(0xFFFF0033)],
     ),
+    this.buffered = const [],
+    this.duration = Duration.zero,
   });
 
   final LinearGradient gradient;
+  final List<DurationRange> buffered;
+  final Duration duration;
 
   @override
   void paint(
@@ -81,27 +102,64 @@ class GradientSliderTrackShape extends SliderTrackShape
       isDiscrete: isDiscrete,
     );
 
-    final activeTrackRect = Rect.fromLTRB(
-        trackRect.left, trackRect.top, thumbCenter.dx, trackRect.bottom);
-    final inactiveTrackRect = Rect.fromLTRB(
-        thumbCenter.dx, trackRect.top, trackRect.right, trackRect.bottom);
+    final radius = Radius.circular(trackRect.height / 2);
 
-    final Paint activePaint = Paint()
-      ..shader = gradient.createShader(trackRect);
+    // 1. Draw full inactive background track
     final Paint inactivePaint = Paint()
       ..color = sliderTheme.inactiveTrackColor!;
-
-    if (inactiveTrackRect.width > 0) {
+    if (trackRect.width > 0) {
       context.canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            inactiveTrackRect, Radius.circular(trackRect.height / 2)),
+        RRect.fromRectAndRadius(trackRect, radius),
         inactivePaint,
       );
     }
+
+    // 2. Draw buffered ranges (YouTube light grey bar)
+    if (duration.inMilliseconds > 0 && buffered.isNotEmpty) {
+      final Paint bufferPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.45)
+        ..style = PaintingStyle.fill;
+
+      for (final range in buffered) {
+        final startFraction =
+            (range.start.inMilliseconds / duration.inMilliseconds)
+                .clamp(0.0, 1.0);
+        final endFraction =
+            (range.end.inMilliseconds / duration.inMilliseconds)
+                .clamp(0.0, 1.0);
+        final double startX;
+        final double endX;
+        if (textDirection == TextDirection.rtl) {
+          startX = trackRect.right - endFraction * trackRect.width;
+          endX = trackRect.right - startFraction * trackRect.width;
+        } else {
+          startX = trackRect.left + startFraction * trackRect.width;
+          endX = trackRect.left + endFraction * trackRect.width;
+        }
+        if (endX > startX) {
+          context.canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromLTRB(startX, trackRect.top, endX, trackRect.bottom),
+              radius,
+            ),
+            bufferPaint,
+          );
+        }
+      }
+    }
+
+    // 3. Draw active played track
+    final Rect activeTrackRect = textDirection == TextDirection.rtl
+        ? Rect.fromLTRB(
+            thumbCenter.dx, trackRect.top, trackRect.right, trackRect.bottom)
+        : Rect.fromLTRB(
+            trackRect.left, trackRect.top, thumbCenter.dx, trackRect.bottom);
+    final Paint activePaint = Paint()
+      ..shader = gradient.createShader(trackRect);
+
     if (activeTrackRect.width > 0) {
       context.canvas.drawRRect(
-        RRect.fromRectAndRadius(
-            activeTrackRect, Radius.circular(trackRect.height / 2)),
+        RRect.fromRectAndRadius(activeTrackRect, radius),
         activePaint,
       );
     }

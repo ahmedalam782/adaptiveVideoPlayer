@@ -5,15 +5,19 @@ import 'package:flutter/services.dart';
 class NormalFullscreenOverlay extends StatelessWidget {
   final Widget child;
   final VoidCallback? onExitFullscreen;
+  final TextDirection? textDirection;
 
   const NormalFullscreenOverlay({
     super.key,
     required this.child,
     this.onExitFullscreen,
+    this.textDirection,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveDirection =
+        textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr;
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () {
@@ -25,7 +29,7 @@ class NormalFullscreenOverlay extends StatelessWidget {
         child: Scaffold(
           backgroundColor: Colors.black,
           body: Directionality(
-            textDirection: TextDirection.ltr,
+            textDirection: effectiveDirection,
             child: SizedBox.expand(
               child: child,
             ),

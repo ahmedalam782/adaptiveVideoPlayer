@@ -6,8 +6,13 @@ import '../models/demo_showcase_item.dart';
 /// Cinematic Player Page with Real-time Event Log Inspector
 class StudioPlayerPage extends StatefulWidget {
   final DemoShowcaseItem demo;
+  final VoidCallback? onToggleLanguage;
 
-  const StudioPlayerPage({super.key, required this.demo});
+  const StudioPlayerPage({
+    super.key,
+    required this.demo,
+    this.onToggleLanguage,
+  });
 
   @override
   State<StudioPlayerPage> createState() => _StudioPlayerPageState();
@@ -16,6 +21,7 @@ class StudioPlayerPage extends StatefulWidget {
 class _StudioPlayerPageState extends State<StudioPlayerPage> {
   final List<String> _eventLogs = [];
   final ScrollController _logScrollController = ScrollController();
+  bool? _localRtlOverride;
 
   void _recordEvent(String event, Map<String, dynamic> data) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -37,6 +43,25 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
   @override
   Widget build(BuildContext context) {
     final demo = widget.demo;
+    final ambientIsRtl = Directionality.of(context) == TextDirection.rtl ||
+        Localizations.maybeLocaleOf(context)?.languageCode == 'ar' ||
+        demo.config.messages.qualityText ==
+            const PlayerTextConfig.arabic().qualityText;
+    final isRtl = _localRtlOverride ?? ambientIsRtl;
+
+    final basePlayerConfig = demo.config.playerConfig;
+    final effectivePlayerConfig = YouTubePlayerConfig(
+      style: basePlayerConfig.style,
+      text: isRtl
+          ? const PlayerTextConfig.arabic()
+          : const PlayerTextConfig.english(),
+      visibility: basePlayerConfig.visibility,
+      playback: basePlayerConfig.playback,
+      loadingBuilder: basePlayerConfig.loadingBuilder,
+      errorBuilder: basePlayerConfig.errorBuilder,
+      replayBuilder: basePlayerConfig.replayBuilder,
+      liveBadgeBuilder: basePlayerConfig.liveBadgeBuilder,
+    );
 
     // Attach real-time analytics logger to config
     final configWithAnalytics = VideoConfig(
@@ -51,62 +76,89 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
       viewerCount: demo.config.viewerCount,
       controlsBuilder: demo.config.controlsBuilder,
       subtitleBuilder: demo.config.subtitleBuilder,
-      playerConfig: demo.config.playerConfig,
+      playerConfig: effectivePlayerConfig,
       onAnalyticsEvent: (event, data) {
         _recordEvent(event, data);
         demo.config.onAnalyticsEvent?.call(event, data);
       },
     );
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF07090E),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          demo.title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+    return Directionality(
+      textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF07090E),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          title: Text(
+            demo.title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
+          actions: [
+            IconButton(
+              tooltip: isRtl
+                  ? 'Switch to English (LTR)'
+                  : 'التبديل إلى العربية (RTL)',
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: 0.08),
+              ),
+              icon: Text(
+                isRtl ? 'EN' : 'عربي',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  color: Colors.cyanAccent,
+                ),
+              ),
+              onPressed: () {
+                setState(() {
+                  _localRtlOverride = !isRtl;
+                });
+                widget.onToggleLanguage?.call();
+              },
+            ),
+            const SizedBox(width: 12),
+          ],
         ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Ambient Glow & Video Frame
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: demo.accentColor.withValues(alpha: 0.25),
-                        blurRadius: 36,
-                        spreadRadius: -4,
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      color: Colors.black,
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child:
-                            AdaptiveVideoPlayer(config: configWithAnalytics),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Ambient Glow & Video Frame
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: demo.accentColor.withValues(alpha: 0.25),
+                          blurRadius: 36,
+                          spreadRadius: -4,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        color: Colors.black,
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child:
+                              AdaptiveVideoPlayer(config: configWithAnalytics),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
               const SizedBox(height: 16),
 
@@ -274,6 +326,7 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
           ),
         ),
       ),
+    ),
     );
   }
 }

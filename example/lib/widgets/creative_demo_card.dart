@@ -7,11 +7,13 @@ import '../screens/studio_player_page.dart';
 class CreativeDemoCard extends StatelessWidget {
   final DemoShowcaseItem demo;
   final bool isDark;
+  final VoidCallback? onToggleLanguage;
 
   const CreativeDemoCard({
     super.key,
     required this.demo,
     required this.isDark,
+    this.onToggleLanguage,
   });
 
   @override
@@ -41,7 +43,10 @@ class CreativeDemoCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => StudioPlayerPage(demo: demo),
+                builder: (_) => StudioPlayerPage(
+                  demo: demo,
+                  onToggleLanguage: onToggleLanguage,
+                ),
               ),
             );
           },

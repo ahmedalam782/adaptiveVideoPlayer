@@ -23,6 +23,7 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
   final SubtitleBuilder? subtitleBuilder;
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
+  final PlayerVisibilityConfig? visibility;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final List<VideoQuality>? qualities;
@@ -46,6 +47,7 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
     this.subtitleBuilder,
     this.styling,
     this.messages,
+    this.visibility,
     this.onAnalyticsEvent,
     this.qualities,
     this.currentQuality,
@@ -237,8 +239,11 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
     final currentPosition = widget.controller.value.position;
     final wasPlaying = widget.controller.value.isPlaying;
     final duration = widget.controller.value.duration;
+    final isRtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    final tappedRightHalf = position > width / 2;
+    final isForward = isRtl ? !tappedRightHalf : tappedRightHalf;
 
-    if (position > width / 2) {
+    if (isForward) {
       _triggerSeekFeedback(1);
       final newPosition = currentPosition + const Duration(seconds: 10);
       widget.controller
@@ -320,6 +325,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
                           isFullScreen: widget.isFullScreen,
                           styling: widget.styling,
                           messages: widget.messages,
+                          visibility: widget.visibility,
                           onAnalyticsEvent: widget.onAnalyticsEvent,
                           qualities: widget.qualities,
                           currentQuality: widget.currentQuality,

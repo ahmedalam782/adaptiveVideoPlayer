@@ -191,12 +191,11 @@ class PlayerBottomActionsBuilder {
     VoidCallback? onSettingsTap,
   }) {
     return [
-      if (showFullscreenButton)
-        FullscreenButton(
-          onTap: onFullscreenTap,
-          iconColor: config.iconColor,
-          isFullscreen: isFullscreen,
-        ),
+      MuteButton(
+        onTap: onMuteTap,
+        iconColor: config.iconColor,
+        isMuted: isMuted,
+      ),
       if (!isLive) CurrentPosition(controller: controller),
       if (!isLive)
         TimeSeparator(
@@ -212,13 +211,14 @@ class PlayerBottomActionsBuilder {
         )
       else
         const Spacer(),
-      MuteButton(
-        onTap: onMuteTap,
-        iconColor: config.iconColor,
-        isMuted: isMuted,
-      ),
       if (showSettingsButton && onSettingsTap != null)
         SettingsButton(onTap: onSettingsTap, iconColor: config.iconColor),
+      if (showFullscreenButton)
+        FullscreenButton(
+          onTap: onFullscreenTap,
+          iconColor: config.iconColor,
+          isFullscreen: isFullscreen,
+        ),
     ];
   }
 }

@@ -52,14 +52,50 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   HttpServer? _localServer;
   String? _serverUrl;
   int _currentPosition = 0;
+  String _currentLang = 'en';
 
   int get currentPosition => _currentPosition;
+
+  bool _isRtl(BuildContext context) {
+    if (Directionality.maybeOf(context) == TextDirection.rtl ||
+        Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
+      return true;
+    }
+    const arabicConfig = PlayerTextConfig.arabic();
+    if (widget.config.text.playerSettingsText ==
+        arabicConfig.playerSettingsText) {
+      return true;
+    }
+    return false;
+  }
+
+  void _syncLanguage(BuildContext context) {
+    final nextLang = _isRtl(context) ? 'ar' : 'en';
+    if (_currentLang != nextLang) {
+      _currentLang = nextLang;
+      _webViewController?.evaluateJavascript(
+        source: "setLanguage('$_currentLang');",
+      );
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _currentPosition = widget.startAt;
     _startLocalServer();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncLanguage(context);
+  }
+
+  @override
+  void didUpdateWidget(covariant YouTubeWebViewPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncLanguage(context);
   }
 
   /// Start a local HTTP server to serve the YouTube player HTML.
@@ -266,9 +302,10 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         final autoplay = isAutoPlay ? 1 : 0;
         final mute = widget.config.playback.mute ? 1 : 0;
         final startAt = widget.startAt;
+        _currentLang = _isRtl(context) ? 'ar' : 'en';
         controller.evaluateJavascript(
           source:
-              "initPlayer('${widget.videoId}', $autoplay, $mute, $startAt);",
+              "initPlayer('${widget.videoId}', $autoplay, $mute, $startAt, '$_currentLang');",
         );
       },
       onConsoleMessage: (controller, consoleMessage) {

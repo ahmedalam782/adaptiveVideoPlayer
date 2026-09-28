@@ -1,11 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:adaptive_video_player/src/youtube_player/models/player_text_config.dart';
 import 'package:adaptive_video_player/src/normal_video_player/coordinator/normal_fullscreen_coordinator.dart';
+import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_bottom_bar.dart';
+import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_center_play_pause.dart';
+import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_player_settings_sheet.dart';
+import 'package:adaptive_video_player/src/normal_video_player/models/video_quality.dart';
+import 'package:adaptive_video_player/src/normal_video_player/models/subtitle_track.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_fullscreen_button.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_settings_button.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_fullscreen_overlay.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_player_error_widget.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_player_loading_widget.dart';
+import 'package:adaptive_video_player/src/normal_video_player/utils/video_player_web_safe.dart';
+
+class _FakeVideoPlayerController extends VideoPlayerController {
+  _FakeVideoPlayerController({
+    Duration duration = const Duration(seconds: 100),
+    Duration position = const Duration(seconds: 30),
+  }) : super.networkUrl(Uri.parse('https://example.com/test.mp4')) {
+    value = value.copyWith(
+      duration: duration,
+      position: position,
+      isInitialized: true,
+    );
+  }
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> seekTo(Duration position) async {
+    value = value.copyWith(position: position);
+  }
+
+  @override
+  Future<void> play() async {
+    value = value.copyWith(isPlaying: true);
+  }
+
+  @override
+  Future<void> pause() async {
+    value = value.copyWith(isPlaying: false);
+  }
+
+  @override
+  Future<void> setVolume(double volume) async {
+    value = value.copyWith(volume: volume);
+  }
+
+  @override
+  Future<void> setLooping(bool looping) async {
+    value = value.copyWith(isLooping: looping);
+  }
+}
 
 void main() {
   group('Normal Video Player Modular Components Tests', () {
@@ -234,6 +282,184 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('drag_handle')));
       await tester.pumpAndSettle();
       expect(offset, Offset.zero);
+    });
+
+    testWidgets('AdaptivePlayerSettingsSheet renders without overflow in tight constraints and flips RTL in Arabic', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 250,
+                height: 150,
+                child: AdaptivePlayerSettingsSheet(
+                  qualities: const [
+                    VideoQuality(title: '1080p Full HD', url: 'https://example.com/1080.mp4'),
+                    VideoQuality(title: '720p HD', url: 'https://example.com/720.mp4'),
+                  ],
+                  currentQuality: const VideoQuality(title: '1080p Full HD', url: 'https://example.com/1080.mp4'),
+                  subtitles: const [
+                    SubtitleTrack(id: 'en', title: 'English', content: 'WEBVTT'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Verify that quality and subtitle options render in LTR by default
+      expect(find.text('Quality (Resolution)'), findsOneWidget);
+      expect(find.text('Subtitles'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      // Tap on Quality to transition to qualities submenu
+      await tester.tap(find.text('Quality (Resolution)'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(find.text('1080p Full HD'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      // Now verify Arabic preset renders in RTL
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 280,
+                height: 180,
+                child: AdaptivePlayerSettingsSheet(
+                  key: ValueKey('arabic_sheet'),
+                  messages: PlayerTextConfig.arabic(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('الجودة (الدقة)'), findsOneWidget);
+      expect(find.text('الترجمة'), findsOneWidget);
+      final titleContext = tester.element(find.text('الجودة (الدقة)'));
+      expect(Directionality.of(titleContext), TextDirection.rtl);
+    });
+
+    testWidgets('AdaptiveBottomBar renders -10s, play/pause, and +10s buttons in LTR even inside RTL parent', (tester) async {
+      final controller = _FakeVideoPlayerController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              body: AdaptiveBottomBar(
+                controller: controller,
+                isFullScreen: false,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.replay_10_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.forward_10_rounded), findsOneWidget);
+      expect(find.text('00:30'), findsOneWidget);
+      expect(find.text('01:40'), findsOneWidget);
+
+      // Verify LTR order: -10s is to the left of +10s even inside RTL Directionality
+      final rewindX = tester.getCenter(find.byIcon(Icons.replay_10_rounded)).dx;
+      final forwardX = tester.getCenter(find.byIcon(Icons.forward_10_rounded)).dx;
+      expect(rewindX < forwardX, isTrue);
+
+      await controller.dispose();
+    });
+
+    testWidgets('AdaptiveBottomBar hides skip buttons when showSkipButtons is false or isLive is true', (tester) async {
+      final controller = _FakeVideoPlayerController();
+
+      // Test showSkipButtons: false
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AdaptiveBottomBar(
+              controller: controller,
+              isFullScreen: false,
+              showSkipButtons: false,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.replay_10_rounded), findsNothing);
+      expect(find.byIcon(Icons.forward_10_rounded), findsNothing);
+      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+
+      // Test isLive: true
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AdaptiveBottomBar(
+              controller: controller,
+              isFullScreen: false,
+              isLive: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.replay_10_rounded), findsNothing);
+      expect(find.byIcon(Icons.forward_10_rounded), findsNothing);
+
+      await controller.dispose();
+    });
+
+    testWidgets('AdaptiveBottomBar tapping -10 and +10 calls seekTo and fires analytics', (tester) async {
+      final controller = _FakeVideoPlayerController();
+
+      String? lastEvent;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AdaptiveBottomBar(
+              controller: controller,
+              isFullScreen: false,
+              onAnalyticsEvent: (event, data) => lastEvent = event,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.replay_10_rounded));
+      await tester.pump();
+      expect(lastEvent, 'video_seek');
+      expect(controller.value.position, const Duration(seconds: 20));
+
+      await tester.tap(find.byIcon(Icons.forward_10_rounded));
+      await tester.pump();
+      expect(lastEvent, 'video_seek');
+      expect(controller.value.position, const Duration(seconds: 30));
+
+      await controller.dispose();
+    });
+
+    testWidgets('AdaptiveCenterPlayPause renders and responds to tap', (tester) async {
+      final controller = _FakeVideoPlayerController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AdaptiveCenterPlayPause(controller: controller),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+      await tester.tap(find.byType(AdaptiveCenterPlayPause));
+      await tester.pump();
+      expect(controller.value.isPlaying, isTrue);
+
+      await controller.dispose();
     });
   });
 }

@@ -41,7 +41,30 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         var autoplayFlag = 0;
         var muteFlag = 0;
         var startAtFlag = 0;
+        var langFlag = 'en';
         var timeUpdateInterval = null;
+
+        function setLanguage(lang) {
+            var nextLang = (lang === 'ar') ? 'ar' : 'en';
+            document.documentElement.dir = (nextLang === 'ar') ? 'rtl' : 'ltr';
+            document.documentElement.lang = nextLang;
+            if (langFlag !== nextLang) {
+                langFlag = nextLang;
+                if (player && typeof player.destroy === 'function') {
+                    try {
+                        if (typeof player.getCurrentTime === 'function') {
+                            startAtFlag = Math.floor(player.getCurrentTime() || 0);
+                        }
+                        if (typeof player.getPlayerState === 'function') {
+                            autoplayFlag = (player.getPlayerState() === 1) ? 1 : 0;
+                        }
+                        player.destroy();
+                        player = null;
+                        createPlayer();
+                    } catch (e) {}
+                }
+            }
+        }
 
         function sendTimeUpdate() {
             if (player && typeof player.getCurrentTime === 'function' && window.flutter_inappwebview) {
@@ -58,11 +81,16 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             timeUpdateInterval = setInterval(sendTimeUpdate, 500);
         }
 
-        function initPlayer(vid, autoplay, mute, startSeconds) {
+        function initPlayer(vid, autoplay, mute, startSeconds, lang) {
             videoId = vid;
             autoplayFlag = autoplay;
             muteFlag = mute;
             startAtFlag = startSeconds || 0;
+            if (lang) {
+                langFlag = (lang === 'ar') ? 'ar' : 'en';
+                document.documentElement.dir = (langFlag === 'ar') ? 'rtl' : 'ltr';
+                document.documentElement.lang = langFlag;
+            }
             if (typeof YT !== 'undefined' && YT.Player) {
                 createPlayer();
             }
@@ -85,6 +113,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 'rel': 0,
                 'showinfo': 0,
                 'modestbranding': 1,
+                'hl': langFlag,
                 'vq': 'medium'
             };
             if (startAtFlag > 0) {

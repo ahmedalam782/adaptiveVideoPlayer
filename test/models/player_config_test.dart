@@ -22,6 +22,7 @@ void main() {
       expect(config.settingsTitleStyle, isNull);
       expect(config.settingItemTextStyle, isNull);
       expect(config.errorTextStyle, isNull);
+      expect(config.useGlassmorphicControls, true);
     });
 
     test('copyWith creates new instance with updated values', () {
@@ -42,6 +43,7 @@ void main() {
         settingsTitleStyle: const TextStyle(fontSize: 11),
         settingItemTextStyle: const TextStyle(fontSize: 12),
         errorTextStyle: const TextStyle(fontSize: 13),
+        useGlassmorphicControls: false,
       );
 
       expect(updated.progressBarPlayedColor, Colors.blue);
@@ -59,6 +61,7 @@ void main() {
       expect(updated.settingsTitleStyle?.fontSize, 11);
       expect(updated.settingItemTextStyle?.fontSize, 12);
       expect(updated.errorTextStyle?.fontSize, 13);
+      expect(updated.useGlassmorphicControls, false);
     });
   });
 
@@ -78,6 +81,8 @@ void main() {
       expect(config.forceHdQualityText, 'Force HD Quality');
       expect(config.enableCaptionsText, 'Enable Captions');
       expect(config.muteAudioText, 'Mute Audio');
+      expect(config.skipBackwardText, 'Rewind 10s');
+      expect(config.skipForwardText, 'Forward 10s');
     });
 
     test('copyWith creates new instance with updated values', () {
@@ -94,6 +99,8 @@ void main() {
         forceHdQualityText: 'forcehd',
         enableCaptionsText: 'captions',
         muteAudioText: 'mute',
+        skipBackwardText: 'back10',
+        skipForwardText: 'fwd10',
       );
 
       expect(updated.invalidYoutubeUrlText, 'invalid');
@@ -107,6 +114,8 @@ void main() {
       expect(updated.forceHdQualityText, 'forcehd');
       expect(updated.enableCaptionsText, 'captions');
       expect(updated.muteAudioText, 'mute');
+      expect(updated.skipBackwardText, 'back10');
+      expect(updated.skipForwardText, 'fwd10');
     });
   });
 
@@ -122,6 +131,8 @@ void main() {
       expect(config.showForceHDSetting, true);
       expect(config.showCaptionsSetting, true);
       expect(config.showMuteSetting, true);
+      expect(config.showSkipButtons, true);
+      expect(config.skipDuration, const Duration(seconds: 10));
     });
 
     test('copyWith creates new instance with updated values', () {
@@ -135,6 +146,8 @@ void main() {
         showForceHDSetting: false,
         showCaptionsSetting: false,
         showMuteSetting: false,
+        showSkipButtons: false,
+        skipDuration: const Duration(seconds: 15),
       );
 
       expect(updated.showControls, false);
@@ -145,6 +158,8 @@ void main() {
       expect(updated.showForceHDSetting, false);
       expect(updated.showCaptionsSetting, false);
       expect(updated.showMuteSetting, false);
+      expect(updated.showSkipButtons, false);
+      expect(updated.skipDuration, const Duration(seconds: 15));
     });
   });
 

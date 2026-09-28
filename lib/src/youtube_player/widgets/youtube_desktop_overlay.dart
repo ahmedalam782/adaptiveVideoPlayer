@@ -48,18 +48,26 @@ class YouTubeDesktopFullscreenManager {
 
     _overlayEntry = OverlayEntry(
       builder: (ctx) {
-        return CallbackShortcuts(
-          bindings: {
-            const SingleActivator(LogicalKeyboardKey.escape): () {
-              closeFullscreen();
+        TextDirection effectiveDir = TextDirection.ltr;
+        try {
+          effectiveDir =
+              Directionality.maybeOf(getContext()) ?? TextDirection.ltr;
+        } catch (_) {}
+        return Directionality(
+          textDirection: effectiveDir,
+          child: CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.escape): () {
+                closeFullscreen();
+              },
             },
-          },
-          child: Focus(
-            autofocus: true,
-            child: Scaffold(
-              backgroundColor: Colors.black,
-              body: SizedBox.expand(
-                child: desktopPlayerBuilder(),
+            child: Focus(
+              autofocus: true,
+              child: Scaffold(
+                backgroundColor: Colors.black,
+                body: SizedBox.expand(
+                  child: desktopPlayerBuilder(),
+                ),
               ),
             ),
           ),
@@ -71,6 +79,12 @@ class YouTubeDesktopFullscreenManager {
     overlay.insert(_overlayEntry!);
     onStateChange();
     enterBrowserFullscreen();
+
+    if (wasPlaying == true) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        desktopWebViewKey.currentState?.play();
+      });
+    }
 
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     await SystemChrome.setPreferredOrientations([
@@ -89,6 +103,13 @@ class YouTubeDesktopFullscreenManager {
     if (!_isInFullscreen || _isTransitioning || _overlayEntry == null) return;
     _isTransitioning = true;
 
+    bool shouldKeepPlaying = wasPlaying ?? false;
+    if (desktopWebViewKey.currentState != null) {
+      try {
+        shouldKeepPlaying = await desktopWebViewKey.currentState!.isPlaying();
+      } catch (_) {}
+    }
+
     exitBrowserFullscreen();
 
     _overlayEntry?.remove();
@@ -101,6 +122,11 @@ class YouTubeDesktopFullscreenManager {
     if (desktopWebViewKey.currentState != null) {
       try {
         desktopWebViewKey.currentState?.exitFullscreen();
+        if (shouldKeepPlaying) {
+          Future.delayed(const Duration(milliseconds: 150), () {
+            desktopWebViewKey.currentState?.play();
+          });
+        }
       } catch (e) {
         log('Error exiting native fullscreen: $e');
       }

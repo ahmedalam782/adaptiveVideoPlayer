@@ -31,29 +31,50 @@ class AdaptiveProgressBar extends StatelessWidget {
         final duration = value.duration.inMilliseconds.toDouble();
         final position = dragPosition ?? value.position.inMilliseconds.toDouble();
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 3.0,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14.0),
-              activeTrackColor: styling?.progressBarPlayedColor ?? Colors.red,
-              inactiveTrackColor: Colors.white24,
-              thumbColor: styling?.progressBarHandleColor ?? Colors.red,
-              trackShape: const GradientSliderTrackShape(),
+        final playedColor =
+            styling?.progressBarPlayedColor ?? const Color(0xFFFF0033);
+        final handleColor =
+            styling?.progressBarHandleColor ?? const Color(0xFFFF0033);
+
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+            child: SizedBox(
+              height: 20,
+              child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 3.5,
+                thumbShape: const RoundSliderThumbShape(
+                  enabledThumbRadius: 6.5,
+                  pressedElevation: 4.0,
+                ),
+                overlayShape:
+                    const RoundSliderOverlayShape(overlayRadius: 12.0),
+                activeTrackColor: playedColor,
+                inactiveTrackColor: Colors.white.withValues(alpha: 0.22),
+                thumbColor: handleColor,
+                trackShape: GradientSliderTrackShape(
+                  gradient: LinearGradient(
+                    colors: [playedColor, handleColor],
+                  ),
+                  buffered: value.buffered,
+                  duration: value.duration,
+                ),
+              ),
+              child: Slider(
+                value: position.clamp(0.0, duration > 0 ? duration : 0.0),
+                min: 0.0,
+                max: duration > 0 ? duration : 0.0,
+                onChanged: onDragChanged,
+                onChangeEnd: (newPosition) {
+                  onDragEnd(newPosition);
+                  onAnalyticsEvent?.call('video_seek',
+                      {'to_position': (newPosition / 1000).round()});
+                },
+              ),
             ),
-            child: Slider(
-              value: position.clamp(0.0, duration > 0 ? duration : 0.0),
-              min: 0.0,
-              max: duration > 0 ? duration : 0.0,
-              onChanged: onDragChanged,
-              onChangeEnd: (newPosition) {
-                onDragEnd(newPosition);
-                onAnalyticsEvent?.call('video_seek',
-                    {'to_position': (newPosition / 1000).round()});
-              },
-            ),
+          ),
           ),
         );
       },

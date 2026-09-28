@@ -49,8 +49,8 @@ class SeekButtonsOverlay extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          SeekButton(icon: Icons.forward_10, onTap: onSeekForward, size: 35),
           SeekButton(icon: Icons.replay_10, onTap: onSeekBackward, size: 35),
+          SeekButton(icon: Icons.forward_10, onTap: onSeekForward, size: 35),
         ],
       ),
     );

@@ -6,11 +6,13 @@ import '../utils/video_player_web_safe.dart';
 class AdaptiveVolumeControl extends StatefulWidget {
   final VideoPlayerController controller;
   final PlayerStyleConfig? styling;
+  final bool alwaysShowSlider;
 
   const AdaptiveVolumeControl({
     super.key,
     required this.controller,
     this.styling,
+    this.alwaysShowSlider = false,
   });
 
   @override
@@ -27,12 +29,16 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
       valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, child) {
         final isMuted = value.volume == 0;
-        return MouseRegion(
-          onEnter: (_) => setState(() => _isVolumeHovered = true),
-          onExit: (_) => setState(() => _isVolumeHovered = false),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        final showSlider = widget.alwaysShowSlider || _isVolumeHovered;
+
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _isVolumeHovered = true),
+            onExit: (_) => setState(() => _isVolumeHovered = false),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
@@ -47,10 +53,10 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
                   padding: const EdgeInsets.all(6.0),
                   child: Icon(
                     isMuted
-                        ? Icons.volume_off
+                        ? Icons.volume_off_rounded
                         : value.volume < 0.5
-                            ? Icons.volume_down
-                            : Icons.volume_up,
+                            ? Icons.volume_down_rounded
+                            : Icons.volume_up_rounded,
                     color: widget.styling?.iconColor ?? Colors.white,
                     size: 20,
                   ),
@@ -58,23 +64,23 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
               ),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: _isVolumeHovered ? 70 : 0,
+                width: showSlider ? 64 : 0,
                 curve: Curves.easeInOut,
                 child: ClipRect(
-                  child: _isVolumeHovered
+                  child: showSlider
                       ? SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            trackHeight: 2.0,
+                            trackHeight: 3.0,
                             thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 4.0),
+                                enabledThumbRadius: 5.5),
                             overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 8.0),
+                                overlayRadius: 10.0),
                             activeTrackColor: Colors.white,
-                            inactiveTrackColor: Colors.white24,
+                            inactiveTrackColor: Colors.white30,
                             thumbColor: Colors.white,
                           ),
                           child: Slider(
-                            value: value.volume,
+                            value: value.volume.clamp(0.0, 1.0),
                             min: 0.0,
                             max: 1.0,
                             onChanged: (newVolume) {
@@ -86,6 +92,7 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
                 ),
               ),
             ],
+          ),
           ),
         );
       },

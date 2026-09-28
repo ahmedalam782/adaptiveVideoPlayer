@@ -47,6 +47,9 @@ class PlayerStyleConfig {
   /// Text style for error message
   final TextStyle? errorTextStyle;
 
+  /// Whether to use modern glassmorphic cinema design for player controls (defaults to true)
+  final bool useGlassmorphicControls;
+
   const PlayerStyleConfig({
     this.progressBarPlayedColor = Colors.red,
     this.progressBarHandleColor = Colors.redAccent,
@@ -63,6 +66,7 @@ class PlayerStyleConfig {
     this.settingsTitleStyle,
     this.settingItemTextStyle,
     this.errorTextStyle,
+    this.useGlassmorphicControls = true,
   });
 
   /// Creates a copy with updated values
@@ -82,6 +86,7 @@ class PlayerStyleConfig {
     TextStyle? settingsTitleStyle,
     TextStyle? settingItemTextStyle,
     TextStyle? errorTextStyle,
+    bool? useGlassmorphicControls,
   }) {
     return PlayerStyleConfig(
       progressBarPlayedColor:
@@ -106,6 +111,8 @@ class PlayerStyleConfig {
       settingsTitleStyle: settingsTitleStyle ?? this.settingsTitleStyle,
       settingItemTextStyle: settingItemTextStyle ?? this.settingItemTextStyle,
       errorTextStyle: errorTextStyle ?? this.errorTextStyle,
+      useGlassmorphicControls:
+          useGlassmorphicControls ?? this.useGlassmorphicControls,
     );
   }
 }

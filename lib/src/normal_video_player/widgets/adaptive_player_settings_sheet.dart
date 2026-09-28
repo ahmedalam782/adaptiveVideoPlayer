@@ -42,14 +42,35 @@ class AdaptivePlayerSettingsSheetState
     extends State<AdaptivePlayerSettingsSheet> {
   SettingsPage _currentPage = SettingsPage.main;
 
+  bool _isArabicOrRtl(BuildContext context) {
+    const arabicConfig = PlayerTextConfig.arabic();
+    final msg = widget.messages;
+    if (msg != null &&
+        (msg.qualityText == arabicConfig.qualityText ||
+            msg.subtitlesText == arabicConfig.subtitlesText ||
+            msg.playerSettingsText == arabicConfig.playerSettingsText)) {
+      return true;
+    }
+    if (Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
+      return true;
+    }
+    return Directionality.maybeOf(context) == TextDirection.rtl;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isRtl = _isArabicOrRtl(context);
+    final effectiveMessages = widget.messages ??
+        (isRtl
+            ? const PlayerTextConfig.arabic()
+            : const PlayerTextConfig.english());
+
     Widget page;
     switch (_currentPage) {
       case SettingsPage.main:
         page = AdaptiveSettingsMainMenu(
           styling: widget.styling,
-          messages: widget.messages,
+          messages: effectiveMessages,
           currentQuality: widget.currentQuality,
           currentSubtitleTrack: widget.currentSubtitleTrack,
           qualities: widget.qualities,
@@ -64,7 +85,7 @@ class AdaptivePlayerSettingsSheetState
       case SettingsPage.qualities:
         page = AdaptiveSettingsQualitiesMenu(
           styling: widget.styling,
-          messages: widget.messages,
+          messages: effectiveMessages,
           qualities: widget.qualities,
           currentQuality: widget.currentQuality,
           onBack: () => setState(() => _currentPage = SettingsPage.main),
@@ -75,7 +96,7 @@ class AdaptivePlayerSettingsSheetState
       case SettingsPage.subtitles:
         page = AdaptiveSettingsSubtitlesMenu(
           styling: widget.styling,
-          messages: widget.messages,
+          messages: effectiveMessages,
           subtitles: widget.subtitles,
           currentSubtitleTrack: widget.currentSubtitleTrack,
           onBack: () => setState(() => _currentPage = SettingsPage.main),
@@ -85,12 +106,17 @@ class AdaptivePlayerSettingsSheetState
         break;
     }
 
-    return Material(
-      color: Colors.transparent,
-      child: SafeArea(
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: page,
+    return Directionality(
+      textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+      child: Material(
+        color: Colors.transparent,
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: page,
+          ),
         ),
       ),
     );
@@ -125,40 +151,52 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       key: const ValueKey('main_menu'),
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
             leading: Icon(
               Icons.hd,
               color: styling?.iconColor ?? Colors.white,
             ),
             title: Text(
               messages?.qualityText ?? 'Quality (Resolution)',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: styling?.settingItemTextStyle ??
                   const TextStyle(color: Colors.white),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  currentQuality?.title ?? (messages?.autoText ?? 'Auto'),
-                  style: TextStyle(
+            trailing: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 130),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      currentQuality?.title ?? (messages?.autoText ?? 'Auto'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: styling?.iconColor.withValues(alpha: 0.7) ??
+                            Colors.white70,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
                     color: styling?.iconColor.withValues(alpha: 0.7) ??
                         Colors.white70,
+                    size: 20,
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  color: styling?.iconColor.withValues(alpha: 0.7) ??
-                      Colors.white70,
-                  size: 20,
-                ),
-              ],
+                ],
+              ),
             ),
             onTap: () {
               onAnalyticsEvent?.call('resolution_settings_clicked', {});
@@ -180,33 +218,46 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
             },
           ),
           ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
             leading: Icon(
               Icons.closed_caption,
               color: styling?.iconColor ?? Colors.white,
             ),
             title: Text(
               messages?.subtitlesText ?? 'Subtitles',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: styling?.settingItemTextStyle ??
                   const TextStyle(color: Colors.white),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  currentSubtitleTrack?.title ?? (messages?.offText ?? 'Off'),
-                  style: TextStyle(
+            trailing: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 130),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      currentSubtitleTrack?.title ??
+                          (messages?.offText ?? 'Off'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: styling?.iconColor.withValues(alpha: 0.7) ??
+                            Colors.white70,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
                     color: styling?.iconColor.withValues(alpha: 0.7) ??
                         Colors.white70,
+                    size: 20,
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  color: styling?.iconColor.withValues(alpha: 0.7) ??
-                      Colors.white70,
-                  size: 20,
-                ),
-              ],
+                ],
+              ),
             ),
             onTap: () {
               onAnalyticsEvent?.call('subtitle_settings_clicked', {});
@@ -258,11 +309,13 @@ class AdaptiveSettingsQualitiesMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       key: const ValueKey('qualities_menu'),
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
             leading: IconButton(
               icon: Icon(
                 Icons.arrow_back,
@@ -283,11 +336,14 @@ class AdaptiveSettingsQualitiesMenu extends StatelessWidget {
           Flexible(
             child: ListView.builder(
               shrinkWrap: true,
+              padding: EdgeInsets.zero,
               itemCount: qualities?.length ?? 0,
               itemBuilder: (context, index) {
                 final quality = qualities![index];
                 final isSelected = currentQuality == quality;
                 return ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
                   title: Text(
                     quality.title,
                     style: styling?.settingItemTextStyle ??
@@ -343,11 +399,13 @@ class AdaptiveSettingsSubtitlesMenu extends StatelessWidget {
     final subtitlesCount = (subtitles?.length ?? 0) + 1;
     return Padding(
       key: const ValueKey('subtitles_menu'),
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
             leading: IconButton(
               icon: Icon(
                 Icons.arrow_back,
@@ -368,11 +426,14 @@ class AdaptiveSettingsSubtitlesMenu extends StatelessWidget {
           Flexible(
             child: ListView.builder(
               shrinkWrap: true,
+              padding: EdgeInsets.zero,
               itemCount: subtitlesCount,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   final isSelected = currentSubtitleTrack == null;
                   return ListTile(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
                     title: Text(
                       messages?.offText ?? 'Off',
                       style: styling?.settingItemTextStyle ??
@@ -397,6 +458,8 @@ class AdaptiveSettingsSubtitlesMenu extends StatelessWidget {
                 final track = subtitles![index - 1];
                 final isSelected = currentSubtitleTrack?.id == track.id;
                 return ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
                   title: Text(
                     track.title,
                     style: styling?.settingItemTextStyle ??

@@ -85,15 +85,29 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
     _isMuted = widget.isMuted;
   }
 
+  bool _isArabicOrRtl(BuildContext context) {
+    if (widget.playerSettingsText == 'إعدادات المشغل' ||
+        widget.loopVideoText == 'تكرار الفيديو') {
+      return true;
+    }
+    if (Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
+      return true;
+    }
+    return Directionality.maybeOf(context) == TextDirection.rtl;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final isRtl = _isArabicOrRtl(context);
+    return Directionality(
+      textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             const SizedBox(height: 12),
             Row(
               children: [
@@ -217,6 +231,7 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 }
