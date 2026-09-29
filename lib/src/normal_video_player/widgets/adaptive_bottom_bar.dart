@@ -19,11 +19,13 @@ class AdaptiveBottomBar extends StatelessWidget {
   final List<SubtitleTrack>? subtitles;
   final SubtitleTrack? currentSubtitleTrack;
   final void Function(SubtitleTrack?)? onSubtitleSelected;
+  final List<VideoChapter>? chapters;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
   final VoidCallback? onSettingsPressed;
+  final VoidCallback? onMiniPlayerPressed;
   final bool showSkipButtons;
   final Duration skipDuration;
 
@@ -40,10 +42,12 @@ class AdaptiveBottomBar extends StatelessWidget {
     this.subtitles,
     this.currentSubtitleTrack,
     this.onSubtitleSelected,
+    this.chapters,
     this.onAnalyticsEvent,
     this.onEnterFullscreen,
     this.onExitFullscreen,
     this.onSettingsPressed,
+    this.onMiniPlayerPressed,
     this.showSkipButtons = true,
     this.skipDuration = const Duration(seconds: 10),
   });
@@ -121,7 +125,11 @@ class AdaptiveBottomBar extends StatelessWidget {
     );
   }
 
-  Widget _buildDurationText(Duration position, Duration duration) {
+  Widget _buildDurationText(
+    Duration position,
+    Duration duration, {
+    required bool isWide,
+  }) {
     final style = styling?.timeTextStyle ??
         styling?.settingItemTextStyle ??
         const TextStyle(
@@ -131,6 +139,8 @@ class AdaptiveBottomBar extends StatelessWidget {
         );
 
     final textColor = styling?.textColor ?? Colors.white;
+    final activeChapter = VideoChapter.findChapterAt(chapters, position);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -153,6 +163,26 @@ class AdaptiveBottomBar extends StatelessWidget {
             color: textColor.withValues(alpha: 0.9),
           ),
         ),
+        if (isWide && activeChapter != null) ...[
+          Text(
+            '  •  ',
+            style: style.copyWith(
+              color: textColor.withValues(alpha: 0.6),
+            ),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: Text(
+              activeChapter.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -255,7 +285,7 @@ class AdaptiveBottomBar extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 520;
+          final isWide = constraints.maxWidth > 640;
 
           return Padding(
             padding: const EdgeInsets.fromLTRB(12.0, 4.0, 12.0, 10.0),
@@ -310,7 +340,7 @@ class AdaptiveBottomBar extends StatelessWidget {
 
                   const SizedBox(width: 8),
 
-                  // YouTube-style Time Display Pill (0:00 / 1:22)
+                  // YouTube-style Time Display Pill (0:00 / 1:22 • Chapter)
                   if (!isLive)
                     Container(
                       height: 38,
@@ -320,12 +350,16 @@ class AdaptiveBottomBar extends StatelessWidget {
                         borderRadius: BorderRadius.circular(24),
                       ),
                       alignment: Alignment.center,
-                      child: _buildDurationText(position, duration),
+                      child: _buildDurationText(
+                        position,
+                        duration,
+                        isWide: isWide,
+                      ),
                     ),
 
                   const Spacer(),
 
-                  // YouTube-style Right Action Pill (Loop/Autoplay, CC, Settings, Fullscreen)
+                  // YouTube-style Right Action Pill (Loop/Autoplay, CC, Settings, MiniPlayer, Fullscreen)
                   Container(
                     height: 38,
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -355,6 +389,30 @@ class AdaptiveBottomBar extends StatelessWidget {
                           onAnalyticsEvent: onAnalyticsEvent,
                           onPressed: onSettingsPressed,
                         ),
+                        if (onMiniPlayerPressed != null &&
+                            !isFullScreen &&
+                            !isLive) ...[
+                          const SizedBox(width: 4),
+                          Tooltip(
+                            message: 'Miniplayer',
+                            waitDuration: const Duration(milliseconds: 500),
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: onMiniPlayerPressed,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4.0,
+                                  vertical: 4.0,
+                                ),
+                                child: Icon(
+                                  Icons.picture_in_picture_alt_rounded,
+                                  color: styling?.iconColor ?? Colors.white,
+                                  size: 19,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(width: 4),
                         AdaptiveFullscreenButton(
                           isFullScreen: isFullScreen,

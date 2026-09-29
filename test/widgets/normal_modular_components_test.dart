@@ -11,6 +11,10 @@ import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_f
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_settings_button.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_fullscreen_overlay.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_player_error_widget.dart';
+import 'package:adaptive_video_player/src/normal_video_player/models/video_chapter.dart';
+import 'package:adaptive_video_player/src/normal_video_player/adaptive_controls.dart';
+import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_progress_bar.dart';
+import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_mini_player_overlay.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_player_loading_widget.dart';
 import 'package:adaptive_video_player/src/normal_video_player/utils/video_player_web_safe.dart';
 
@@ -52,6 +56,11 @@ class _FakeVideoPlayerController extends VideoPlayerController {
   @override
   Future<void> setLooping(bool looping) async {
     value = value.copyWith(isLooping: looping);
+  }
+
+  @override
+  Future<void> setPlaybackSpeed(double speed) async {
+    value = value.copyWith(playbackSpeed: speed);
   }
 }
 
@@ -458,6 +467,136 @@ void main() {
       await tester.tap(find.byType(AdaptiveCenterPlayPause));
       await tester.pump();
       expect(controller.value.isPlaying, isTrue);
+
+      await controller.dispose();
+    });
+
+    testWidgets('AdaptiveProgressBar displays timestamp pill during scrubbing', (tester) async {
+      final controller = _FakeVideoPlayerController(
+        duration: const Duration(seconds: 120),
+        position: const Duration(seconds: 30),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 400,
+                child: AdaptiveProgressBar(
+                  controller: controller,
+                  dragPosition: 75000, // 01:15
+                  onDragChanged: (_) {},
+                  onDragEnd: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('01:15'), findsOneWidget);
+      await controller.dispose();
+    });
+
+    testWidgets('BaseAdaptiveVideoPlayer Hold-to-2x Speed activates on long press and restores on release', (tester) async {
+      final controller = _FakeVideoPlayerController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 600,
+              height: 350,
+              child: BaseAdaptiveVideoPlayer(
+                controller: controller,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(controller.value.playbackSpeed, 1.0);
+      expect(find.text('2x'), findsNothing);
+
+      final gesture = await tester.startGesture(const Offset(150, 100));
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(controller.value.playbackSpeed, 2.0);
+      expect(find.text('2x'), findsOneWidget);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(controller.value.playbackSpeed, 1.0);
+      expect(find.text('2x'), findsNothing);
+
+      await controller.dispose();
+    });
+
+    testWidgets('AdaptiveProgressBar displays active chapter title and timestamp in scrubbing pill', (tester) async {
+      final controller = _FakeVideoPlayerController(
+        duration: const Duration(seconds: 120),
+        position: const Duration(seconds: 30),
+      );
+      const chapters = [
+        VideoChapter(title: 'Introduction', startTime: Duration.zero),
+        VideoChapter(title: 'Deep Dive', startTime: Duration(seconds: 60)),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 400,
+                child: AdaptiveProgressBar(
+                  controller: controller,
+                  dragPosition: 75000, // 01:15 -> inside 'Deep Dive'
+                  chapters: chapters,
+                  onDragChanged: (_) {},
+                  onDragEnd: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Deep Dive'), findsOneWidget);
+      expect(find.text('01:15'), findsOneWidget);
+      await controller.dispose();
+    });
+
+    testWidgets('NormalMiniPlayerOverlay renders controls and triggers expand/close callbacks', (tester) async {
+      final controller = _FakeVideoPlayerController();
+      bool expanded = false;
+      bool closed = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Stack(
+              children: [
+                NormalMiniPlayerOverlay(
+                  controller: controller,
+                  onExpand: () => expanded = true,
+                  onClose: () => closed = true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.open_in_full_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.open_in_full_rounded));
+      expect(expanded, isTrue);
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      expect(closed, isTrue);
 
       await controller.dispose();
     });

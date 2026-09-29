@@ -13,6 +13,7 @@ import 'utils/subtitle_parser.dart';
 import 'utils/video_player_web_safe.dart';
 import 'views/normal_player_view.dart';
 import 'widgets/normal_fullscreen_overlay.dart';
+import 'widgets/normal_mini_player_overlay.dart';
 import 'widgets/normal_player_error_widget.dart';
 import 'widgets/normal_player_loading_widget.dart';
 
@@ -33,6 +34,9 @@ class NormalVideoPlayer extends StatefulWidget {
 
   /// Initial subtitle track to activate
   final SubtitleTrack? initialSubtitle;
+
+  /// Optional list of timeline chapters (similar to YouTube chapters)
+  final List<VideoChapter>? chapters;
 
   /// Optional viewer count to display when stream is live
   final String? viewerCount;
@@ -82,6 +86,7 @@ class NormalVideoPlayer extends StatefulWidget {
     this.initialQuality,
     this.subtitles,
     this.initialSubtitle,
+    this.chapters,
     this.viewerCount,
     this.styling,
     this.messages,
@@ -114,7 +119,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
   final NormalFullscreenCoordinator _fullscreenCoordinator =
       NormalFullscreenCoordinator();
+  OverlayEntry? _miniPlayerOverlayEntry;
 
+  bool get _isInMiniPlayer => _miniPlayerOverlayEntry != null;
   bool get _effectiveIsLive => _currentQuality?.isLive ?? widget.isLive;
 
   @override
@@ -405,6 +412,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
   @override
   void dispose() {
+    _miniPlayerOverlayEntry?.remove();
+    _miniPlayerOverlayEntry = null;
     _fullscreenCoordinator.dispose();
     _videoPlayerController?.dispose();
     super.dispose();
@@ -486,6 +495,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
             currentSubtitleTrack: _currentSubtitleTrack,
             onSubtitleSelected: _changeSubtitleTrack,
             parsedSubtitles: _parsedSubtitles,
+            chapters: widget.chapters,
             viewerCount: widget.viewerCount,
             onEnterFullscreen: () {},
             onExitFullscreen: _handleCloseFullscreen,
@@ -501,6 +511,39 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     final wasPlaying = _videoPlayerController?.value.isPlaying ?? false;
     _fullscreenCoordinator.closeFullscreen();
     _ensurePlaybackContinues(wasPlaying);
+  }
+
+  void _handleOpenMiniPlayer() {
+    if (_isInMiniPlayer || _videoPlayerController == null) return;
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
+
+    final wasPlaying = _videoPlayerController!.value.isPlaying;
+    _miniPlayerOverlayEntry = OverlayEntry(
+      builder: (_) => NormalMiniPlayerOverlay(
+        controller: _videoPlayerController!,
+        onExpand: () => _handleCloseMiniPlayer(pauseOnClose: false),
+        onClose: () => _handleCloseMiniPlayer(pauseOnClose: true),
+      ),
+    );
+    overlay.insert(_miniPlayerOverlayEntry!);
+    if (mounted) setState(() {});
+    _ensurePlaybackContinues(wasPlaying);
+    widget.onAnalyticsEvent?.call('mini_player_opened', {});
+  }
+
+  void _handleCloseMiniPlayer({bool pauseOnClose = false}) {
+    if (!_isInMiniPlayer) return;
+    final wasPlaying = _videoPlayerController?.value.isPlaying ?? false;
+    _miniPlayerOverlayEntry?.remove();
+    _miniPlayerOverlayEntry = null;
+    if (pauseOnClose) {
+      _videoPlayerController?.pause();
+    } else {
+      _ensurePlaybackContinues(wasPlaying);
+    }
+    if (mounted) setState(() {});
+    widget.onAnalyticsEvent?.call('mini_player_closed', {'paused': pauseOnClose});
   }
 
   void _ensurePlaybackContinues(bool wasPlaying) {
@@ -565,9 +608,11 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       currentSubtitleTrack: _currentSubtitleTrack,
       onSubtitleSelected: _changeSubtitleTrack,
       parsedSubtitles: _parsedSubtitles,
+      chapters: widget.chapters,
       viewerCount: widget.viewerCount,
       onEnterFullscreen: _handleOpenFullscreen,
       onExitFullscreen: _handleCloseFullscreen,
+      onMiniPlayerPressed: _handleOpenMiniPlayer,
     );
 
     return ClipRRect(
@@ -580,7 +625,36 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
               : 16 / 9,
           child: _fullscreenCoordinator.isInFullscreen
               ? const SizedBox()
-              : playerView,
+              : _isInMiniPlayer
+                  ? Container(
+                      color: Colors.black87,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.picture_in_picture_alt_rounded,
+                            color: Colors.white54,
+                            size: 36,
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: () =>
+                                _handleCloseMiniPlayer(pauseOnClose: false),
+                            icon: const Icon(
+                              Icons.open_in_full_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            label: const Text(
+                              'Restore Player',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : playerView,
         ),
       ),
     );

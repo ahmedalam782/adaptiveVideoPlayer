@@ -33,10 +33,12 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
   final SubtitleTrack? currentSubtitleTrack;
   final void Function(SubtitleTrack?)? onSubtitleSelected;
   final List<SubtitleItem>? parsedSubtitles;
+  final List<VideoChapter>? chapters;
   final bool isLive;
   final String? viewerCount;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
+  final VoidCallback? onMiniPlayerPressed;
 
   const BaseAdaptiveVideoPlayer({
     super.key,
@@ -56,10 +58,12 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
     this.currentSubtitleTrack,
     this.onSubtitleSelected,
     this.parsedSubtitles,
+    this.chapters,
     this.isLive = false,
     this.viewerCount,
     this.onEnterFullscreen,
     this.onExitFullscreen,
+    this.onMiniPlayerPressed,
   });
 
   @override
@@ -78,6 +82,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
   String _currentSubtitleText = '';
   int _seekSeconds = 10;
   Timer? _seekResetTimer;
+  bool _isHold2xActive = false;
+  double _previousPlaybackSpeed = 1.0;
 
   AdaptivePlayerKeyboardHandler get _keyboardHandler =>
       AdaptivePlayerKeyboardHandler(
@@ -260,6 +266,26 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
     }
   }
 
+  void _handleLongPressStart(LongPressStartDetails details) {
+    if (widget.isLive) return;
+    _previousPlaybackSpeed = widget.controller.value.playbackSpeed;
+    setState(() => _isHold2xActive = true);
+    widget.controller.setPlaybackSpeed(2.0);
+    widget.onAnalyticsEvent?.call('playback_speed_hold_start', {'speed': 2.0});
+  }
+
+  void _handleLongPressEnd(LongPressEndDetails details) {
+    _stopHold2xSpeed();
+  }
+
+  void _stopHold2xSpeed() {
+    if (!_isHold2xActive) return;
+    setState(() => _isHold2xActive = false);
+    widget.controller.setPlaybackSpeed(_previousPlaybackSpeed);
+    widget.onAnalyticsEvent
+        ?.call('playback_speed_hold_end', {'speed': _previousPlaybackSpeed});
+  }
+
   @override
   Widget build(BuildContext context) {
     final videoContent = AdaptiveVideoSurface(
@@ -295,6 +321,43 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
             isFullScreen: widget.isFullScreen,
           ),
 
+          // YouTube-style Hold-to-2x Speed Pill Badge at top-center
+          if (_isHold2xActive)
+            Positioned(
+              top: widget.isFullScreen ? 32 : 14,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xBF000000),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '2x',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        Icons.fast_forward_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           // Subtitle layer
           AdaptiveSubtitleLayer(
             subtitleText: _currentSubtitleText,
@@ -314,6 +377,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
                   _toggleControls();
                 },
                 onDoubleTapDown: _handleDoubleTap,
+                onLongPressStart: _handleLongPressStart,
+                onLongPressEnd: _handleLongPressEnd,
+                onLongPressCancel: _stopHold2xSpeed,
                 child: AnimatedOpacity(
                   opacity: _controlsVisible ? 1 : 0,
                   duration: const Duration(milliseconds: 250),
@@ -334,12 +400,14 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
                           currentSubtitleTrack: widget.currentSubtitleTrack,
                           onSubtitleSelected: widget.onSubtitleSelected,
                           parsedSubtitles: widget.parsedSubtitles,
+                          chapters: widget.chapters,
                           controlsBuilder: widget.controlsBuilder,
                           subtitleBuilder: widget.subtitleBuilder,
                           isLive: widget.isLive,
                           viewerCount: widget.viewerCount,
                           onEnterFullscreen: widget.onEnterFullscreen,
                           onExitFullscreen: widget.onExitFullscreen,
+                          onMiniPlayerPressed: widget.onMiniPlayerPressed,
                         ),
                 ),
               ),

@@ -140,6 +140,7 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
       initialQuality: widget.config.initialQuality,
       subtitles: widget.config.subtitles,
       initialSubtitle: widget.config.initialSubtitle,
+      chapters: widget.config.chapters,
       viewerCount: widget.config.viewerCount,
       styling: widget.config.styling,
       messages: widget.config.messages,

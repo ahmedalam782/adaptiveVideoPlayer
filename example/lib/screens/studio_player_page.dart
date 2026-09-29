@@ -73,6 +73,20 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
       initialQuality: demo.config.initialQuality,
       subtitles: demo.config.subtitles,
       initialSubtitle: demo.config.initialSubtitle,
+      chapters: demo.config.chapters ??
+          (demo.config.isLive
+              ? null
+              : const [
+                  VideoChapter(title: 'Intro', startTime: Duration.zero),
+                  VideoChapter(
+                    title: 'Main Scene',
+                    startTime: Duration(seconds: 20),
+                  ),
+                  VideoChapter(
+                    title: 'Action Climax',
+                    startTime: Duration(seconds: 45),
+                  ),
+                ]),
       viewerCount: demo.config.viewerCount,
       controlsBuilder: demo.config.controlsBuilder,
       subtitleBuilder: demo.config.subtitleBuilder,

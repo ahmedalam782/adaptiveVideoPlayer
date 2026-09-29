@@ -7,11 +7,13 @@ import '../../core/mixins/volume_feedback_mixin.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../adaptive_controls.dart';
 import 'subtitle_track.dart';
+import 'video_chapter.dart';
 import 'video_file_extension.dart';
 import 'video_quality.dart';
 import 'video_source_type.dart';
 
 export 'subtitle_track.dart';
+export 'video_chapter.dart';
 export 'video_file_extension.dart';
 export 'video_quality.dart';
 export 'video_source_type.dart';
@@ -41,6 +43,9 @@ class VideoConfig {
 
   /// Initial subtitle track to activate
   final SubtitleTrack? initialSubtitle;
+
+  /// Optional list of timeline chapters (similar to YouTube chapters)
+  final List<VideoChapter>? chapters;
 
   /// Custom ui builder for rendering over the video
   final AdaptiveControlsBuilder? controlsBuilder;
@@ -88,6 +93,7 @@ class VideoConfig {
     this.initialQuality,
     this.subtitles,
     this.initialSubtitle,
+    this.chapters,
     this.controlsBuilder,
     this.subtitleBuilder,
     this.volumeFeedbackBuilder,

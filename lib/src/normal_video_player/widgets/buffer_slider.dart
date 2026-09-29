@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/video_chapter.dart';
 import '../utils/video_player_web_safe.dart';
 
 /// Custom painter for rendering buffered video progress ranges (SRP)
@@ -55,7 +56,7 @@ class BufferPainter extends CustomPainter {
   }
 }
 
-/// Track shape for YouTube-style progress slider with buffered progress and red active bar
+/// Track shape for YouTube-style progress slider with buffered progress, hover preview, and red active bar
 class GradientSliderTrackShape extends SliderTrackShape
     with BaseSliderTrackShape {
   const GradientSliderTrackShape({
@@ -64,11 +65,15 @@ class GradientSliderTrackShape extends SliderTrackShape
     ),
     this.buffered = const [],
     this.duration = Duration.zero,
+    this.hoverFraction,
+    this.chapters,
   });
 
   final LinearGradient gradient;
   final List<DurationRange> buffered;
   final Duration duration;
+  final double? hoverFraction;
+  final List<VideoChapter>? chapters;
 
   @override
   void paint(
@@ -148,6 +153,24 @@ class GradientSliderTrackShape extends SliderTrackShape
       }
     }
 
+    // 2.5. Draw YouTube-style hover preview bar up to cursor position
+    if (hoverFraction != null && trackRect.width > 0) {
+      final clampedHover = hoverFraction!.clamp(0.0, 1.0);
+      final hoverX = trackRect.left + clampedHover * trackRect.width;
+      if (hoverX > trackRect.left) {
+        final Paint hoverPaint = Paint()
+          ..color = Colors.white.withValues(alpha: 0.35)
+          ..style = PaintingStyle.fill;
+        context.canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTRB(trackRect.left, trackRect.top, hoverX, trackRect.bottom),
+            radius,
+          ),
+          hoverPaint,
+        );
+      }
+    }
+
     // 3. Draw active played track
     final Rect activeTrackRect = textDirection == TextDirection.rtl
         ? Rect.fromLTRB(
@@ -162,6 +185,34 @@ class GradientSliderTrackShape extends SliderTrackShape
         RRect.fromRectAndRadius(activeTrackRect, radius),
         activePaint,
       );
+    }
+
+    // 4. Draw YouTube-style chapter gap markers along the track
+    if (chapters != null &&
+        chapters!.isNotEmpty &&
+        duration.inMilliseconds > 0 &&
+        trackRect.width > 0) {
+      final Paint chapterTickPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.75)
+        ..style = PaintingStyle.fill;
+
+      for (final chapter in chapters!) {
+        final ms = chapter.startTime.inMilliseconds;
+        if (ms <= 0 || ms >= duration.inMilliseconds) continue;
+        final fraction = (ms / duration.inMilliseconds).clamp(0.0, 1.0);
+        final tickX = textDirection == TextDirection.rtl
+            ? trackRect.right - fraction * trackRect.width
+            : trackRect.left + fraction * trackRect.width;
+        context.canvas.drawRect(
+          Rect.fromLTRB(
+            tickX - 1.25,
+            trackRect.top - 0.5,
+            tickX + 1.25,
+            trackRect.bottom + 0.5,
+          ),
+          chapterTickPaint,
+        );
+      }
     }
   }
 }

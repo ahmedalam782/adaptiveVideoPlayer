@@ -26,9 +26,11 @@ class NormalPlayerView extends StatelessWidget {
   final SubtitleTrack? currentSubtitleTrack;
   final ValueChanged<SubtitleTrack?>? onSubtitleSelected;
   final List<SubtitleItem> parsedSubtitles;
+  final List<VideoChapter>? chapters;
   final String? viewerCount;
   final VoidCallback onEnterFullscreen;
   final VoidCallback onExitFullscreen;
+  final VoidCallback? onMiniPlayerPressed;
 
   const NormalPlayerView({
     super.key,
@@ -49,9 +51,11 @@ class NormalPlayerView extends StatelessWidget {
     this.currentSubtitleTrack,
     this.onSubtitleSelected,
     required this.parsedSubtitles,
+    this.chapters,
     this.viewerCount,
     required this.onEnterFullscreen,
     required this.onExitFullscreen,
+    this.onMiniPlayerPressed,
   });
 
   @override
@@ -74,9 +78,11 @@ class NormalPlayerView extends StatelessWidget {
       currentSubtitleTrack: currentSubtitleTrack,
       onSubtitleSelected: onSubtitleSelected,
       parsedSubtitles: parsedSubtitles,
+      chapters: chapters,
       viewerCount: viewerCount,
       onEnterFullscreen: onEnterFullscreen,
       onExitFullscreen: onExitFullscreen,
+      onMiniPlayerPressed: onMiniPlayerPressed,
     );
   }
 }

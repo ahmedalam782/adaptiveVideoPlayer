@@ -35,12 +35,14 @@ class AdaptiveControlsLayer extends StatefulWidget {
   final SubtitleTrack? currentSubtitleTrack;
   final void Function(SubtitleTrack?)? onSubtitleSelected;
   final List<SubtitleItem>? parsedSubtitles;
+  final List<VideoChapter>? chapters;
   final AdaptiveControlsBuilder? controlsBuilder;
   final SubtitleBuilder? subtitleBuilder;
   final bool isLive;
   final String? viewerCount;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
+  final VoidCallback? onMiniPlayerPressed;
 
   const AdaptiveControlsLayer({
     super.key,
@@ -57,12 +59,14 @@ class AdaptiveControlsLayer extends StatefulWidget {
     this.currentSubtitleTrack,
     this.onSubtitleSelected,
     this.parsedSubtitles,
+    this.chapters,
     this.controlsBuilder,
     this.subtitleBuilder,
     this.isLive = false,
     this.viewerCount,
     this.onEnterFullscreen,
     this.onExitFullscreen,
+    this.onMiniPlayerPressed,
   });
 
   @override
@@ -188,6 +192,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                         setState(() => _dragPosition = null);
                       },
                       styling: widget.styling,
+                      chapters: widget.chapters,
                       onAnalyticsEvent: widget.onAnalyticsEvent,
                     ),
                   AdaptiveBottomBar(
@@ -202,9 +207,11 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                     subtitles: widget.subtitles,
                     currentSubtitleTrack: widget.currentSubtitleTrack,
                     onSubtitleSelected: widget.onSubtitleSelected,
+                    chapters: widget.chapters,
                     onAnalyticsEvent: widget.onAnalyticsEvent,
                     onEnterFullscreen: widget.onEnterFullscreen,
                     onExitFullscreen: widget.onExitFullscreen,
+                    onMiniPlayerPressed: widget.onMiniPlayerPressed,
                     showSkipButtons:
                         widget.visibility?.showSkipButtons ?? true,
                     skipDuration: widget.visibility?.skipDuration ??
