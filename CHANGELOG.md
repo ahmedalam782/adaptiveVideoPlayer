@@ -1,11 +1,3 @@
-## 2.0.0
-
-- **BREAKING (Architecture & Dependencies):**
-  - Removed external dependency `flutter_bloc`.
-  - Migrated internal state management to Flutter's native `ValueNotifier` (`YoutubePlayerNotifier`), drastically reducing package weight and eliminating version conflict risks with host applications.
-  - Maintained full backwards compatibility with `YoutubePlayerCubit` as a typedef alias.
-  - No public API changes for the `AdaptiveVideoPlayer` widget.
-
 ## 1.3.3
 
 - **Full WASM Readiness & Platform Support (20/20 on pub.dev):**

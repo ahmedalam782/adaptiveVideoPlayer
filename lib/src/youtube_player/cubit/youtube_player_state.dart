@@ -76,4 +76,40 @@ class PlayerCubitState {
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PlayerCubitState &&
+          runtimeType == other.runtimeType &&
+          position == other.position &&
+          isPlaying == other.isPlaying &&
+          isMuted == other.isMuted &&
+          isFullscreen == other.isFullscreen &&
+          autoPlay == other.autoPlay &&
+          loop == other.loop &&
+          forceHD == other.forceHD &&
+          enableCaption == other.enableCaption &&
+          duration == other.duration &&
+          isReady == other.isReady &&
+          errorMessage == other.errorMessage;
+
+  @override
+  int get hashCode => Object.hash(
+        position,
+        isPlaying,
+        isMuted,
+        isFullscreen,
+        autoPlay,
+        loop,
+        forceHD,
+        enableCaption,
+        duration,
+        isReady,
+        errorMessage,
+      );
+
+  @override
+  String toString() =>
+      'PlayerCubitState(pos: $position, dur: $duration, playing: $isPlaying, muted: $isMuted, ready: $isReady)';
 }

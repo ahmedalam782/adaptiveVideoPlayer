@@ -1,11 +1,11 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../models/player_config.dart';
+import '../models/youtube_player_config.dart';
+import 'youtube_player_html.dart';
 
 /// A unified YouTube player that uses InAppWebView + local HTTP server
 /// on all non-web platforms (Android, iOS, Windows, macOS, Linux).
@@ -15,19 +15,31 @@ import '../models/player_config.dart';
 class YouTubeWebViewPlayer extends StatefulWidget {
   final String videoId;
   final YouTubePlayerConfig config;
+  final int startAt;
+  final bool? autoPlay;
   final VoidCallback? onEnded;
   final VoidCallback? onReady;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
+  final VoidCallback? onSeekForward;
+  final VoidCallback? onSeekBackward;
+  final VoidCallback? onToggleFullscreen;
+  final ValueChanged<int>? onPositionUpdate;
 
   const YouTubeWebViewPlayer({
     super.key,
     required this.videoId,
     required this.config,
+    this.startAt = 0,
+    this.autoPlay,
     this.onEnded,
     this.onReady,
     this.onEnterFullscreen,
     this.onExitFullscreen,
+    this.onSeekForward,
+    this.onSeekBackward,
+    this.onToggleFullscreen,
+    this.onPositionUpdate,
   });
 
   @override
@@ -35,13 +47,18 @@ class YouTubeWebViewPlayer extends StatefulWidget {
 }
 
 class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
+  final GlobalKey _inAppWebViewKey = GlobalKey();
   InAppWebViewController? _webViewController;
   HttpServer? _localServer;
   String? _serverUrl;
+  int _currentPosition = 0;
+
+  int get currentPosition => _currentPosition;
 
   @override
   void initState() {
     super.initState();
+    _currentPosition = widget.startAt;
     _startLocalServer();
   }
 
@@ -50,10 +67,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   /// which fixes Error 153 on Desktop and works on mobile too.
   Future<void> _startLocalServer() async {
     try {
-      // Load the HTML content from the package asset
-      final htmlContent = await rootBundle.loadString(
-        'packages/adaptive_video_player/assets/youtube_player.html',
-      );
+      // Use embedded HTML from youtube_player_html.dart in this same directory
+      final htmlContent = kYouTubePlayerHtml;
 
       // Start a local HTTP server on a random available port
       _localServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -93,6 +108,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     }
 
     return InAppWebView(
+      key: _inAppWebViewKey,
       initialUrlRequest: URLRequest(
         url: WebUri(_serverUrl!),
       ),
@@ -207,6 +223,12 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
             if (event == 'onReady') {
               log("YouTube player ready");
               widget.onReady?.call();
+            } else if (event == 'onTimeUpdate') {
+              final cur = data['currentTime'];
+              if (cur is num) {
+                _currentPosition = cur.toInt();
+                widget.onPositionUpdate?.call(_currentPosition);
+              }
             } else if (event == 'onStateChange') {
               final state = data['data'];
               if (state == 0) {
@@ -215,6 +237,24 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
               }
             } else if (event == 'onError') {
               log("YouTube player error: ${data['data']}");
+            } else if (event == 'onEnterFullscreen') {
+              log("YouTube player JS onEnterFullscreen");
+              widget.onEnterFullscreen?.call();
+            } else if (event == 'onExitFullscreen' || event == 'onEscapeKey') {
+              log("YouTube player JS $event");
+              widget.onExitFullscreen?.call();
+            } else if (event == 'onSeekForward') {
+              log("YouTube player JS onSeekForward");
+              final next = _currentPosition + 10;
+              seekTo(next);
+              widget.onSeekForward?.call();
+            } else if (event == 'onSeekBackward') {
+              log("YouTube player JS onSeekBackward");
+              final prev = (_currentPosition - 10).clamp(0, 999999);
+              seekTo(prev);
+              widget.onSeekBackward?.call();
+            } else if (event == 'onToggleFullscreen') {
+              widget.onToggleFullscreen?.call();
             }
           },
         );
@@ -222,10 +262,13 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       onLoadStop: (controller, url) {
         log("YouTube page loaded: $url");
         // Inject videoId and settings after page loads
-        final autoplay = widget.config.playback.autoPlay ? 1 : 0;
+        final isAutoPlay = widget.autoPlay ?? widget.config.playback.autoPlay;
+        final autoplay = isAutoPlay ? 1 : 0;
         final mute = widget.config.playback.mute ? 1 : 0;
+        final startAt = widget.startAt;
         controller.evaluateJavascript(
-          source: "initPlayer('${widget.videoId}', $autoplay, $mute);",
+          source:
+              "initPlayer('${widget.videoId}', $autoplay, $mute, $startAt);",
         );
       },
       onConsoleMessage: (controller, consoleMessage) {
@@ -247,5 +290,35 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     _webViewController?.evaluateJavascript(
         source:
             "if (document.fullscreenElement) { document.exitFullscreen(); } else if (document.webkitFullscreenElement) { document.webkitExitFullscreen(); }");
+  }
+
+  Future<int?> getCurrentTime() async {
+    try {
+      final result = await _webViewController?.evaluateJavascript(
+        source:
+            "player && typeof player.getCurrentTime === 'function' ? Math.floor(player.getCurrentTime()) : 0;",
+      );
+      if (result is num) {
+        _currentPosition = result.toInt();
+        return _currentPosition;
+      }
+    } catch (e) {
+      log('Error getting current time: $e');
+    }
+    return _currentPosition;
+  }
+
+  Future<bool> isPlaying() async {
+    try {
+      final result = await _webViewController?.evaluateJavascript(
+        source:
+            "player && typeof player.getPlayerState === 'function' ? (player.getPlayerState() === 1 || player.getPlayerState() === 3) : false;",
+      );
+      if (result is bool) return result;
+      if (result is int) return result == 1;
+    } catch (e) {
+      log('Error checking isPlaying: $e');
+    }
+    return true;
   }
 }

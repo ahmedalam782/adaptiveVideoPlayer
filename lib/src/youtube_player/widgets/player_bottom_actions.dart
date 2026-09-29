@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../models/player_config.dart';
+import '../models/youtube_player_config.dart';
 import 'current_position.dart';
 import 'remaining_duration.dart';
 

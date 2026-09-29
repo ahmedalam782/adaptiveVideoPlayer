@@ -32,14 +32,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.1"
-  audio_video_progress_bar:
-    dependency: transitive
-    description:
-      name: audio_video_progress_bar
-      sha256: "7be62917604e19e3873e12c8025bbc6dbee5876e1fa4cd7772ea1d0eb0e88d99"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.11.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -92,26 +84,10 @@ packages:
     dependency: "direct main"
     description:
       name: cupertino_icons
-      sha256: "41e005c33bd814be4d3096aff55b1908d419fde52ca656c8c47719ec745873cd"
+      sha256: b7cc2390aac296c083bea762859413eb1cf5b630c70e0c7e4d831018f762a8b2
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.9"
-  dart_vlc:
-    dependency: "direct main"
-    description:
-      name: dart_vlc
-      sha256: f93499b938fbb6ce9eb3fb0368878cd18eac4e18ed45956731a0d6e758d75a34
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.0"
-  dart_vlc_ffi:
-    dependency: transitive
-    description:
-      name: dart_vlc_ffi
-      sha256: "670d4b27296935e4e4b8d903d6833c222fc94133bbd3e9fa36d8a2e7751a63d0"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0+1"
+    version: "2.0.0"
   dbus:
     dependency: transitive
     description:
@@ -229,27 +205,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  flutter_localizations:
+    dependency: "direct main"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_vlc_player:
-    dependency: "direct main"
-    description:
-      name: flutter_vlc_player
-      sha256: "32c0109cc191a97246df759a8804a1051c4ca6909597833506f13587cb3bf1be"
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.4.4"
-  flutter_vlc_player_platform_interface:
-    dependency: transitive
-    description:
-      name: flutter_vlc_player_platform_interface
-      sha256: "99fbb806f86ce1c53ba007157c183104a100aa643eda0cec7e71118bf0460578"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.5"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -287,6 +252,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.8.0"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      sha256: "1ca20c894b1717686a2319b8548763d812bc0aabdac580420a44c5178c57a867"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.20.3"
   leak_tracker:
     dependency: transitive
     description:

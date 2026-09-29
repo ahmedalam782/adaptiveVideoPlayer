@@ -1,40 +1,34 @@
 import 'dart:async';
 import 'dart:developer';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'widgets/youtube_controls_overlay.dart';
 
-import 'widgets/fullscreen_player_page.dart';
-import 'utils/player_utils.dart';
-import 'utils/youtube_web_export.dart';
-import 'models/player_config.dart';
+import 'coordinator/youtube_fullscreen_coordinator.dart';
 import 'cubit/youtube_player_cubit.dart';
+import 'models/youtube_player_config.dart';
+import 'utils/player_utils.dart';
+import 'utils/youtube_settings_helper.dart';
+import 'utils/youtube_web_export.dart';
+import 'views/youtube_desktop_player_view.dart';
+import 'views/youtube_mobile_player_view.dart';
 import 'widgets/player_controls.dart';
+import 'widgets/youtube_desktop_overlay.dart';
 import 'widgets/youtube_webview_player_export.dart';
-import '../normal_video_player/utils/fullscreen_utils_export.dart';
 
-/// A widget for playing YouTube videos with full YouTube controls
-/// Similar to native YouTube app with speed, quality, captions, etc.
-///
-/// Uses [YouTubePlayerConfig] model for all configuration settings.
-/// Uses [YoutubePlayerCubit] for state management between normal and fullscreen modes.
+/// A widget for playing YouTube videos with full YouTube controls.
+/// Supports Mobile, Desktop, and Web with custom controls and settings.
 class YouTubeVideoPlayer extends StatefulWidget {
-  /// The YouTube video URL or video ID
   final String videoSource;
-
-  /// Complete player configuration
   final YouTubePlayerConfig config;
-
-  /// Callback when the video ends
   final VoidCallback? onEnded;
-
-  /// Optional live viewer count
   final String? viewerCount;
-
-  /// Whether this is a live stream explicitly
   final bool isLive;
+  final YouTubeLoadingBuilder? loadingBuilder;
+  final YouTubeErrorBuilder? errorBuilder;
+  final YouTubeReplayBuilder? replayBuilder;
+  final YouTubeLiveBadgeBuilder? liveBadgeBuilder;
 
   const YouTubeVideoPlayer({
     super.key,
@@ -43,6 +37,10 @@ class YouTubeVideoPlayer extends StatefulWidget {
     this.onEnded,
     this.viewerCount,
     this.isLive = false,
+    this.loadingBuilder,
+    this.errorBuilder,
+    this.replayBuilder,
+    this.liveBadgeBuilder,
   });
 
   @override
@@ -63,7 +61,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   String? _webIframeId;
   final GlobalKey<YouTubeWebViewPlayerState> _desktopWebViewKey =
       GlobalKey<YouTubeWebViewPlayerState>();
-  OverlayEntry? _desktopFullscreenOverlay;
+  late final YouTubeDesktopFullscreenManager _desktopFullscreenManager;
   Duration _currentPosition = Duration.zero;
   StreamSubscription<YoutubeVideoState>? _videoStateSub;
   StreamSubscription<YoutubePlayerValue>? _playerValueSub;
@@ -89,6 +87,15 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
       enableCaption: _cfg.playback.enableCaption,
     );
     _cubit.setMuted(_cfg.playback.mute);
+
+    _desktopFullscreenManager = YouTubeDesktopFullscreenManager(
+      getContext: () => context,
+      onStateChange: () {
+        if (mounted) setState(() {});
+      },
+      desktopWebViewKey: _desktopWebViewKey,
+    );
+
     _initializePlayer();
   }
 
@@ -96,6 +103,8 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   void didUpdateWidget(covariant YouTubeVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.videoSource != widget.videoSource) {
+      _desktopFullscreenManager.currentPositionSeconds = 0;
+      _desktopFullscreenManager.wasPlaying = null;
       _disposeController();
       _initializePlayer();
     }
@@ -135,28 +144,16 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
         _webIframeId =
             'youtube-iframe-$_videoId-${DateTime.now().millisecondsSinceEpoch}';
         registerYoutubeWebIframe(_webIframeId!, _videoId!, _state.autoPlay);
-        if (mounted) {
-          setState(() {
-            _isControllerDisposed = false;
-          });
-        }
+        if (mounted) setState(() => _isControllerDisposed = false);
         return;
       }
 
-      // On Desktop (or forced), skip creating YoutubePlayerController.
-      // We use YouTubeWebViewPlayer (InAppWebView + localhost server) to avoid Error 153.
       if (_useDesktopPlayer) {
-        if (mounted) {
-          setState(() {
-            _isControllerDisposed = false;
-          });
-        }
+        if (mounted) setState(() => _isControllerDisposed = false);
         return;
       }
 
-      // On mobile (Android/iOS), use native YoutubePlayerController
       final startAtSeconds = _pendingSeekPosition?.inSeconds ?? 0;
-
       final controller = PlayerUtils.createController(
         videoId: _videoId!,
         autoPlay: _state.autoPlay,
@@ -170,11 +167,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
 
       _videoStateSub?.cancel();
       _videoStateSub = controller.videoStateStream.listen((state) {
-        if (mounted) {
-          setState(() {
-            _currentPosition = state.position;
-          });
-        }
+        if (mounted) setState(() => _currentPosition = state.position);
       });
 
       _playerValueSub?.cancel();
@@ -205,20 +198,12 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                 }
               });
             } else {
-              if (mounted) {
-                setState(() {
-                  _videoEnded = true;
-                });
-              }
+              if (mounted) setState(() => _videoEnded = true);
             }
           }
 
           if (value.playerState == PlayerState.playing && _videoEnded) {
-            if (mounted) {
-              setState(() {
-                _videoEnded = false;
-              });
-            }
+            if (mounted) setState(() => _videoEnded = false);
           }
         }
       });
@@ -245,235 +230,28 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     if (controller == null || _isControllerDisposed) return;
 
     _isInFullscreen = true;
-    final currentPosition = _currentPosition;
-    final wasPlaying = PlayerUtils.isPlaying(controller);
-
-    PlayerUtils.pause(controller);
-
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-
-    if (!mounted) return;
-
-    final result = await Navigator.of(context).push<FullScreenResult>(
-      PageRouteBuilder(
-        opaque: true,
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return FullScreenPlayerPage(
-            videoId: _videoId!,
-            initialPosition: currentPosition,
-            startPlaying: wasPlaying,
-            cubit: _cubit,
-            onEnded: widget.onEnded,
-            config: _cfg,
-            isLive: widget.isLive,
-            viewerCount: widget.viewerCount,
-          );
-        },
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-      ),
-    );
-
-    _isInFullscreen = false;
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: SystemUiOverlay.values,
-    );
-
-    if (result != null &&
-        mounted &&
-        !_isControllerDisposed &&
-        _controller != null) {
-      try {
-        if (result.videoEnded) {
-          widget.onEnded?.call();
-          if (result.isMuted != _state.isMuted && _isControllerSafe) {
-            _cubit.setMuted(result.isMuted);
-          }
-          setState(() {
-            _videoEnded = true;
-          });
-          return;
-        }
-
-        bool settingsChanged = false;
-        if (_state.autoPlay != result.autoPlay) {
-          _cubit.setAutoPlay(result.autoPlay);
-          settingsChanged = true;
-        }
-        if (_state.loop != result.loop) {
-          _cubit.setLoop(result.loop);
-          settingsChanged = true;
-        }
-        if (_state.forceHD != result.forceHD) {
-          _cubit.setForceHD(result.forceHD);
-          settingsChanged = true;
-        }
-        if (_state.enableCaption != result.enableCaption) {
-          _cubit.setEnableCaption(result.enableCaption);
-          settingsChanged = true;
-        }
-
-        if (settingsChanged) {
-          await _reloadPlayerWithSettings(targetPosition: result.position);
-          if (mounted && !_isControllerDisposed && _controller != null) {
-            if (result.isMuted != _state.isMuted) {
-              _cubit.setMuted(result.isMuted);
-            }
-            PlayerUtils.setMute(_controller!, result.isMuted);
-            if (result.wasPlaying) {
-              PlayerUtils.play(_controller);
-            }
-          }
-        } else {
-          if (mounted && !_isControllerDisposed && _controller != null) {
-            PlayerUtils.pause(_controller);
-            await Future.delayed(const Duration(milliseconds: 300));
-            if (mounted && !_isControllerDisposed && _controller != null) {
-              PlayerUtils.seekTo(_controller!, result.position);
-              await Future.delayed(const Duration(milliseconds: 500));
-              if (result.wasPlaying &&
-                  mounted &&
-                  !_isControllerDisposed &&
-                  _controller != null) {
-                PlayerUtils.play(_controller);
-              }
-            }
-          }
-        }
-
-        if (_isControllerSafe) {
-          if (result.isMuted != _state.isMuted) {
-            _cubit.setMuted(result.isMuted);
-          }
-          PlayerUtils.setMute(_controller!, result.isMuted);
-        }
-      } catch (e) {
-        log('Error syncing after fullscreen: $e');
-      }
-    }
-  }
-
-  Future<void> _openDesktopFullscreen() async {
-    if (_isInFullscreen) return;
-
-    final overlay = Overlay.of(context);
-
-    // Build the overlay entry
-    _desktopFullscreenOverlay = OverlayEntry(
-      builder: (context) {
-        return Scaffold(
-          backgroundColor: Colors.black,
-          body: SizedBox.expand(
-            child: Stack(
-              children: [
-                Positioned.fill(child: _buildDesktopPlayer()),
-                Positioned(
-                  top: 24,
-                  right: 24,
-                  child: _buildDesktopFullscreenButton(true),
-                ),
-              ],
-            ),
-          ),
-        );
+    await YouTubeFullscreenCoordinator.openFullScreen(
+      context: context,
+      controller: controller,
+      videoId: _videoId!,
+      currentPosition: _currentPosition,
+      cubit: _cubit,
+      config: _cfg,
+      isLive: widget.isLive,
+      viewerCount: widget.viewerCount,
+      onEnded: widget.onEnded,
+      isControllerSafe: () => _isControllerSafe,
+      onReloadPlayer: _reloadPlayerWithSettings,
+      onVideoEndedChanged: (ended) {
+        if (mounted) setState(() => _videoEnded = ended);
       },
     );
-
-    // Activate fullscreen flags entirely within the same frame that it gets moved to the Overlay
-    setState(() {
-      _isInFullscreen = true;
-    });
-
-    overlay.insert(_desktopFullscreenOverlay!);
-    enterBrowserFullscreen();
-
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-  }
-
-  void _closeDesktopFullscreen() async {
-    if (!_isInFullscreen || _desktopFullscreenOverlay == null) return;
-
-    exitBrowserFullscreen();
-
-    // Immediately remove overlay to free the GlobalKey for the inline placement
-    _desktopFullscreenOverlay?.remove();
-    _desktopFullscreenOverlay?.dispose();
-    _desktopFullscreenOverlay = null;
-
-    setState(() {
-      _isInFullscreen = false;
-    });
-
-    if (_desktopWebViewKey.currentState != null) {
-      try {
-        _desktopWebViewKey.currentState?.exitFullscreen();
-      } catch (e) {
-        log('Error exiting native fullscreen: $e');
-      }
-    }
-
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: SystemUiOverlay.values,
-    );
-  }
-
-  Widget _buildDesktopFullscreenButton(bool isFullScreenMode) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap:
-            isFullScreenMode ? _closeDesktopFullscreen : _openDesktopFullscreen,
-        borderRadius: BorderRadius.circular(4),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Icon(
-            isFullScreenMode ? Icons.fullscreen_exit : Icons.fullscreen,
-            color: Colors.white,
-            size: 28,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopPlayer() {
-    return YouTubeWebViewPlayer(
-      key: _desktopWebViewKey,
-      videoId: _videoId!,
-      config: _cfg,
-      onReady: () => log('Desktop YouTube player ready'),
-      onEnded: () => widget.onEnded?.call(),
-      onEnterFullscreen: _openDesktopFullscreen,
-      onExitFullscreen: _closeDesktopFullscreen,
-    );
+    _isInFullscreen = false;
   }
 
   void _restartVideo() {
     if (!mounted || _isControllerDisposed || _controller == null) return;
-    setState(() {
-      _videoEnded = false;
-    });
+    setState(() => _videoEnded = false);
     PlayerUtils.seekTo(_controller!, Duration.zero);
     PlayerUtils.play(_controller);
   }
@@ -490,78 +268,28 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   }
 
   void _seekForward() {
-    if (!mounted || _isControllerDisposed) return;
-    final controller = _controller;
-    if (controller == null) return;
+    if (!mounted || _isControllerDisposed || _controller == null) return;
     PlayerUtils.seekForward(
-      controller,
+      _controller!,
       onError: (e) => log('Seek forward error: $e'),
     );
   }
 
   void _seekBackward() {
-    if (!mounted || _isControllerDisposed) return;
-    final controller = _controller;
-    if (controller == null) return;
+    if (!mounted || _isControllerDisposed || _controller == null) return;
     PlayerUtils.seekBackward(
-      controller,
+      _controller!,
       onError: (e) => log('Seek backward error: $e'),
     );
   }
 
   void _showSettingsBottomSheet() {
-    PlayerUtils.showSettings(
+    YouTubeSettingsHelper.openSettingsSheet(
       context: context,
-      config: PlayerSettingsConfig(
-        autoPlay: _state.autoPlay,
-        loop: _state.loop,
-        forceHD: _state.forceHD,
-        enableCaption: _state.enableCaption,
-        isMuted: _state.isMuted,
-        settingsBackgroundColor: _cfg.style.settingsBackgroundColor,
-        settingItemBackgroundColor: _cfg.style.settingItemBackgroundColor,
-        iconColor: _cfg.style.iconColor,
-        textColor: _cfg.style.textColor,
-        switchInactiveThumbColor: _cfg.style.switchInactiveThumbColor,
-        switchInactiveTrackColor: _cfg.style.switchInactiveTrackColor,
-        playerSettingsText: _cfg.text.playerSettingsText,
-        autoPlayText: _cfg.text.autoPlayText,
-        loopVideoText: _cfg.text.loopVideoText,
-        forceHdQualityText: _cfg.text.forceHdQualityText,
-        enableCaptionsText: _cfg.text.enableCaptionsText,
-        muteAudioText: _cfg.text.muteAudioText,
-        showAutoPlaySetting: _cfg.visibility.showAutoPlaySetting,
-        showLoopSetting: _cfg.visibility.showLoopSetting,
-        showForceHDSetting: _cfg.visibility.showForceHDSetting,
-        showCaptionsSetting: _cfg.visibility.showCaptionsSetting,
-        showMuteSetting: _cfg.visibility.showMuteSetting,
-        settingsTitleStyle: _cfg.style.settingsTitleStyle,
-        settingItemTextStyle: _cfg.style.settingItemTextStyle,
-      ),
-      onAutoPlayChanged: (value) async {
-        if (_state.autoPlay != value) {
-          _cubit.setAutoPlay(value);
-          await _reloadPlayerWithSettings();
-        }
-      },
-      onLoopChanged: (value) async {
-        if (_state.loop != value) {
-          _cubit.setLoop(value);
-          await _reloadPlayerWithSettings();
-        }
-      },
-      onForceHDChanged: (value) async {
-        if (_state.forceHD != value) {
-          _cubit.setForceHD(value);
-          await _reloadPlayerWithSettings();
-        }
-      },
-      onEnableCaptionChanged: (value) async {
-        if (_state.enableCaption != value) {
-          _cubit.setEnableCaption(value);
-          await _reloadPlayerWithSettings();
-        }
-      },
+      config: _cfg,
+      state: _state,
+      cubit: _cubit,
+      onReloadPlayer: _reloadPlayerWithSettings,
       onMutedChanged: (value) {
         if (_state.isMuted != value) {
           _cubit.setMuted(value);
@@ -588,9 +316,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     _pendingSeekPosition = currentPosition;
     _hasRestoredPosition = false;
     _disposeController();
-    setState(() {
-      _isControllerDisposed = false;
-    });
+    setState(() => _isControllerDisposed = false);
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
     _initializePlayer();
@@ -606,6 +332,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
 
   @override
   void dispose() {
+    _desktopFullscreenManager.dispose();
     _videoStateSub?.cancel();
     _playerValueSub?.cancel();
     _disposeController();
@@ -623,28 +350,33 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return PlayerErrorWidget(
-        errorMessage: _errorMessage,
-        errorIconColor: _cfg.style.errorIconColor,
-        backgroundColor: _cfg.style.backgroundColor,
-        textColor: _cfg.style.textColor,
-        errorTextStyle: _cfg.style.errorTextStyle,
-      );
+      return (widget.errorBuilder ?? _cfg.errorBuilder)?.call(
+            context,
+            _errorMessage,
+          ) ??
+          PlayerErrorWidget(
+            errorMessage: _errorMessage,
+            errorIconColor: _cfg.style.errorIconColor,
+            backgroundColor: _cfg.style.backgroundColor,
+            textColor: _cfg.style.textColor,
+            errorTextStyle: _cfg.style.errorTextStyle,
+          );
     }
     final controller = _controller;
 
     if (_videoId == null || _isControllerDisposed) {
-      return PlayerLoadingWidget(
-        loadingIndicatorColor: _cfg.style.loadingIndicatorColor,
-        backgroundColor: _cfg.style.backgroundColor,
-      );
+      return (widget.loadingBuilder ?? _cfg.loadingBuilder)?.call(context) ??
+          PlayerLoadingWidget(
+            loadingIndicatorColor: _cfg.style.loadingIndicatorColor,
+            backgroundColor: _cfg.style.backgroundColor,
+          );
     }
-    // On mobile, we need the native controller to be ready
     if (!kIsWeb && !_useDesktopPlayer && controller == null) {
-      return PlayerLoadingWidget(
-        loadingIndicatorColor: _cfg.style.loadingIndicatorColor,
-        backgroundColor: _cfg.style.backgroundColor,
-      );
+      return (widget.loadingBuilder ?? _cfg.loadingBuilder)?.call(context) ??
+          PlayerLoadingWidget(
+            loadingIndicatorColor: _cfg.style.loadingIndicatorColor,
+            backgroundColor: _cfg.style.backgroundColor,
+          );
     }
 
     return ValueListenableBuilder<PlayerCubitState>(
@@ -659,143 +391,40 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Web: HTML iframe
                   if (kIsWeb && _webIframeId != null)
                     buildYoutubeWebIframe(_webIframeId!)
-                  // Desktop or forced: InAppWebView + localhost server
                   else if (_useDesktopPlayer)
-                    _isInFullscreen
-                        ? const SizedBox()
-                        : Stack(
-                            children: [
-                              Positioned.fill(child: _buildDesktopPlayer()),
-                              Positioned(
-                                bottom: 12,
-                                right: 12,
-                                child: _buildDesktopFullscreenButton(false),
-                              ),
-                            ],
-                          )
-                  // Mobile: Native youtube_player_flutter
+                    YouTubeDesktopPlayerView(
+                      desktopWebViewKey: _desktopWebViewKey,
+                      videoId: _videoId!,
+                      config: _cfg,
+                      fullscreenManager: _desktopFullscreenManager,
+                      onReady: () => log('Desktop YouTube player ready'),
+                      onEnded: () => widget.onEnded?.call(),
+                    )
                   else
-                    YoutubePlayer(
+                    YouTubeMobilePlayerView(
                       controller: controller!,
-                      builder: (context, player, controller) {
-                        return Stack(
-                          children: [
-                            player,
-                            CustomYoutubeControls(
-                              controller: controller,
-                              config: _cfg,
-                              isLive: widget.isLive,
-                              isMuted: state.isMuted,
-                              isFullscreen: false,
-                              onFullscreenTap: _openFullScreen,
-                              onMuteTap: _toggleMute,
-                              onSettingsTap: _showSettingsBottomSheet,
-                              onSeekBackward: _seekBackward,
-                              onSeekForward: _seekForward,
-                              topActions:
-                                  (widget.isLive || widget.viewerCount != null)
-                                      ? Padding(
-                                          padding: const EdgeInsets.all(16),
-                                          child: _buildLiveIndicatorBlock(),
-                                        )
-                                      : null,
-                            ),
-                          ],
-                        );
-                      },
+                      config: _cfg,
+                      isLive: widget.isLive,
+                      viewerCount: widget.viewerCount,
+                      isMuted: state.isMuted,
+                      videoEnded: _videoEnded,
+                      onFullscreenTap: _openFullScreen,
+                      onMuteTap: _toggleMute,
+                      onSettingsTap: _showSettingsBottomSheet,
+                      onSeekBackward: _seekBackward,
+                      onSeekForward: _seekForward,
+                      onRestartVideo: _restartVideo,
+                      liveBadgeBuilder: widget.liveBadgeBuilder,
+                      replayBuilder: widget.replayBuilder,
                     ),
-                  // Replay overlay (mobile only)
-                  if (_videoEnded && !kIsWeb && !_useDesktopPlayer)
-                    Positioned.fill(
-                      child: GestureDetector(
-                        onTap: _restartVideo,
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          child: Center(
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.7),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.replay,
-                                color: _cfg.style.iconColor,
-                                size: 48,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
                 ],
               ),
             ),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildLiveIndicatorBlock() {
-    return Row(
-      children: [
-        if (widget.isLive)
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Text('LIVE',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        if (widget.viewerCount != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.person, color: Colors.white, size: 14),
-                const SizedBox(width: 6),
-                Text(
-                  widget.viewerCount!,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
     );
   }
 

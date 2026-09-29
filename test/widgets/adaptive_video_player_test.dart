@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:adaptive_video_player/src/normal_video_player/model/video_config.dart';
-import 'package:adaptive_video_player/src/youtube_player/models/player_config.dart';
+import 'package:adaptive_video_player/src/normal_video_player/models/video_config.dart';
+import 'package:adaptive_video_player/src/youtube_player/models/youtube_player_config.dart';
 import 'package:adaptive_video_player/src/youtube_player/utils/player_utils.dart';
 
 void main() {

@@ -4,7 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart'
     hide FullscreenButton;
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_bottom_actions.dart';
-import 'package:adaptive_video_player/src/youtube_player/models/player_config.dart';
+import 'package:adaptive_video_player/src/youtube_player/models/youtube_player_config.dart';
 
 class MockYoutubePlayerController extends Mock
     implements YoutubePlayerController {}

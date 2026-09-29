@@ -1,41 +1,20 @@
 import 'dart:typed_data';
+import 'package:flutter/widgets.dart';
 
-import '../../youtube_player/models/player_config.dart';
+import '../../core/contracts/i_analytics_service.dart';
+import '../../core/contracts/i_fullscreen_service.dart';
+import '../../core/mixins/volume_feedback_mixin.dart';
+import '../../youtube_player/models/youtube_player_config.dart';
 import '../adaptive_controls.dart';
+import 'subtitle_track.dart';
+import 'video_file_extension.dart';
+import 'video_quality.dart';
+import 'video_source_type.dart';
 
-/// Represents a video stream quality/resolution (e.g. 1080p, 720p, Auto)
-class VideoQuality {
-  final String title;
-  final String url;
-
-  /// Whether this specific quality/source is a live stream
-  final bool isLive;
-
-  const VideoQuality({
-    required this.title,
-    required this.url,
-    this.isLive = false,
-  });
-}
-
-/// Represents a subtitle or closed caption track
-class SubtitleTrack {
-  final String id;
-  final String title;
-
-  /// The subtitle raw content (srt or vtt format)
-  final String? content;
-
-  /// A callback to fetch the content if not provided upfront
-  final Future<String> Function()? fetcher;
-
-  const SubtitleTrack({
-    required this.id,
-    required this.title,
-    this.content,
-    this.fetcher,
-  });
-}
+export 'subtitle_track.dart';
+export 'video_file_extension.dart';
+export 'video_quality.dart';
+export 'video_source_type.dart';
 
 /// Configuration model for the adaptive video player
 class VideoConfig {
@@ -69,12 +48,33 @@ class VideoConfig {
   /// Custom builder for subtitles layer
   final SubtitleBuilder? subtitleBuilder;
 
+  /// Custom builder for volume feedback overlay HUD
+  final VolumeFeedbackBuilder? volumeFeedbackBuilder;
+
+  /// Custom loading widget builder
+  final Widget Function(BuildContext context)? loadingBuilder;
+
+  /// Custom error widget builder
+  final Widget Function(BuildContext context, String errorMessage)? errorBuilder;
+
+  /// Optional custom fullscreen service injection (DIP)
+  final IFullscreenService? fullscreenService;
+
+  /// Optional custom analytics service injection (DIP)
+  final IAnalyticsService? analyticsService;
+
   /// Optional viewer count to display when stream is live
   final String? viewerCount;
 
   /// Analytics hook for external tracking of video events
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
+
+  /// Optional explicit video file extension (e.g. VideoFileExtension.hls for extensionless streams)
+  final VideoFileExtension? extension;
+
+  /// Optional explicit video source type (e.g. VideoSourceType.network)
+  final VideoSourceType? sourceType;
 
   /// Complete player configuration using YouTube models
   final YouTubePlayerConfig playerConfig;
@@ -90,8 +90,15 @@ class VideoConfig {
     this.initialSubtitle,
     this.controlsBuilder,
     this.subtitleBuilder,
+    this.volumeFeedbackBuilder,
+    this.loadingBuilder,
+    this.errorBuilder,
+    this.fullscreenService,
+    this.analyticsService,
     this.viewerCount,
     this.onAnalyticsEvent,
+    this.extension,
+    this.sourceType,
     this.playerConfig = const YouTubePlayerConfig(),
   });
 

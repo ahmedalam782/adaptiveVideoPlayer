@@ -3,14 +3,18 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'utils/video_player_web_safe.dart';
 
-import '../youtube_player/models/player_config.dart';
+import '../youtube_player/models/youtube_player_config.dart';
 import 'adaptive_controls.dart';
-import 'model/video_config.dart';
+import 'coordinator/normal_fullscreen_coordinator.dart';
+import 'models/video_config.dart';
 import 'utils/file_utils_export.dart';
-import 'utils/fullscreen_utils_export.dart';
 import 'utils/subtitle_parser.dart';
+import 'utils/video_player_web_safe.dart';
+import 'views/normal_player_view.dart';
+import 'widgets/normal_fullscreen_overlay.dart';
+import 'widgets/normal_player_error_widget.dart';
+import 'widgets/normal_player_loading_widget.dart';
 
 class NormalVideoPlayer extends StatefulWidget {
   final String videoSource;
@@ -51,9 +55,22 @@ class NormalVideoPlayer extends StatefulWidget {
   /// Custom builder for subtitles layer
   final SubtitleBuilder? subtitleBuilder;
 
+  /// Custom loading widget builder
+  final Widget Function(BuildContext context)? loadingBuilder;
+
+  /// Custom error widget builder
+  final Widget Function(BuildContext context, String errorMessage)?
+      errorBuilder;
+
   /// Analytics hook for external tracking of video events
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
+
+  /// Optional explicit video file extension (e.g. VideoFileExtension.hls)
+  final VideoFileExtension? extension;
+
+  /// Optional explicit video source type (e.g. VideoSourceType.network)
+  final VideoSourceType? sourceType;
 
   const NormalVideoPlayer({
     super.key,
@@ -72,7 +89,11 @@ class NormalVideoPlayer extends StatefulWidget {
     this.playback,
     this.controlsBuilder,
     this.subtitleBuilder,
+    this.loadingBuilder,
+    this.errorBuilder,
     this.onAnalyticsEvent,
+    this.extension,
+    this.sourceType,
   });
 
   @override
@@ -91,9 +112,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   SubtitleTrack? _currentSubtitleTrack;
   List<SubtitleItem> _parsedSubtitles = [];
 
-  bool _isInFullscreen = false;
-  OverlayEntry? _fullscreenOverlay;
-  final GlobalKey _basePlayerKey = GlobalKey();
+  final NormalFullscreenCoordinator _fullscreenCoordinator =
+      NormalFullscreenCoordinator();
 
   bool get _effectiveIsLive => _currentQuality?.isLive ?? widget.isLive;
 
@@ -107,11 +127,11 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     _useFileController = widget.isFile && !_hasInMemoryData;
     _initializeVideo();
     _loadSubtitleTrack();
-    listenToFullscreenChange((isFullscreen) {
-      if (!isFullscreen && _isInFullscreen && mounted) {
-        _closeFullscreen();
-      }
-    });
+    _fullscreenCoordinator.initialize(
+      onFullscreenChanged: () {
+        if (mounted) setState(() {});
+      },
+    );
   }
 
   Future<void> _loadSubtitleTrack() async {
@@ -162,20 +182,74 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   Future<void> _changeQuality(VideoQuality newQuality) async {
     if (_currentQuality == newQuality || !mounted) return;
 
+    // Immediately update current quality so UI controls (e.g. checkmark in settings menu) reflect the selection
+    setState(() {
+      _currentQuality = newQuality;
+    });
+
+    // If identical URL, just update state without re-creating controller
+    if (newQuality.url == _effectiveSource) {
+      return;
+    }
+
     final currentPosition =
         _videoPlayerController?.value.position ?? Duration.zero;
     final isPlaying = _videoPlayerController?.value.isPlaying ?? false;
+    final currentVolume = _videoPlayerController?.value.volume ?? 1.0;
+    final currentSpeed = _videoPlayerController?.value.playbackSpeed ?? 1.0;
+    final oldController = _videoPlayerController;
 
-    // Cleanup old controller
-    await _videoPlayerController?.dispose();
+    try {
+      final isHls = widget.extension == VideoFileExtension.hls ||
+          newQuality.url.contains('.m3u8');
+      final isDash = widget.extension == VideoFileExtension.dash ||
+          newQuality.url.contains('.mpd');
+      final formatHint = isHls
+          ? VideoFormat.hls
+          : isDash
+              ? VideoFormat.dash
+              : null;
 
-    setState(() {
-      _isInitialized = false;
+      final newController = _useFileController
+          ? getFileVideoController(newQuality.url)
+          : VideoPlayerController.networkUrl(
+              Uri.parse(newQuality.url),
+              formatHint: formatHint,
+            );
+
+      await newController.initialize();
+      if (!newQuality.isLive && currentPosition > Duration.zero) {
+        await newController.seekTo(currentPosition);
+      }
+      await newController.setVolume(currentVolume);
+      if (currentSpeed != 1.0) {
+        await newController.setPlaybackSpeed(currentSpeed);
+      }
+      if (widget.playback?.loop ?? false) {
+        await newController.setLooping(true);
+      }
+      if (isPlaying) {
+        await newController.play();
+      }
+
+      if (mounted) {
+        setState(() {
+          _videoPlayerController = newController;
+          _currentQuality = newQuality;
+          _effectiveSource = newQuality.url;
+        });
+      }
+
+      // Dispose old controller only after new controller is safely active
+      await oldController?.dispose();
+    } catch (e) {
+      log('Error during seamless quality change: $e');
+      // Fallback to standard initialization if seamless switch failed
       _currentQuality = newQuality;
       _updateEffectiveSource();
-    });
-
-    await _initializeVideo(startAt: currentPosition, wasPlaying: isPlaying);
+      await oldController?.dispose();
+      await _initializeVideo(startAt: currentPosition, wasPlaying: isPlaying);
+    }
   }
 
   /// Validates if the URL is a valid video source
@@ -189,6 +263,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       return checkFileExists(url);
     }
 
+    // If extension is explicitly declared, it is valid
+    if (widget.extension != null) return true;
+
     // Check if it's a valid URL format
     try {
       final uri = Uri.parse(url);
@@ -196,25 +273,10 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
         return false;
       }
 
-      // Check for common video file extensions
+      // Check for supported video file extensions using VideoFileExtension enum
       final path = uri.path.toLowerCase();
-      final videoExtensions = [
-        '.mp4',
-        '.mov',
-        '.avi',
-        '.mkv',
-        '.webm',
-        '.m4v',
-        '.3gp',
-        '.flv',
-        '.wmv',
-        '.m9v',
-        '.m3u8', // Added HLS support
-      ];
-
-      // If URL has extension, check if it's a video extension
       if (path.contains('.')) {
-        return videoExtensions.any((ext) => path.endsWith(ext));
+        return VideoFileExtension.isSupported(path);
       }
 
       // If no extension, assume it might be a streaming URL
@@ -257,8 +319,15 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
             : 'Playing video from: $_effectiveSource',
       );
 
-      final isHls = _effectiveSource.contains('.m3u8');
-      final formatHint = isHls ? VideoFormat.hls : null;
+      final isHls = widget.extension == VideoFileExtension.hls ||
+          _effectiveSource.contains('.m3u8');
+      final isDash = widget.extension == VideoFileExtension.dash ||
+          _effectiveSource.contains('.mpd');
+      final formatHint = isHls
+          ? VideoFormat.hls
+          : isDash
+              ? VideoFormat.dash
+              : null;
 
       _videoPlayerController = _useFileController
           ? getFileVideoController(_effectiveSource)
@@ -269,28 +338,37 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
       await _videoPlayerController!.initialize();
 
-      if (startAt != null &&
-          !_effectiveIsLive &&
-          !startAt.isNegative &&
-          startAt.inMilliseconds > 0) {
+      if (startAt != null && !_effectiveIsLive) {
         await _videoPlayerController!.seekTo(startAt);
       }
 
-      if (widget.playback?.loop ?? false) {
-        _videoPlayerController!.setLooping(true);
+      if (widget.playback?.autoPlay ?? true) {
+        if (wasPlaying || (widget.playback?.autoPlay ?? true)) {
+          await _videoPlayerController!.play();
+        }
       }
 
-      if (wasPlaying || (widget.playback?.autoPlay ?? false)) {
-        _videoPlayerController!.play();
+      if (widget.playback?.loop ?? false) {
+        await _videoPlayerController!.setLooping(true);
+      }
+
+      if (widget.playback?.isMuted ?? false) {
+        await _videoPlayerController!.setVolume(0.0);
+      }
+
+      final speed = widget.playback?.playbackSpeed;
+      if (speed != null && speed > 0) {
+        await _videoPlayerController!.setPlaybackSpeed(speed);
       }
 
       if (mounted) {
         setState(() {
           _isInitialized = true;
+          _hasError = false;
         });
       }
     } catch (e) {
-      log('Video initialization error: $e');
+      log('Video player initialization error: $e');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -318,148 +396,94 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   }
 
   @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    if (_fullscreenCoordinator.isInFullscreen) {
+      _fullscreenCoordinator.rebuildOverlay();
+    }
+  }
+
+  @override
   void dispose() {
-    _closeFullscreen();
+    _fullscreenCoordinator.dispose();
     _videoPlayerController?.dispose();
     super.dispose();
+  }
+
+  void _handleOpenFullscreen() {
+    _fullscreenCoordinator.openFullscreen(
+      context: context,
+      builder: (context) {
+        if (_hasError) {
+          return NormalFullscreenOverlay(
+            onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+            child: NormalPlayerErrorWidget(
+              errorMessage: _errorMessage,
+              styling: widget.styling,
+              customBuilder: widget.errorBuilder,
+            ),
+          );
+        }
+
+        if (!_isInitialized || _videoPlayerController == null) {
+          return NormalFullscreenOverlay(
+            onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+            child: NormalPlayerLoadingWidget(
+              styling: widget.styling,
+              customBuilder: widget.loadingBuilder,
+            ),
+          );
+        }
+
+        return NormalFullscreenOverlay(
+          onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+          child: NormalPlayerView(
+            controller: _videoPlayerController!,
+            showControls: widget.visibility?.showControls ?? true,
+            isFullScreen: true,
+            isLive: _effectiveIsLive,
+            controlsBuilder: widget.controlsBuilder,
+            subtitleBuilder: widget.subtitleBuilder,
+            styling: widget.styling,
+            messages: widget.messages,
+            onAnalyticsEvent: widget.onAnalyticsEvent,
+            qualities: widget.qualities,
+            currentQuality: _currentQuality,
+            onQualitySelected: _changeQuality,
+            subtitles: widget.subtitles,
+            currentSubtitleTrack: _currentSubtitleTrack,
+            onSubtitleSelected: _changeSubtitleTrack,
+            parsedSubtitles: _parsedSubtitles,
+            viewerCount: widget.viewerCount,
+            onEnterFullscreen: () {},
+            onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return Container(
-        decoration: BoxDecoration(
-          color: widget.styling?.backgroundColor ?? Colors.black,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: widget.styling?.errorIconColor ??
-                        const Color.fromRGBO(255, 0, 0, 0.7),
-                    size: 48,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _errorMessage,
-                    style: TextStyle(
-                      color: widget.styling?.textColor ??
-                          const Color.fromRGBO(255, 0, 0, 0.7),
-                      fontSize: 14,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+      return NormalPlayerErrorWidget(
+        errorMessage: _errorMessage,
+        styling: widget.styling,
+        customBuilder: widget.errorBuilder,
       );
     }
 
     if (!_isInitialized) {
-      return Container(
-        decoration: BoxDecoration(
-          color: widget.styling?.backgroundColor ?? Colors.black,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Center(
-            child: CircularProgressIndicator(
-              color: widget.styling?.loadingIndicatorColor ??
-                  const Color.fromRGBO(255, 0, 0, 0.7),
-              strokeCap: StrokeCap.round,
-            ),
-          ),
-        ),
+      return NormalPlayerLoadingWidget(
+        styling: widget.styling,
+        customBuilder: widget.loadingBuilder,
       );
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: AspectRatio(
-          aspectRatio: _videoPlayerController!.value.isInitialized
-              ? _videoPlayerController!.value.aspectRatio
-              : 16 / 9,
-          child: _isInFullscreen
-              ? const SizedBox()
-              : _buildBasePlayer(isFullScreen: false),
-        ),
-      ),
-    );
-  }
-
-  void _openFullscreen() async {
-    if (_isInFullscreen) return;
-
-    _fullscreenOverlay = OverlayEntry(
-      builder: (context) {
-        return Scaffold(
-          backgroundColor: Colors.black,
-          body: Directionality(
-            textDirection: TextDirection.ltr,
-            child: SizedBox.expand(
-              child: _buildBasePlayer(isFullScreen: true),
-            ),
-          ),
-        );
-      },
-    );
-
-    setState(() {
-      _isInFullscreen = true;
-    });
-
-    Overlay.of(context).insert(_fullscreenOverlay!);
-    enterBrowserFullscreen();
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-  }
-
-  void _closeFullscreen() async {
-    if (!_isInFullscreen || _fullscreenOverlay == null) return;
-
-    _fullscreenOverlay?.remove();
-    _fullscreenOverlay?.dispose();
-    _fullscreenOverlay = null;
-
-    setState(() {
-      _isInFullscreen = false;
-    });
-
-    exitBrowserFullscreen();
-
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: SystemUiOverlay.values,
-    );
-  }
-
-  Widget _buildBasePlayer({bool isFullScreen = false}) {
-    return BaseAdaptiveVideoPlayer(
-      key: _basePlayerKey,
+    final playerView = NormalPlayerView(
       controller: _videoPlayerController!,
       showControls: widget.visibility?.showControls ?? true,
-      isFullScreen: isFullScreen,
+      isFullScreen: _fullscreenCoordinator.isInFullscreen,
       isLive: _effectiveIsLive,
       controlsBuilder: widget.controlsBuilder,
       subtitleBuilder: widget.subtitleBuilder,
@@ -474,8 +498,23 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       onSubtitleSelected: _changeSubtitleTrack,
       parsedSubtitles: _parsedSubtitles,
       viewerCount: widget.viewerCount,
-      onEnterFullscreen: _openFullscreen,
-      onExitFullscreen: _closeFullscreen,
+      onEnterFullscreen: _handleOpenFullscreen,
+      onExitFullscreen: _fullscreenCoordinator.closeFullscreen,
+    );
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: AspectRatio(
+          aspectRatio: _videoPlayerController!.value.isInitialized
+              ? _videoPlayerController!.value.aspectRatio
+              : 16 / 9,
+          child: _fullscreenCoordinator.isInFullscreen
+              ? const SizedBox()
+              : playerView,
+        ),
+      ),
     );
   }
 

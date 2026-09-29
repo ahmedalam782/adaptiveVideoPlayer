@@ -4,7 +4,7 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import 'player_controls.dart';
 import 'player_bottom_actions.dart';
-import '../models/player_config.dart';
+import '../models/youtube_player_config.dart';
 
 /// A custom YouTube controls overlay for version 10.x.x
 class CustomYoutubeControls extends StatefulWidget {
