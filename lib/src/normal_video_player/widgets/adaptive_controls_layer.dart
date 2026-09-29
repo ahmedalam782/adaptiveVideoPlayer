@@ -69,6 +69,7 @@ class AdaptiveControlsLayer extends StatefulWidget {
 class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
   double? _dragPosition;
   bool _showSettingsMenu = false;
+  Offset _settingsMenuOffset = Offset.zero;
 
   bool get _hasTopBarContent {
     final showBack = widget.isFullScreen &&
@@ -78,9 +79,26 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
     return showBack || widget.isLive || widget.viewerCount != null;
   }
 
+  void _updateSettingsOffset(Offset delta, BoxConstraints constraints) {
+    final dialogWidth = widget.isFullScreen ? 280.0 : 250.0;
+    final dialogMaxHeight = widget.isFullScreen ? 380.0 : 200.0;
+    final minX = -(constraints.maxWidth - dialogWidth - 32.0);
+    const maxX = 8.0;
+    final minY = -(constraints.maxHeight - dialogMaxHeight - 64.0);
+    const maxY = 16.0;
+
+    setState(() {
+      final newX = (_settingsMenuOffset.dx + delta.dx).clamp(minX, maxX);
+      final newY = (_settingsMenuOffset.dy + delta.dy).clamp(minY, maxY);
+      _settingsMenuOffset = Offset(newX, newY);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Stack(
       children: [
         // Top Bar with YouTube-style subtle dark gradient (only if content present)
         if (_hasTopBarContent)
@@ -204,64 +222,103 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
           Positioned(
             bottom: widget.isFullScreen ? 56 : 48,
             right: 16,
-            child: CallbackShortcuts(
-              bindings: {
-                const SingleActivator(LogicalKeyboardKey.escape): () {
-                  setState(() => _showSettingsMenu = false);
+            child: Transform.translate(
+              offset: _settingsMenuOffset,
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.escape): () {
+                    setState(() => _showSettingsMenu = false);
+                  },
                 },
-              },
-              child: Focus(
-                autofocus: true,
-                child: Container(
-                  width: widget.isFullScreen ? 280 : 250,
-                  constraints: BoxConstraints(
-                    maxHeight: widget.isFullScreen ? 380 : 200,
+                child: Focus(
+                  autofocus: true,
+                  child: Container(
+                    width: widget.isFullScreen ? 280 : 250,
+                    constraints: BoxConstraints(
+                      maxHeight: widget.isFullScreen ? 380 : 200,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          blurRadius: 20,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: widget.styling?.settingsBackgroundColor ??
+                          const Color(0xF21F1F1F),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Sleek drag handle to move the settings dialog freely across screen
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onPanUpdate: (details) =>
+                                _updateSettingsOffset(details.delta, constraints),
+                            onDoubleTap: () =>
+                                setState(() => _settingsMenuOffset = Offset.zero),
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.move,
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.only(top: 8, bottom: 6),
+                                color: Colors.transparent,
+                                child: Center(
+                                  child: Container(
+                                    width: 38,
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.35),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            child: AdaptivePlayerSettingsSheet(
+                              styling: widget.styling,
+                              messages: widget.messages,
+                              qualities: widget.qualities,
+                              currentQuality: widget.currentQuality,
+                              onQualitySelected: (q) {
+                                widget.onQualitySelected?.call(q);
+                                setState(() => _showSettingsMenu = false);
+                              },
+                              subtitles: widget.subtitles,
+                              currentSubtitleTrack: widget.currentSubtitleTrack,
+                              onSubtitleSelected: (s) {
+                                widget.onSubtitleSelected?.call(s);
+                                setState(() => _showSettingsMenu = false);
+                              },
+                              onDismiss: () =>
+                                  setState(() => _showSettingsMenu = false),
+                              onAnalyticsEvent: widget.onAnalyticsEvent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.6),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: widget.styling?.settingsBackgroundColor ??
-                    const Color(0xF21F1F1F),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.12),
-                  ),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: AdaptivePlayerSettingsSheet(
-                  styling: widget.styling,
-                  messages: widget.messages,
-                  qualities: widget.qualities,
-                  currentQuality: widget.currentQuality,
-                  onQualitySelected: (q) {
-                    widget.onQualitySelected?.call(q);
-                    setState(() => _showSettingsMenu = false);
-                  },
-                  subtitles: widget.subtitles,
-                  currentSubtitleTrack: widget.currentSubtitleTrack,
-                  onSubtitleSelected: (s) {
-                    widget.onSubtitleSelected?.call(s);
-                    setState(() => _showSettingsMenu = false);
-                  },
-                  onDismiss: () => setState(() => _showSettingsMenu = false),
-                  onAnalyticsEvent: widget.onAnalyticsEvent,
                 ),
               ),
             ),
           ),
-        ),
-      ),
-    ],
-  ],
-);
+        ],
+      ],
+    );
+      },
+    );
   }
 }

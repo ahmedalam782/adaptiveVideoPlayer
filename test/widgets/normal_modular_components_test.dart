@@ -182,5 +182,58 @@ void main() {
 
       coordinator.dispose();
     });
+
+    testWidgets('Draggable handle responds to pan gestures and double-tap reset', (tester) async {
+      Offset offset = Offset.zero;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                return Stack(
+                  children: [
+                    Positioned(
+                      bottom: 50,
+                      right: 16,
+                      child: Transform.translate(
+                        offset: offset,
+                        child: GestureDetector(
+                          key: const ValueKey('drag_handle'),
+                          onPanUpdate: (details) {
+                            setState(() => offset += details.delta);
+                          },
+                          onDoubleTap: () {
+                            setState(() => offset = Offset.zero);
+                          },
+                          child: Container(
+                            width: 200,
+                            height: 100,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(offset, Offset.zero);
+      await tester.drag(find.byKey(const ValueKey('drag_handle')), const Offset(-50, -30));
+      await tester.pumpAndSettle();
+      expect(offset != Offset.zero, isTrue);
+      expect(offset.dx < 0, isTrue);
+      expect(offset.dy < 0, isTrue);
+
+      // Test double-tap reset
+      await tester.tap(find.byKey(const ValueKey('drag_handle')));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.byKey(const ValueKey('drag_handle')));
+      await tester.pumpAndSettle();
+      expect(offset, Offset.zero);
+    });
   });
 }
