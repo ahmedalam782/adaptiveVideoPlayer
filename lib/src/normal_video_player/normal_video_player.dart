@@ -545,7 +545,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
         final effectiveMessages = _resolveEffectiveMessages(activeCtx);
         if (_hasError) {
           return NormalFullscreenOverlay(
-            textDirection: TextDirection.ltr,
+            textDirection: effectiveMessages.resolveTextDirection(activeCtx),
             onExitFullscreen: _handleCloseFullscreen,
             child: NormalPlayerErrorWidget(
               errorMessage: _errorMessage,
@@ -557,7 +557,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
         if (!_isInitialized || _videoPlayerController == null) {
           return NormalFullscreenOverlay(
-            textDirection: TextDirection.ltr,
+            textDirection: effectiveMessages.resolveTextDirection(activeCtx),
             onExitFullscreen: _handleCloseFullscreen,
             child: NormalPlayerLoadingWidget(
               styling: widget.styling,
@@ -567,7 +567,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
         }
 
         return NormalFullscreenOverlay(
-          textDirection: TextDirection.ltr,
+          textDirection: effectiveMessages.resolveTextDirection(activeCtx),
           onExitFullscreen: _handleCloseFullscreen,
           child: NormalPlayerView(
             key: _playerViewKey,
@@ -616,15 +616,22 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
     final wasPlaying = _videoPlayerController!.value.isPlaying;
     final controller = _videoPlayerController!;
+    final initialMessages = _resolveEffectiveMessages(context);
+    final initialStyling = widget.styling;
 
     late final OverlayEntry entry;
     entry = OverlayEntry(
       builder: (overlayCtx) {
-        final activeCtx = mounted ? context : overlayCtx;
-        final effectiveMessages = _resolveEffectiveMessages(activeCtx);
+        final effectiveMessages =
+            mounted ? _resolveEffectiveMessages(context) : initialMessages;
+        final styling = mounted ? widget.styling : initialStyling;
+        final activeCtrl = _videoPlayerController ??
+            _activeBackgroundMiniController ??
+            controller;
         return NormalMiniPlayerOverlay(
-          controller: controller,
+          controller: activeCtrl,
           messages: effectiveMessages,
+          styling: styling,
           onExpand: () {
             if (mounted) {
               _handleCloseMiniPlayer(pauseOnClose: false);
@@ -654,7 +661,12 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     enterDesktopPipMode();
     entry.markNeedsBuild();
 
-    _ensurePlaybackContinues(wasPlaying);
+    if (wasPlaying) {
+      _ensurePlaybackContinues(true);
+    } else {
+      // Refresh current position frame for mobile texture attachment
+      controller.seekTo(controller.value.position);
+    }
     widget.onAnalyticsEvent?.call('mini_player_opened', {});
   }
 
@@ -725,6 +737,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       styling: widget.styling,
       messages: effectiveMessages,
       visibility: widget.visibility,
+      playback: widget.playback,
       onAnalyticsEvent: widget.onAnalyticsEvent,
       qualities: widget.qualities,
       currentQuality: _currentQuality,
@@ -743,7 +756,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Directionality(
-        textDirection: TextDirection.ltr,
+        textDirection: effectiveMessages.resolveTextDirection(context),
         child: AspectRatio(
           aspectRatio: (_videoPlayerController!.value.isInitialized &&
                   _videoPlayerController!.value.aspectRatio > 0)
@@ -752,32 +765,44 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
           child: _fullscreenCoordinator.isInFullscreen
               ? const SizedBox()
               : _isInMiniPlayer
-                  ? Container(
-                      color: Colors.black87,
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.picture_in_picture_alt_rounded,
-                            color: Colors.white54,
-                            size: 36,
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton.icon(
-                            onPressed: () =>
-                                _handleCloseMiniPlayer(pauseOnClose: false),
-                            icon: const Icon(
-                              Icons.open_in_full_rounded,
-                              color: Colors.white,
-                              size: 16,
+                  ? GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () =>
+                          _handleCloseMiniPlayer(pauseOnClose: false),
+                      child: Material(
+                        color: Colors.black87,
+                        child: InkWell(
+                          onTap: () =>
+                              _handleCloseMiniPlayer(pauseOnClose: false),
+                          hoverColor: Colors.white.withValues(alpha: 0.05),
+                          splashColor: Colors.white.withValues(alpha: 0.1),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.picture_in_picture_alt_rounded,
+                                  color: Colors.white54,
+                                  size: 36,
+                                ),
+                                const SizedBox(height: 8),
+                                TextButton.icon(
+                                  onPressed: () =>
+                                      _handleCloseMiniPlayer(pauseOnClose: false),
+                                  icon: const Icon(
+                                    Icons.open_in_full_rounded,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  label: Text(
+                                    effectiveMessages.restorePlayerText,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
                             ),
-                            label: Text(
-                              effectiveMessages.restorePlayerText,
-                              style: const TextStyle(color: Colors.white),
-                            ),
                           ),
-                        ],
+                        ),
                       ),
                     )
                   : playerView,

@@ -9,12 +9,14 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
   final PlayerStyleConfig? styling;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
+  final bool isFullScreen;
 
   const AdaptiveCenterPlayPause({
     super.key,
     required this.controller,
     this.styling,
     this.onAnalyticsEvent,
+    this.isFullScreen = false,
   });
 
   @override
@@ -23,6 +25,12 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
       valueListenable: controller,
       builder: (context, VideoPlayerValue value, child) {
         final isPlaying = value.isPlaying;
+        final iconSize = isFullScreen ? 38.0 : 26.0;
+        final padding = isFullScreen
+            ? const EdgeInsets.all(14)
+            : const EdgeInsets.all(10);
+        final blurSigma = isFullScreen ? 12.0 : 8.0;
+
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
@@ -38,9 +46,9 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
           },
           child: ClipOval(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: padding,
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.45),
                   shape: BoxShape.circle,
@@ -51,7 +59,7 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.35),
-                      blurRadius: 24,
+                      blurRadius: isFullScreen ? 24 : 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -59,7 +67,7 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
                 child: Icon(
                   isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                   color: styling?.iconColor ?? Colors.white,
-                  size: 44,
+                  size: iconSize,
                 ),
               ),
             ),

@@ -37,10 +37,13 @@ void listenToFullscreenChange(FullscreenChangeCallback callback) {
 }
 
 bool enterDesktopPipMode({int width = 380, int height = 214}) {
-  // On Web, the in-app draggable MiniPlayer overlay (NormalMiniPlayerOverlay /
-  // YouTube miniplayer) renders the live video inside the page's root Overlay.
-  // Calling native `videoEl.requestPictureInPicture()` would cause the browser
-  // to replace the in-DOM `<video>` element with a black placeholder.
+  try {
+    final video = web.document.querySelector('video') as web.HTMLVideoElement?;
+    if (video != null && web.document.pictureInPictureElement == null) {
+      video.requestPictureInPicture();
+      return true;
+    }
+  } catch (_) {}
   return false;
 }
 
@@ -54,6 +57,12 @@ void exitDesktopPipMode() {
   } catch (_) {}
 }
 
-bool isDesktopPipMode() => false;
+bool isDesktopPipMode() {
+  try {
+    return web.document.pictureInPictureElement != null;
+  } catch (_) {
+    return false;
+  }
+}
 void restoreDesktopWindowIfStuckInPip() {}
 

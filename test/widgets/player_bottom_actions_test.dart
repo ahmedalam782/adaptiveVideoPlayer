@@ -165,9 +165,9 @@ void main() {
         onSettingsTap: () {},
       );
 
-      // Should contain: FullscreenButton, CurrentPosition, TimeSeparator,
-      // RemainingDuration, ProgressBar, MuteButton, SettingsButton
-      expect(widgets.length, 7);
+      // Should contain: MuteButton, SizedBox, CurrentPosition, TimeSeparator,
+      // RemainingDuration, ProgressBar, SizedBox, SettingsButton, SizedBox, FullscreenButton
+      expect(widgets.length, 10);
     });
 
     test('builds without fullscreen and settings', () {
@@ -181,9 +181,9 @@ void main() {
         onMuteTap: () {},
       );
 
-      // Should contain: CurrentPosition, TimeSeparator, RemainingDuration,
-      // ProgressBar, MuteButton (no FullscreenButton, no SettingsButton)
-      expect(widgets.length, 5);
+      // Should contain: MuteButton, SizedBox, CurrentPosition, TimeSeparator,
+      // RemainingDuration, ProgressBar (no FullscreenButton, no SettingsButton)
+      expect(widgets.length, 6);
     });
 
     test('settings hidden when onSettingsTap is null', () {
@@ -199,7 +199,7 @@ void main() {
       );
 
       // SettingsButton should not be included when onSettingsTap is null
-      expect(widgets.length, 6);
+      expect(widgets.length, 8);
     });
   });
 }

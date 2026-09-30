@@ -22,14 +22,19 @@ void main() {
       expect(config.settingsTitleStyle, isNull);
       expect(config.settingItemTextStyle, isNull);
       expect(config.errorTextStyle, isNull);
-      expect(config.useGlassmorphicControls, true);
+      expect(config.progressBarBufferedColor, isNull);
+      expect(config.progressBarBackgroundColor, isNull);
+      expect(config.controlsBackgroundColor, isNull);
     });
 
-    test('copyWith creates new instance with updated values', () {
+    test('copyWith creates new instance with updated values including new color properties', () {
       const original = PlayerStyleConfig();
       final updated = original.copyWith(
         progressBarPlayedColor: Colors.blue,
         progressBarHandleColor: Colors.green,
+        progressBarBufferedColor: Colors.grey,
+        progressBarBackgroundColor: Colors.black26,
+        controlsBackgroundColor: Colors.black54,
         loadingIndicatorColor: Colors.yellow,
         errorIconColor: Colors.orange,
         iconColor: Colors.purple,
@@ -48,6 +53,9 @@ void main() {
 
       expect(updated.progressBarPlayedColor, Colors.blue);
       expect(updated.progressBarHandleColor, Colors.green);
+      expect(updated.progressBarBufferedColor, Colors.grey);
+      expect(updated.progressBarBackgroundColor, Colors.black26);
+      expect(updated.controlsBackgroundColor, Colors.black54);
       expect(updated.loadingIndicatorColor, Colors.yellow);
       expect(updated.errorIconColor, Colors.orange);
       expect(updated.iconColor, Colors.purple);
@@ -81,8 +89,72 @@ void main() {
       expect(config.forceHdQualityText, 'Force HD Quality');
       expect(config.enableCaptionsText, 'Enable Captions');
       expect(config.muteAudioText, 'Mute Audio');
+      expect(config.unmuteAudioText, 'Unmute Audio');
+      expect(config.playbackSpeedText, 'Playback Speed');
+      expect(config.normalSpeedText, 'Normal');
+      expect(config.backText, 'Back');
+      expect(config.volumeText, 'Volume');
       expect(config.skipBackwardText, 'Rewind 10s');
       expect(config.skipForwardText, 'Forward 10s');
+      expect(config.isRtl, false);
+      expect(config.isDefaultUnmodified, true);
+    });
+
+    test('creates language presets correctly', () {
+      const arabic = PlayerTextConfig.arabic();
+      expect(arabic.languageCode, 'ar');
+      expect(arabic.textDirection, TextDirection.rtl);
+      expect(arabic.isRtl, true);
+      expect(arabic.playerSettingsText, 'إعدادات المشغل');
+
+      const spanish = PlayerTextConfig.spanish();
+      expect(spanish.languageCode, 'es');
+      expect(spanish.textDirection, TextDirection.ltr);
+      expect(spanish.isRtl, false);
+      expect(spanish.playerSettingsText, 'Ajustes del reproductor');
+
+      const french = PlayerTextConfig.french();
+      expect(french.languageCode, 'fr');
+      expect(french.isRtl, false);
+      expect(french.playerSettingsText, 'Paramètres du lecteur');
+
+      const german = PlayerTextConfig.german();
+      expect(german.languageCode, 'de');
+      expect(german.isRtl, false);
+      expect(german.playerSettingsText, 'Player-Einstellungen');
+
+      const turkish = PlayerTextConfig.turkish();
+      expect(turkish.languageCode, 'tr');
+      expect(turkish.isRtl, false);
+      expect(turkish.playerSettingsText, 'Oynatıcı Ayarları');
+    });
+
+    test('fromLanguageCode resolves to correct presets', () {
+      expect(PlayerTextConfig.fromLanguageCode('ar').languageCode, 'ar');
+      expect(PlayerTextConfig.fromLanguageCode('es').languageCode, 'es');
+      expect(PlayerTextConfig.fromLanguageCode('fr').languageCode, 'fr');
+      expect(PlayerTextConfig.fromLanguageCode('de').languageCode, 'de');
+      expect(PlayerTextConfig.fromLanguageCode('tr').languageCode, 'tr');
+      expect(PlayerTextConfig.fromLanguageCode('fa').isRtl, true);
+      expect(PlayerTextConfig.fromLanguageCode('ur').isRtl, true);
+      expect(PlayerTextConfig.fromLanguageCode('en').languageCode, 'en');
+      expect(PlayerTextConfig.fromLanguageCode(null).languageCode, 'en');
+    });
+
+    test('forLocale factory resolves correctly', () {
+      expect(PlayerTextConfig.forLocale(const Locale('ar')).isRtl, true);
+      expect(PlayerTextConfig.forLocale(const Locale('es')).languageCode, 'es');
+    });
+
+    test('isRtl detects Arabic characters and explicit RTL direction', () {
+      const explicitRtl = PlayerTextConfig(textDirection: TextDirection.rtl);
+      expect(explicitRtl.isRtl, true);
+
+      const arabicString = PlayerTextConfig(playerSettingsText: 'إعدادات');
+      expect(arabicString.isRtl, true);
+
+      const englishString = PlayerTextConfig(playerSettingsText: 'Settings');
+      expect(englishString.isRtl, false);
     });
 
     test('copyWith creates new instance with updated values', () {
@@ -99,8 +171,14 @@ void main() {
         forceHdQualityText: 'forcehd',
         enableCaptionsText: 'captions',
         muteAudioText: 'mute',
+        unmuteAudioText: 'unmute',
+        playbackSpeedText: 'speed',
+        normalSpeedText: 'std',
+        backText: 'return',
+        volumeText: 'vol',
         skipBackwardText: 'back10',
         skipForwardText: 'fwd10',
+        textDirection: TextDirection.rtl,
       );
 
       expect(updated.invalidYoutubeUrlText, 'invalid');
@@ -114,8 +192,15 @@ void main() {
       expect(updated.forceHdQualityText, 'forcehd');
       expect(updated.enableCaptionsText, 'captions');
       expect(updated.muteAudioText, 'mute');
+      expect(updated.unmuteAudioText, 'unmute');
+      expect(updated.playbackSpeedText, 'speed');
+      expect(updated.normalSpeedText, 'std');
+      expect(updated.backText, 'return');
+      expect(updated.volumeText, 'vol');
       expect(updated.skipBackwardText, 'back10');
       expect(updated.skipForwardText, 'fwd10');
+      expect(updated.textDirection, TextDirection.rtl);
+      expect(updated.isRtl, true);
     });
   });
 
@@ -132,10 +217,20 @@ void main() {
       expect(config.showCaptionsSetting, true);
       expect(config.showMuteSetting, true);
       expect(config.showSkipButtons, true);
+      expect(config.showMiniPlayerButton, true);
+      expect(config.showVolumeButton, true);
+      expect(config.showTimeDisplay, true);
+      expect(config.showProgressBar, true);
+      expect(config.showCenterPlayPause, true);
+      expect(config.showLiveBadge, true);
+      expect(config.showQualitySetting, true);
+      expect(config.showSubtitlesSetting, true);
+      expect(config.showPlaybackSpeedSetting, true);
+      expect(config.showChapterTitle, true);
       expect(config.skipDuration, const Duration(seconds: 10));
     });
 
-    test('copyWith creates new instance with updated values', () {
+    test('copyWith creates new instance with updated values including new visibility toggles', () {
       const original = PlayerVisibilityConfig();
       final updated = original.copyWith(
         showControls: false,
@@ -147,6 +242,16 @@ void main() {
         showCaptionsSetting: false,
         showMuteSetting: false,
         showSkipButtons: false,
+        showMiniPlayerButton: false,
+        showVolumeButton: false,
+        showTimeDisplay: false,
+        showProgressBar: false,
+        showCenterPlayPause: false,
+        showLiveBadge: false,
+        showQualitySetting: false,
+        showSubtitlesSetting: false,
+        showPlaybackSpeedSetting: false,
+        showChapterTitle: false,
         skipDuration: const Duration(seconds: 15),
       );
 
@@ -159,6 +264,16 @@ void main() {
       expect(updated.showCaptionsSetting, false);
       expect(updated.showMuteSetting, false);
       expect(updated.showSkipButtons, false);
+      expect(updated.showMiniPlayerButton, false);
+      expect(updated.showVolumeButton, false);
+      expect(updated.showTimeDisplay, false);
+      expect(updated.showProgressBar, false);
+      expect(updated.showCenterPlayPause, false);
+      expect(updated.showLiveBadge, false);
+      expect(updated.showQualitySetting, false);
+      expect(updated.showSubtitlesSetting, false);
+      expect(updated.showPlaybackSpeedSetting, false);
+      expect(updated.showChapterTitle, false);
       expect(updated.skipDuration, const Duration(seconds: 15));
     });
   });

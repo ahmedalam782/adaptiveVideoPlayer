@@ -10,6 +10,7 @@ class AdaptiveLiveIndicator extends StatelessWidget {
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final PlayerTextConfig? messages;
+  final PlayerStyleConfig? styling;
 
   const AdaptiveLiveIndicator({
     super.key,
@@ -18,16 +19,19 @@ class AdaptiveLiveIndicator extends StatelessWidget {
     this.onQualitySelected,
     this.onAnalyticsEvent,
     this.messages,
+    this.styling,
   });
 
   @override
   Widget build(BuildContext context) {
+    final liveColor = styling?.progressBarPlayedColor ?? Colors.red;
+
     if (isLive) {
       return Container(
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.red,
+          color: liveColor,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(

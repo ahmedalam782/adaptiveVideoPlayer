@@ -21,7 +21,7 @@ void registerYoutubeWebIframe(
       ..style.width = '100%'
       ..style.height = '100%'
       ..src =
-          'https://www.youtube.com/embed/$videoId?autoplay=${autoPlay ? 1 : 0}&mute=${mute ? 1 : 0}&rel=0&vq=medium&hl=$languageCode$loopParams$ccParams'
+          'https://www.youtube.com/embed/$videoId?autoplay=${autoPlay ? 1 : 0}&mute=${mute ? 1 : 0}&rel=0&vq=medium&hl=$languageCode&fs=0$loopParams$ccParams'
       ..allowFullscreen = true
       ..allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
     return iframe;

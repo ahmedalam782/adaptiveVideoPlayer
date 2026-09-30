@@ -1,11 +1,25 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:ffi';
 import 'dart:io';
 import 'package:ffi/ffi.dart';
+import 'package:flutter/scheduler.dart';
 
 typedef FullscreenChangeCallback = void Function(bool isFullscreen);
 
 final List<FullscreenChangeCallback> _listeners = [];
+
+void _runWhenSchedulerIdle(void Function() action) {
+  try {
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.idle) {
+      action();
+    } else {
+      Timer.run(() => _runWhenSchedulerIdle(action));
+    }
+  } catch (_) {
+    action();
+  }
+}
 
 void listenToFullscreenChange(FullscreenChangeCallback callback) {
   _listeners.add(callback);
@@ -246,20 +260,26 @@ void restoreDesktopWindowIfStuckInPip() {
       final style = _getWindowLong(user32, hwnd, _gwlStyle);
       final normalStyle =
           ((style & ~_wsPopup) | _wsOverlappedWindow | _wsVisible).toSigned(32);
-      _setWindowLong(user32, hwnd, _gwlStyle, normalStyle);
 
-      final setWindowPos = user32.lookupFunction<
-          Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-          int Function(int, int, int, int, int, int, int)>('SetWindowPos');
-      setWindowPos(
-        hwnd,
-        _hwndNoTopMost,
-        restoredX,
-        restoredY,
-        restoredW,
-        restoredH,
-        _swpNoOwnerZOrder | _swpFrameChanged,
-      );
+      _runWhenSchedulerIdle(() {
+        try {
+          _setWindowLong(user32, hwnd, _gwlStyle, normalStyle);
+
+          final setWindowPos = user32.lookupFunction<
+              Int32 Function(
+                  IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
+              int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+          setWindowPos(
+            hwnd,
+            _hwndNoTopMost,
+            restoredX,
+            restoredY,
+            restoredW,
+            restoredH,
+            _swpNoOwnerZOrder | _swpFrameChanged,
+          );
+        } catch (_) {}
+      });
     }
   } catch (_) {}
 }
@@ -313,27 +333,36 @@ void enterBrowserFullscreen() {
     final height = miPtr.ref.rcMonitor.bottom - miPtr.ref.rcMonitor.top;
     calloc.free(miPtr);
 
-    // 4. Set style to borderless (removes title bar and window frame)
-    _setWindowLong(user32, hwnd, _gwlStyle, _savedStyle & ~_wsOverlappedWindow);
-
-    // 5. Expand window across monitor (covers taskbar)
-    final setWindowPos = user32.lookupFunction<
-        Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-        int Function(int, int, int, int, int, int, int)>('SetWindowPos');
-
-    setWindowPos(
-      hwnd,
-      _hwndTop,
-      left,
-      top,
-      width,
-      height,
-      _swpNoOwnerZOrder | _swpFrameChanged,
-    );
-
     _isWindowsFullscreen = true;
     _notifyListeners(true);
-    log('Entered native Windows fullscreen (borderless over taskbar)');
+
+    _runWhenSchedulerIdle(() {
+      if (!_isWindowsFullscreen) return;
+      try {
+        // 4. Set style to borderless (removes title bar and window frame)
+        _setWindowLong(
+            user32, hwnd, _gwlStyle, _savedStyle & ~_wsOverlappedWindow);
+
+        // 5. Expand window across monitor (covers taskbar)
+        final setWindowPos = user32.lookupFunction<
+            Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
+            int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+
+        setWindowPos(
+          hwnd,
+          _hwndTop,
+          left,
+          top,
+          width,
+          height,
+          _swpNoOwnerZOrder | _swpFrameChanged,
+        );
+
+        log('Entered native Windows fullscreen (borderless over taskbar)');
+      } catch (e) {
+        log('Error entering Windows fullscreen: $e');
+      }
+    });
   } catch (e) {
     log('Error entering Windows fullscreen: $e');
   }
@@ -349,45 +378,54 @@ void exitBrowserFullscreen() {
     if (user32 == null) return;
 
     final hwnd = _fullscreenHwnd;
-
-    // 1. Restore style
-    if (_savedStyle != 0) {
-      _setWindowLong(user32, hwnd, _gwlStyle, _savedStyle);
-    }
-
-    // 2. Restore placement
-    if (_savedPlacement != null) {
-      final setWindowPlacement = user32.lookupFunction<
-          Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
-          int Function(int, Pointer<WINDOWPLACEMENT>)>('SetWindowPlacement');
-      setWindowPlacement(hwnd, _savedPlacement!);
-      calloc.free(_savedPlacement!);
-      _savedPlacement = null;
-    }
-
-    // 3. Trigger frame changed so borders, title bar, and taskbar return
-    final setWindowPos = user32.lookupFunction<
-        Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-        int Function(int, int, int, int, int, int, int)>('SetWindowPos');
-
-    setWindowPos(
-      hwnd,
-      0,
-      0,
-      0,
-      0,
-      0,
-      _swpNoMove |
-          _swpNoSize |
-          _swpNoZOrder |
-          _swpNoOwnerZOrder |
-          _swpFrameChanged,
-    );
-
+    final savedStyle = _savedStyle;
+    final savedPlacement = _savedPlacement;
+    _savedPlacement = null;
     _isWindowsFullscreen = false;
     _fullscreenHwnd = 0;
     _notifyListeners(false);
-    log('Exited native Windows fullscreen (restored window frame & taskbar)');
+
+    _runWhenSchedulerIdle(() {
+      try {
+        // 1. Restore style
+        if (savedStyle != 0) {
+          _setWindowLong(user32, hwnd, _gwlStyle, savedStyle);
+        }
+
+        // 2. Restore placement
+        if (savedPlacement != null) {
+          final setWindowPlacement = user32.lookupFunction<
+              Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
+              int Function(
+                  int, Pointer<WINDOWPLACEMENT>)>('SetWindowPlacement');
+          setWindowPlacement(hwnd, savedPlacement);
+          calloc.free(savedPlacement);
+        }
+
+        // 3. Trigger frame changed so borders, title bar, and taskbar return
+        final setWindowPos = user32.lookupFunction<
+            Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
+            int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+
+        setWindowPos(
+          hwnd,
+          0,
+          0,
+          0,
+          0,
+          0,
+          _swpNoMove |
+              _swpNoSize |
+              _swpNoZOrder |
+              _swpNoOwnerZOrder |
+              _swpFrameChanged,
+        );
+
+        log('Exited native Windows fullscreen (restored window frame & taskbar)');
+      } catch (e) {
+        log('Error exiting Windows fullscreen: $e');
+      }
+    });
   } catch (e) {
     log('Error exiting Windows fullscreen: $e');
   }
@@ -473,27 +511,35 @@ bool enterDesktopPipMode({int width = 380, int height = 214}) {
     // Set _isWindowsPip BEFORE SetWindowPos so any synchronous WM_SIZE layout sees isDesktopPipMode() == true
     _isWindowsPip = true;
 
-    // Use WS_POPUP | WS_VISIBLE to completely remove the Windows 11 title bar and frame on small PiP windows
-    final borderlessPipStyle =
-        ((_pipSavedStyle & ~_wsOverlappedWindow) | _wsPopup | _wsVisible)
-            .toSigned(32);
-    _setWindowLong(user32, hwnd, _gwlStyle, borderlessPipStyle);
+    _runWhenSchedulerIdle(() {
+      if (!_isWindowsPip) return;
+      try {
+        final borderlessPipStyle =
+            ((_pipSavedStyle & ~_wsOverlappedWindow) | _wsPopup | _wsVisible)
+                .toSigned(32);
+        _setWindowLong(user32, hwnd, _gwlStyle, borderlessPipStyle);
 
-    final setWindowPos = user32.lookupFunction<
-        Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-        int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+        final setWindowPos = user32.lookupFunction<
+            Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
+            int Function(int, int, int, int, int, int, int)>('SetWindowPos');
 
-    setWindowPos(
-      hwnd,
-      _hwndTopMost,
-      _pipWindowX,
-      _pipWindowY,
-      _pipWindowWidth,
-      _pipWindowHeight,
-      _swpNoOwnerZOrder | _swpFrameChanged,
-    );
+        setWindowPos(
+          hwnd,
+          _hwndTopMost,
+          _pipWindowX,
+          _pipWindowY,
+          _pipWindowWidth,
+          _pipWindowHeight,
+          _swpNoOwnerZOrder | _swpFrameChanged,
+        );
 
-    log('Entered Windows always-on-top Picture-in-Picture mode');
+        log('Entered Windows always-on-top Picture-in-Picture mode');
+      } catch (e) {
+        _isWindowsPip = false;
+        log('Error applying Windows PiP window: $e');
+      }
+    });
+
     return true;
   } catch (e) {
     _isWindowsPip = false;
@@ -541,42 +587,56 @@ void exitDesktopPipMode() {
     if (user32 == null) return;
 
     final hwnd = _pipHwnd;
+    final savedStyle = _pipSavedStyle;
+    final savedLeft = _pipSavedLeft;
+    final savedTop = _pipSavedTop;
+    final savedWidth = _pipSavedWidth;
+    final savedHeight = _pipSavedHeight;
+    final savedPlacement = _pipSavedPlacement;
+    _pipSavedPlacement = null;
     _isWindowsPip = false;
     _pipHwnd = 0;
 
-    final restoredStyle =
-        ((_pipSavedStyle & ~_wsPopup) | _wsOverlappedWindow | _wsVisible)
-            .toSigned(32);
-    _setWindowLong(user32, hwnd, _gwlStyle, restoredStyle);
+    _runWhenSchedulerIdle(() {
+      if (_isWindowsPip) return;
+      try {
+        final restoredStyle =
+            ((savedStyle & ~_wsPopup) | _wsOverlappedWindow | _wsVisible)
+                .toSigned(32);
+        _setWindowLong(user32, hwnd, _gwlStyle, restoredStyle);
 
-    final setWindowPos = user32.lookupFunction<
-        Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-        int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+        final setWindowPos = user32.lookupFunction<
+            Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
+            int Function(int, int, int, int, int, int, int)>('SetWindowPos');
 
-    setWindowPos(
-      hwnd,
-      _hwndNoTopMost,
-      _pipSavedLeft,
-      _pipSavedTop,
-      _pipSavedWidth,
-      _pipSavedHeight,
-      _swpNoOwnerZOrder | _swpFrameChanged,
-    );
+        setWindowPos(
+          hwnd,
+          _hwndNoTopMost,
+          savedLeft,
+          savedTop,
+          savedWidth,
+          savedHeight,
+          _swpNoOwnerZOrder | _swpFrameChanged,
+        );
 
-    if (_pipSavedPlacement != null) {
-      if (_pipSavedPlacement!.ref.showCmd == 3) {
-        // Restore maximized state if it was maximized before PiP
-        final setWindowPlacement = user32.lookupFunction<
-            Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
-            int Function(int, Pointer<WINDOWPLACEMENT>)>('SetWindowPlacement');
-        setWindowPlacement(hwnd, _pipSavedPlacement!);
+        if (savedPlacement != null) {
+          if (savedPlacement.ref.showCmd == 3) {
+            // Restore maximized state if it was maximized before PiP
+            final setWindowPlacement = user32.lookupFunction<
+                Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
+                int Function(
+                    int, Pointer<WINDOWPLACEMENT>)>('SetWindowPlacement');
+            setWindowPlacement(hwnd, savedPlacement);
+          }
+          calloc.free(savedPlacement);
+        }
+
+        restoreDesktopWindowIfStuckInPip();
+        log('Exited Windows Picture-in-Picture mode');
+      } catch (e) {
+        log('Error exiting Windows PiP mode: $e');
       }
-      calloc.free(_pipSavedPlacement!);
-      _pipSavedPlacement = null;
-    }
-
-    restoreDesktopWindowIfStuckInPip();
-    log('Exited Windows Picture-in-Picture mode');
+    });
   } catch (e) {
     log('Error exiting Windows PiP mode: $e');
   }

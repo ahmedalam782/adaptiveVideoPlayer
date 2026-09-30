@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -156,6 +157,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         javaScriptEnabled: true,
         mediaPlaybackRequiresUserGesture: false,
         allowsInlineMediaPlayback: true,
+        allowsPictureInPictureMediaPlayback: false,
         isElementFullscreenEnabled: true,
         iframeAllowFullscreen: true,
         iframeAllow: "camera; microphone; playing; fullscreen",
@@ -163,6 +165,76 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
             true, // Need this TRUE for onCreateWindow to fire on target="_blank"
         useShouldOverrideUrlLoading: true,
       ),
+      initialUserScripts: UnmodifiableListView<UserScript>([
+        UserScript(
+          source: """
+            (function() {
+              function updatePlayerStyles() {
+                try {
+                  var vids = document.querySelectorAll('video');
+                  for (var i = 0; i < vids.length; i++) {
+                    var v = vids[i];
+                    v.disablePictureInPicture = true;
+                    v.setAttribute('disablePictureInPicture', '');
+                    var cl = v.getAttribute('controlsList') || '';
+                    if (cl.indexOf('nopip') === -1) {
+                      v.setAttribute('controlsList', (cl + ' nopip').trim());
+                    }
+                  }
+
+                  var isRtl = false;
+                  try {
+                    var doc = document.documentElement;
+                    var lang = (doc && (doc.getAttribute('lang') || doc.lang)) || '';
+                    var dir = (doc && (doc.getAttribute('dir') || doc.dir)) || '';
+                    var loc = window.location ? (window.location.search || window.location.href || '') : '';
+                    if (dir === 'rtl' || lang.toLowerCase().indexOf('ar') === 0 || loc.indexOf('hl=ar') !== -1) {
+                      isRtl = true;
+                    } else {
+                      try {
+                        if (window.parent && window.parent !== window && window.parent.document) {
+                          var pDoc = window.parent.document.documentElement;
+                          if (pDoc && (pDoc.dir === 'rtl' || (pDoc.lang && pDoc.lang.toLowerCase().indexOf('ar') === 0))) {
+                            isRtl = true;
+                          }
+                        }
+                      } catch (_) {}
+                    }
+                  } catch (_) {}
+
+                  var styleId = 'yt-custom-injected-style';
+                  var existing = document.getElementById(styleId);
+                  var css = '.ytp-fullscreen-button { display: none !important; }';
+                  if (isRtl) {
+                    css += ' .ytp-progress-bar-container, .ytp-progress-bar { transform: scaleX(-1) !important; }';
+                  }
+
+                  if (!existing) {
+                    var st = document.createElement('style');
+                    st.id = styleId;
+                    st.innerHTML = css;
+                    (document.head || document.documentElement).appendChild(st);
+                  } else if (existing.innerHTML !== css) {
+                    existing.innerHTML = css;
+                  }
+                } catch(e) {}
+              }
+              updatePlayerStyles();
+              if (window.MutationObserver) {
+                new MutationObserver(updatePlayerStyles).observe(document.documentElement || document.body, {
+                  childList: true,
+                  subtree: true,
+                  attributes: true,
+                  attributeFilter: ['dir', 'lang']
+                });
+              }
+              window.addEventListener('load', updatePlayerStyles);
+            })();
+          """,
+          injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
+          forMainFrameOnly: false,
+        ),
+      ]),
       onPermissionRequest: (controller, request) async {
         return PermissionResponse(
             resources: request.resources,

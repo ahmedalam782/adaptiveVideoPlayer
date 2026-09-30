@@ -16,6 +16,8 @@ class AdaptiveTopBar extends StatelessWidget {
       onAnalyticsEvent;
   final bool? showBackButton;
   final PlayerTextConfig? messages;
+  final PlayerStyleConfig? styling;
+  final PlayerVisibilityConfig? visibility;
 
   const AdaptiveTopBar({
     super.key,
@@ -28,6 +30,8 @@ class AdaptiveTopBar extends StatelessWidget {
     this.onAnalyticsEvent,
     this.showBackButton,
     this.messages,
+    this.styling,
+    this.visibility,
   });
 
   bool get _shouldShowBackButton {
@@ -40,62 +44,85 @@ class AdaptiveTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        if (_shouldShowBackButton)
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onExitFullscreen,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-            ),
-          )
-        else
-          const SizedBox.shrink(),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AdaptiveLiveIndicator(
-              isLive: isLive,
-              qualities: qualities,
-              onQualitySelected: onQualitySelected,
-              onAnalyticsEvent: onAnalyticsEvent,
-              messages: messages,
-            ),
-            if (viewerCount != null)
-              Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(4),
+    final textDirection = messages?.resolveTextDirection(context) ??
+        Directionality.maybeOf(context) ??
+        TextDirection.ltr;
+    final isRtl = textDirection == TextDirection.rtl;
+    final iconColor = styling?.iconColor ?? Colors.white;
+    final textColor = styling?.textColor ?? Colors.white;
+    final showLive = visibility?.showLiveBadge ?? true;
+
+    return Directionality(
+      textDirection: textDirection,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (_shouldShowBackButton)
+            Tooltip(
+              message: messages?.backText ??
+                  messages?.exitFullscreenText ??
+                  'Back',
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onExitFullscreen,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    isRtl ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
+                    color: iconColor,
+                    size: 20,
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.remove_red_eye_outlined,
-                        color: Colors.white, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      viewerCount!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+              ),
+            )
+          else
+            const SizedBox.shrink(),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showLive)
+                AdaptiveLiveIndicator(
+                  isLive: isLive,
+                  qualities: qualities,
+                  onQualitySelected: onQualitySelected,
+                  onAnalyticsEvent: onAnalyticsEvent,
+                  messages: messages,
+                  styling: styling,
+                ),
+              if (viewerCount != null)
+                Container(
+                  margin: const EdgeInsetsDirectional.only(end: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.remove_red_eye_outlined,
+                          color: iconColor, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        viewerCount!,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

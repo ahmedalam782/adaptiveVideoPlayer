@@ -13,6 +13,7 @@ class AdaptiveBottomBar extends StatelessWidget {
   final bool isLive;
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
+  final PlayerVisibilityConfig? visibility;
   final List<VideoQuality>? qualities;
   final VideoQuality? currentQuality;
   final void Function(VideoQuality)? onQualitySelected;
@@ -36,6 +37,7 @@ class AdaptiveBottomBar extends StatelessWidget {
     this.isLive = false,
     this.styling,
     this.messages,
+    this.visibility,
     this.qualities,
     this.currentQuality,
     this.onQualitySelected,
@@ -71,7 +73,8 @@ class AdaptiveBottomBar extends StatelessWidget {
     });
   }
 
-  static const Color _pillColor = Color(0x8C000000);
+  Color get _pillColor =>
+      styling?.controlsBackgroundColor ?? const Color(0x8C000000);
 
   Widget _buildCirclePillButton({
     required IconData icon,
@@ -109,7 +112,9 @@ class AdaptiveBottomBar extends StatelessWidget {
   Widget _buildPlayPauseButton(bool isPlaying) {
     return _buildCirclePillButton(
       icon: isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-      tooltip: isPlaying ? 'Pause' : 'Play',
+      tooltip: isPlaying
+          ? (messages?.pauseText ?? 'Pause')
+          : (messages?.playText ?? 'Play'),
       size: 22,
       onTap: () {
         if (isPlaying) {
@@ -140,6 +145,9 @@ class AdaptiveBottomBar extends StatelessWidget {
 
     final textColor = styling?.textColor ?? Colors.white;
     final activeChapter = VideoChapter.findChapterAt(chapters, position);
+    final canShowChapter = isWide &&
+        activeChapter != null &&
+        (visibility?.showChapterTitle ?? true);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -163,7 +171,7 @@ class AdaptiveBottomBar extends StatelessWidget {
             color: textColor.withValues(alpha: 0.9),
           ),
         ),
-        if (isWide && activeChapter != null) ...[
+        if (canShowChapter) ...[
           Text(
             '  •  ',
             style: style.copyWith(
@@ -238,7 +246,7 @@ class AdaptiveBottomBar extends StatelessWidget {
     final isSubtitlesActive = currentSubtitleTrack != null;
 
     return Tooltip(
-      message: messages?.subtitlesText ?? 'Subtitles / CC',
+      message: messages?.subtitlesText ?? 'Subtitles',
       waitDuration: const Duration(milliseconds: 500),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -283,8 +291,14 @@ class AdaptiveBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textDirection = messages?.resolveTextDirection(context) ??
+        Directionality.maybeOf(context) ??
+        TextDirection.ltr;
+
+    final effectiveVisibility = visibility ?? const PlayerVisibilityConfig();
+
     return Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: textDirection,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 640;
@@ -303,7 +317,24 @@ class AdaptiveBottomBar extends StatelessWidget {
                 final isPlaying = value.isPlaying;
                 final position = value.position;
                 final duration = value.duration;
-                final canShowSkip = showSkipButtons && !isLive && !isCompact;
+                final canShowSkip = showSkipButtons &&
+                    effectiveVisibility.showSkipButtons &&
+                    !isLive &&
+                    !isCompact;
+
+                final showVolume = effectiveVisibility.showVolumeButton;
+                final showTime = effectiveVisibility.showTimeDisplay && !isLive;
+                final showFullscreen =
+                    effectiveVisibility.showFullscreenButton;
+                final showSettings = effectiveVisibility.showSettingsButton;
+                final showMiniPlayer =
+                    effectiveVisibility.showMiniPlayerButton &&
+                        onMiniPlayerPressed != null &&
+                        !isFullScreen &&
+                        !isLive;
+                final showLoop = effectiveVisibility.showLoopSetting;
+                final showSubtitlesQuick =
+                    effectiveVisibility.showCaptionsSetting;
 
                 return Row(
                   children: [
@@ -311,48 +342,54 @@ class AdaptiveBottomBar extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Flanking -10s circular pill button
-                          if (canShowSkip)
-                            _buildCirclePillButton(
-                              icon: Icons.replay_10_rounded,
-                              tooltip:
-                                  messages?.skipBackwardText ?? 'Rewind 10s',
-                              onTap: () => _seekRelative(-skipDuration),
-                            ),
-                          if (canShowSkip) const SizedBox(width: 6),
+                          // Flanking -10s, play/pause, and +10s buttons
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (canShowSkip)
+                                _buildCirclePillButton(
+                                  icon: Icons.replay_10_rounded,
+                                  tooltip: messages?.skipBackwardText ??
+                                      'Rewind 10s',
+                                  onTap: () => _seekRelative(-skipDuration),
+                                ),
+                              if (canShowSkip) const SizedBox(width: 6),
 
-                          // Central Play/Pause circular pill button
-                          _buildPlayPauseButton(isPlaying),
+                              // Central Play/Pause circular pill button
+                              _buildPlayPauseButton(isPlaying),
 
-                          if (canShowSkip) const SizedBox(width: 6),
-                          // Flanking +10s circular pill button
-                          if (canShowSkip)
-                            _buildCirclePillButton(
-                              icon: Icons.forward_10_rounded,
-                              tooltip:
-                                  messages?.skipForwardText ?? 'Forward 10s',
-                              onTap: () => _seekRelative(skipDuration),
-                            ),
-
-                          SizedBox(width: isCompact ? 6 : 8),
-
-                          // YouTube-style Volume Pill (Speaker circular pill by default, expands slider on hover)
-                          Container(
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: _pillColor,
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: AdaptiveVolumeControl(
-                              controller: controller,
-                              styling: styling,
-                            ),
+                              if (canShowSkip) const SizedBox(width: 6),
+                              // Flanking +10s circular pill button
+                              if (canShowSkip)
+                                _buildCirclePillButton(
+                                  icon: Icons.forward_10_rounded,
+                                  tooltip: messages?.skipForwardText ??
+                                      'Forward 10s',
+                                  onTap: () => _seekRelative(skipDuration),
+                                ),
+                            ],
                           ),
 
-                          SizedBox(width: isCompact ? 6 : 8),
+                          if (showVolume) ...[
+                            SizedBox(width: isCompact ? 6 : 8),
+                            // YouTube-style Volume Pill
+                            Container(
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: _pillColor,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: AdaptiveVolumeControl(
+                                controller: controller,
+                                styling: styling,
+                                messages: messages,
+                              ),
+                            ),
+                          ],
 
-                          // YouTube-style Time Display Pill (0:00 / 1:22 • Chapter)
-                          if (!isLive)
+                          if (showTime) ...[
+                            SizedBox(width: isCompact ? 6 : 8),
+                            // YouTube-style Time Display Pill (0:00 / 1:22 • Chapter)
                             Flexible(
                               child: Container(
                                 height: 38,
@@ -373,6 +410,7 @@ class AdaptiveBottomBar extends StatelessWidget {
                                 ),
                               ),
                             ),
+                          ],
                         ],
                       ),
                     ),
@@ -393,28 +431,31 @@ class AdaptiveBottomBar extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (isWide) ...[
-                            _buildLoopToggle(value),
-                            const SizedBox(width: 2),
-                            _buildSubtitlesQuickButton(),
-                            const SizedBox(width: 2),
+                            if (showLoop) ...[
+                              _buildLoopToggle(value),
+                              const SizedBox(width: 2),
+                            ],
+                            if (showSubtitlesQuick) ...[
+                              _buildSubtitlesQuickButton(),
+                              const SizedBox(width: 2),
+                            ],
                           ],
-                          AdaptiveSettingsButton(
-                            isFullScreen: isFullScreen,
-                            styling: styling,
-                            messages: messages,
-                            qualities: qualities,
-                            currentQuality: currentQuality,
-                            onQualitySelected: onQualitySelected,
-                            subtitles: subtitles,
-                            currentSubtitleTrack: currentSubtitleTrack,
-                            onSubtitleSelected: onSubtitleSelected,
-                            onAnalyticsEvent: onAnalyticsEvent,
-                            onPressed: onSettingsPressed,
-                          ),
-                          if (onMiniPlayerPressed != null &&
-                              !isFullScreen &&
-                              !isLive) ...[
-                            const SizedBox(width: 4),
+                          if (showSettings)
+                            AdaptiveSettingsButton(
+                              isFullScreen: isFullScreen,
+                              styling: styling,
+                              messages: messages,
+                              qualities: qualities,
+                              currentQuality: currentQuality,
+                              onQualitySelected: onQualitySelected,
+                              subtitles: subtitles,
+                              currentSubtitleTrack: currentSubtitleTrack,
+                              onSubtitleSelected: onSubtitleSelected,
+                              onAnalyticsEvent: onAnalyticsEvent,
+                              onPressed: onSettingsPressed,
+                            ),
+                          if (showMiniPlayer) ...[
+                            const SizedBox(width: 8),
                             Tooltip(
                               message: messages?.miniPlayerText ?? 'Miniplayer',
                               waitDuration: const Duration(milliseconds: 500),
@@ -435,13 +476,16 @@ class AdaptiveBottomBar extends StatelessWidget {
                               ),
                             ),
                           ],
-                          const SizedBox(width: 4),
-                          AdaptiveFullscreenButton(
-                            isFullScreen: isFullScreen,
-                            styling: styling,
-                            onEnterFullscreen: onEnterFullscreen,
-                            onExitFullscreen: onExitFullscreen,
-                          ),
+                          if (showFullscreen) ...[
+                            const SizedBox(width: 8),
+                            AdaptiveFullscreenButton(
+                              isFullScreen: isFullScreen,
+                              styling: styling,
+                              messages: messages,
+                              onEnterFullscreen: onEnterFullscreen,
+                              onExitFullscreen: onExitFullscreen,
+                            ),
+                          ],
                         ],
                       ),
                     ),

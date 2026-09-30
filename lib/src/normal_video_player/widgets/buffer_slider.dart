@@ -156,14 +156,22 @@ class GradientSliderTrackShape extends SliderTrackShape
     // 2.5. Draw YouTube-style hover preview bar up to cursor position
     if (hoverFraction != null && trackRect.width > 0) {
       final clampedHover = hoverFraction!.clamp(0.0, 1.0);
-      final hoverX = trackRect.left + clampedHover * trackRect.width;
-      if (hoverX > trackRect.left) {
+      final double hoverLeft;
+      final double hoverRight;
+      if (textDirection == TextDirection.rtl) {
+        hoverLeft = trackRect.right - clampedHover * trackRect.width;
+        hoverRight = trackRect.right;
+      } else {
+        hoverLeft = trackRect.left;
+        hoverRight = trackRect.left + clampedHover * trackRect.width;
+      }
+      if (hoverRight > hoverLeft) {
         final Paint hoverPaint = Paint()
           ..color = Colors.white.withValues(alpha: 0.35)
           ..style = PaintingStyle.fill;
         context.canvas.drawRRect(
           RRect.fromRectAndRadius(
-            Rect.fromLTRB(trackRect.left, trackRect.top, hoverX, trackRect.bottom),
+            Rect.fromLTRB(hoverLeft, trackRect.top, hoverRight, trackRect.bottom),
             radius,
           ),
           hoverPaint,
@@ -178,7 +186,14 @@ class GradientSliderTrackShape extends SliderTrackShape
         : Rect.fromLTRB(
             trackRect.left, trackRect.top, thumbCenter.dx, trackRect.bottom);
     final Paint activePaint = Paint()
-      ..shader = gradient.createShader(trackRect);
+      ..shader = (textDirection == TextDirection.rtl
+              ? LinearGradient(
+                  begin: Alignment.centerRight,
+                  end: Alignment.centerLeft,
+                  colors: gradient.colors,
+                )
+              : gradient)
+          .createShader(activeTrackRect.width > 0 ? activeTrackRect : trackRect);
 
     if (activeTrackRect.width > 0) {
       context.canvas.drawRRect(

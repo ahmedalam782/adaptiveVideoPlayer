@@ -9,6 +9,7 @@ enum SettingsPage { main, qualities, subtitles }
 class AdaptivePlayerSettingsSheet extends StatefulWidget {
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
+  final PlayerVisibilityConfig? visibility;
   final List<VideoQuality>? qualities;
   final VideoQuality? currentQuality;
   final void Function(VideoQuality)? onQualitySelected;
@@ -23,6 +24,7 @@ class AdaptivePlayerSettingsSheet extends StatefulWidget {
     super.key,
     this.styling,
     this.messages,
+    this.visibility,
     this.qualities,
     this.currentQuality,
     this.onQualitySelected,
@@ -61,6 +63,7 @@ class AdaptivePlayerSettingsSheetState
         page = AdaptiveSettingsMainMenu(
           styling: widget.styling,
           messages: effectiveMessages,
+          visibility: widget.visibility,
           currentQuality: widget.currentQuality,
           currentSubtitleTrack: widget.currentSubtitleTrack,
           qualities: widget.qualities,
@@ -117,6 +120,7 @@ class AdaptivePlayerSettingsSheetState
 class AdaptiveSettingsMainMenu extends StatelessWidget {
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
+  final PlayerVisibilityConfig? visibility;
   final VideoQuality? currentQuality;
   final SubtitleTrack? currentSubtitleTrack;
   final List<VideoQuality>? qualities;
@@ -130,6 +134,7 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
     super.key,
     this.styling,
     this.messages,
+    this.visibility,
     this.currentQuality,
     this.currentSubtitleTrack,
     this.qualities,
@@ -141,133 +146,138 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showQuality = visibility?.showQualitySetting ?? true;
+    final showSubtitles = visibility?.showSubtitlesSetting ?? true;
+
     return SingleChildScrollView(
       key: const ValueKey('main_menu'),
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            leading: Icon(
-              Icons.hd,
-              color: styling?.iconColor ?? Colors.white,
-            ),
-            title: Text(
-              messages?.qualityText ?? 'Quality (Resolution)',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: styling?.settingItemTextStyle ??
-                  const TextStyle(color: Colors.white),
-            ),
-            trailing: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 130),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Flexible(
-                    child: Text(
-                      currentQuality?.title ?? (messages?.autoText ?? 'Auto'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: styling?.iconColor.withValues(alpha: 0.7) ??
-                            Colors.white70,
+          if (showQuality)
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              leading: Icon(
+                Icons.hd,
+                color: styling?.iconColor ?? Colors.white,
+              ),
+              title: Text(
+                messages?.qualityText ?? 'Quality (Resolution)',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: styling?.settingItemTextStyle ??
+                    const TextStyle(color: Colors.white),
+              ),
+              trailing: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 130),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        currentQuality?.title ?? (messages?.autoText ?? 'Auto'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: styling?.iconColor.withValues(alpha: 0.7) ??
+                              Colors.white70,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right,
-                    color: styling?.iconColor.withValues(alpha: 0.7) ??
-                        Colors.white70,
-                    size: 20,
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      color: styling?.iconColor.withValues(alpha: 0.7) ??
+                          Colors.white70,
+                      size: 20,
+                    ),
+                  ],
+                ),
               ),
+              onTap: () {
+                onAnalyticsEvent?.call('resolution_settings_clicked', {});
+                if (qualities != null && qualities!.isNotEmpty) {
+                  onOpenQualities();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    backgroundColor: styling?.settingsBackgroundColor ??
+                        const Color(0xFF212121),
+                    behavior: SnackBarBehavior.floating,
+                    content: Text(
+                      messages?.noQualitiesAvailableText ??
+                          'No qualities available',
+                      style: styling?.settingItemTextStyle ??
+                          const TextStyle(color: Colors.white),
+                    ),
+                  ));
+                }
+              },
             ),
-            onTap: () {
-              onAnalyticsEvent?.call('resolution_settings_clicked', {});
-              if (qualities != null && qualities!.isNotEmpty) {
-                onOpenQualities();
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  backgroundColor: styling?.settingsBackgroundColor ??
-                      const Color(0xFF212121),
-                  behavior: SnackBarBehavior.floating,
-                  content: Text(
-                    messages?.noQualitiesAvailableText ??
-                        'No qualities available',
-                    style: styling?.settingItemTextStyle ??
-                        const TextStyle(color: Colors.white),
-                  ),
-                ));
-              }
-            },
-          ),
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            leading: Icon(
-              Icons.closed_caption,
-              color: styling?.iconColor ?? Colors.white,
-            ),
-            title: Text(
-              messages?.subtitlesText ?? 'Subtitles',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: styling?.settingItemTextStyle ??
-                  const TextStyle(color: Colors.white),
-            ),
-            trailing: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 130),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Flexible(
-                    child: Text(
-                      currentSubtitleTrack?.title ??
-                          (messages?.offText ?? 'Off'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: styling?.iconColor.withValues(alpha: 0.7) ??
-                            Colors.white70,
+          if (showSubtitles)
+            ListTile(
+              dense: true,
+              visualDensity: VisualDensity.compact,
+              leading: Icon(
+                Icons.closed_caption,
+                color: styling?.iconColor ?? Colors.white,
+              ),
+              title: Text(
+                messages?.subtitlesText ?? 'Subtitles',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: styling?.settingItemTextStyle ??
+                    const TextStyle(color: Colors.white),
+              ),
+              trailing: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 130),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        currentSubtitleTrack?.title ??
+                            (messages?.offText ?? 'Off'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: styling?.iconColor.withValues(alpha: 0.7) ??
+                              Colors.white70,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right,
-                    color: styling?.iconColor.withValues(alpha: 0.7) ??
-                        Colors.white70,
-                    size: 20,
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      color: styling?.iconColor.withValues(alpha: 0.7) ??
+                          Colors.white70,
+                      size: 20,
+                    ),
+                  ],
+                ),
               ),
+              onTap: () {
+                onAnalyticsEvent?.call('subtitle_settings_clicked', {});
+                if (subtitles != null && subtitles!.isNotEmpty) {
+                  onOpenSubtitles();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    backgroundColor: styling?.settingsBackgroundColor ??
+                        const Color(0xFF212121),
+                    behavior: SnackBarBehavior.floating,
+                    content: Text(
+                      messages?.noSubtitlesAvailableText ??
+                          'No subtitles available',
+                      style: styling?.settingItemTextStyle ??
+                          const TextStyle(color: Colors.white),
+                    ),
+                  ));
+                }
+              },
             ),
-            onTap: () {
-              onAnalyticsEvent?.call('subtitle_settings_clicked', {});
-              if (subtitles != null && subtitles!.isNotEmpty) {
-                onOpenSubtitles();
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  backgroundColor: styling?.settingsBackgroundColor ??
-                      const Color(0xFF212121),
-                  behavior: SnackBarBehavior.floating,
-                  content: Text(
-                    messages?.noSubtitlesAvailableText ??
-                        'No subtitles available',
-                    style: styling?.settingItemTextStyle ??
-                        const TextStyle(color: Colors.white),
-                  ),
-                ));
-              }
-            },
-          ),
         ],
       ),
     );

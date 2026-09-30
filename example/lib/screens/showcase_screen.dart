@@ -30,6 +30,7 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
   final List<String> _categories = [
     'All',
     'Arabic / RTL',
+    'Languages',
     'YouTube',
     'Direct Stream',
     'HLS Live',
@@ -151,12 +152,16 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              const Text(
-                                'v2.0.0 • Pure ValueNotifier • 0 Dependencies',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF6366F1),
+                              Flexible(
+                                child: Text(
+                                  'v2.0.0 • Pure ValueNotifier',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF6366F1),
+                                  ),
                                 ),
                               ),
                             ],

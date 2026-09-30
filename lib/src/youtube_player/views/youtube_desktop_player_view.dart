@@ -121,6 +121,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   void _openFullscreen() {
     widget.fullscreenManager.openFullscreen(
       desktopPlayerBuilder: _buildPlayerWithOverlay,
+      textDirection: widget.config.text.resolveTextDirection(context),
     );
   }
 
@@ -137,6 +138,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
       desktopPlayerBuilder: _buildPlayerWithOverlay,
       getExpandTooltip: () => widget.config.text.expandPlayerText,
       getCloseTooltip: () => widget.config.text.closeMiniPlayerText,
+      textDirection: widget.config.text.resolveTextDirection(context),
     );
   }
 
@@ -144,6 +146,16 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
     final isNormalInline = !widget.fullscreenManager.isInFullscreen &&
         !widget.fullscreenManager.isInPip;
     final showPipButton = _isHovered || !_isPlaying;
+    final showMini = isNormalInline &&
+        widget.config.visibility.showControls &&
+        widget.config.visibility.showMiniPlayerButton;
+    final showFullscreen = !widget.fullscreenManager.isInPip &&
+        widget.config.visibility.showControls &&
+        widget.config.visibility.showFullscreenButton;
+    final effectiveDir = mounted
+        ? widget.config.text.resolveTextDirection(context)
+        : (widget.config.text.textDirection ?? TextDirection.ltr);
+    final isRtl = effectiveDir == TextDirection.rtl;
 
     return CallbackShortcuts(
       bindings: {
@@ -167,7 +179,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
       child: Focus(
         autofocus: true,
         child: Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: effectiveDir,
           child: MouseRegion(
             onEnter: (_) => _onMouseActivity(),
             onHover: (_) => _onMouseActivity(),
@@ -216,36 +228,79 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
                   seekDirection: _seekDirection,
                   seekSeconds: _seekSeconds,
                 ),
-                if (isNormalInline)
+                if (showMini || showFullscreen)
                   Positioned(
-                    bottom: 77,
-                    right: 60,
+                    top: 14,
+                    left: isRtl ? 14 : null,
+                    right: isRtl ? null : 14,
                     child: AnimatedOpacity(
                       opacity: showPipButton ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 220),
                       child: IgnorePointer(
                         ignoring: !showPipButton,
-                        child: Tooltip(
-                          message: widget.config.text.miniPlayerText,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: _openPip,
-                              customBorder: const CircleBorder(),
-                              child: Container(
-                                width: 33,
-                                height: 33,
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.45),
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: const Icon(
-                                  Icons.picture_in_picture_alt_rounded,
-                                  color: Colors.white,
-                                  size: 17,
-                                ),
+                        child: Directionality(
+                          textDirection: effectiveDir,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 0.8,
                               ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (showMini)
+                                  Tooltip(
+                                    message: widget.config.text.miniPlayerText,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _openPip,
+                                        customBorder: const CircleBorder(),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(4.0),
+                                          child: Icon(
+                                            Icons.picture_in_picture_alt_rounded,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                if (showMini && showFullscreen)
+                                  const SizedBox(width: 8),
+                                if (showFullscreen)
+                                  Tooltip(
+                                    message: widget.fullscreenManager.isInFullscreen
+                                        ? widget.config.text.exitFullscreenText
+                                        : widget.config.text.fullscreenText,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _toggleFullscreen,
+                                        customBorder: const CircleBorder(),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4.0),
+                                          child: Icon(
+                                            widget.fullscreenManager.isInFullscreen
+                                                ? Icons.fullscreen_exit_rounded
+                                                : Icons.fullscreen_rounded,
+                                            color: Colors.white,
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
@@ -274,32 +329,42 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
     }
 
     if (widget.fullscreenManager.isInPip) {
-      return Container(
-        color: Colors.black87,
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.picture_in_picture_alt_rounded,
-              color: Colors.white54,
-              size: 36,
-            ),
-            const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: () =>
-                  widget.fullscreenManager.closePip(pauseOnClose: false),
-              icon: const Icon(
-                Icons.open_in_full_rounded,
-                color: Colors.white,
-                size: 16,
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => widget.fullscreenManager.closePip(pauseOnClose: false),
+        child: Material(
+          color: Colors.black87,
+          child: InkWell(
+            onTap: () => widget.fullscreenManager.closePip(pauseOnClose: false),
+            hoverColor: Colors.white.withValues(alpha: 0.05),
+            splashColor: Colors.white.withValues(alpha: 0.1),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.picture_in_picture_alt_rounded,
+                    color: Colors.white54,
+                    size: 36,
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () =>
+                        widget.fullscreenManager.closePip(pauseOnClose: false),
+                    icon: const Icon(
+                      Icons.open_in_full_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    label: Text(
+                      widget.config.text.restorePlayerText,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
               ),
-              label: Text(
-                widget.config.text.restorePlayerText,
-                style: const TextStyle(color: Colors.white),
-              ),
             ),
-          ],
+          ),
         ),
       );
     }

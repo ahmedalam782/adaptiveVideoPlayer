@@ -6,12 +6,14 @@ import '../utils/video_player_web_safe.dart';
 class AdaptiveVolumeControl extends StatefulWidget {
   final VideoPlayerController controller;
   final PlayerStyleConfig? styling;
+  final PlayerTextConfig? messages;
   final bool alwaysShowSlider;
 
   const AdaptiveVolumeControl({
     super.key,
     required this.controller,
     this.styling,
+    this.messages,
     this.alwaysShowSlider = false,
   });
 
@@ -32,9 +34,21 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
         final isMuted = value.volume == 0;
         final showSlider =
             widget.alwaysShowSlider || _isVolumeHovered || _isDraggingVolume;
+        final textDirection = widget.messages?.resolveTextDirection(context) ??
+            Directionality.maybeOf(context) ??
+            TextDirection.ltr;
+
+        final tooltip = isMuted
+            ? (widget.messages?.unmuteAudioText ?? 'Unmute')
+            : (widget.messages?.muteAudioText ?? 'Mute');
+
+        final activeColor =
+            widget.styling?.progressBarPlayedColor ?? Colors.white;
+        final thumbColor =
+            widget.styling?.progressBarHandleColor ?? Colors.white;
 
         return Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: textDirection,
           child: MouseRegion(
             onEnter: (_) => setState(() => _isVolumeHovered = true),
             onExit: (_) => setState(() => _isVolumeHovered = false),
@@ -42,35 +56,39 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               height: 38,
-              padding: EdgeInsets.only(
-                left: 6.0,
-                right: showSlider ? 10.0 : 6.0,
+              padding: EdgeInsetsDirectional.only(
+                start: 6.0,
+                end: showSlider ? 10.0 : 6.0,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (isMuted) {
-                        widget.controller.setVolume(_lastNonZeroVolume);
-                      } else {
-                        _lastNonZeroVolume = value.volume;
-                        widget.controller.setVolume(0);
-                      }
-                    },
-                    child: SizedBox(
-                      width: 26,
-                      height: 26,
-                      child: Center(
-                        child: Icon(
-                          isMuted
-                              ? Icons.volume_off_rounded
-                              : value.volume < 0.5
-                                  ? Icons.volume_down_rounded
-                                  : Icons.volume_up_rounded,
-                          color: widget.styling?.iconColor ?? Colors.white,
-                          size: 20,
+                  Tooltip(
+                    message: tooltip,
+                    waitDuration: const Duration(milliseconds: 500),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        if (isMuted) {
+                          widget.controller.setVolume(_lastNonZeroVolume);
+                        } else {
+                          _lastNonZeroVolume = value.volume;
+                          widget.controller.setVolume(0);
+                        }
+                      },
+                      child: SizedBox(
+                        width: 26,
+                        height: 26,
+                        child: Center(
+                          child: Icon(
+                            isMuted
+                                ? Icons.volume_off_rounded
+                                : value.volume < 0.5
+                                    ? Icons.volume_down_rounded
+                                    : Icons.volume_up_rounded,
+                            color: widget.styling?.iconColor ?? Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ),
@@ -90,9 +108,9 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
                                 overlayShape: const RoundSliderOverlayShape(
                                   overlayRadius: 10.0,
                                 ),
-                                activeTrackColor: Colors.white,
+                                activeTrackColor: activeColor,
                                 inactiveTrackColor: Colors.white30,
-                                thumbColor: Colors.white,
+                                thumbColor: thumbColor,
                               ),
                               child: Slider(
                                 value: value.volume.clamp(0.0, 1.0),

@@ -63,7 +63,8 @@ class YouTubeMobilePlayerView extends StatelessWidget {
               onPipTap: onPipTap,
               onSeekBackward: onSeekBackward,
               onSeekForward: onSeekForward,
-              topActions: (isLive || viewerCount != null)
+              topActions: ((isLive || viewerCount != null) &&
+                      config.visibility.showLiveBadge)
                   ? Padding(
                       padding: const EdgeInsets.all(16),
                       child: (liveBadgeBuilder ?? config.liveBadgeBuilder)
@@ -76,6 +77,9 @@ class YouTubeMobilePlayerView extends StatelessWidget {
                             isLive: isLive,
                             viewerCount: viewerCount,
                             liveText: config.text.liveText,
+                            badgeColor: config.style.progressBarPlayedColor,
+                            iconColor: config.style.iconColor,
+                            textColor: config.style.textColor,
                           ),
                     )
                   : null,

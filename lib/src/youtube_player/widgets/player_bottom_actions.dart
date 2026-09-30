@@ -9,17 +9,19 @@ class FullscreenButton extends StatelessWidget {
   final VoidCallback onTap;
   final Color iconColor;
   final bool isFullscreen;
+  final String? tooltip;
 
   const FullscreenButton({
     super.key,
     required this.onTap,
     required this.iconColor,
     this.isFullscreen = false,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final button = GestureDetector(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(8),
@@ -30,6 +32,11 @@ class FullscreenButton extends StatelessWidget {
         ),
       ),
     );
+
+    if (tooltip != null) {
+      return Tooltip(message: tooltip!, child: button);
+    }
+    return button;
   }
 }
 
@@ -38,17 +45,19 @@ class MuteButton extends StatelessWidget {
   final VoidCallback onTap;
   final Color iconColor;
   final bool isMuted;
+  final String? tooltip;
 
   const MuteButton({
     super.key,
     required this.onTap,
     required this.iconColor,
     required this.isMuted,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final button = GestureDetector(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -59,6 +68,11 @@ class MuteButton extends StatelessWidget {
         ),
       ),
     );
+
+    if (tooltip != null) {
+      return Tooltip(message: tooltip!, child: button);
+    }
+    return button;
   }
 }
 
@@ -66,22 +80,29 @@ class MuteButton extends StatelessWidget {
 class SettingsButton extends StatelessWidget {
   final VoidCallback onTap;
   final Color iconColor;
+  final String? tooltip;
 
   const SettingsButton({
     super.key,
     required this.onTap,
     required this.iconColor,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final button = GestureDetector(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Icon(Icons.settings, color: iconColor, size: 24),
       ),
     );
+
+    if (tooltip != null) {
+      return Tooltip(message: tooltip!, child: button);
+    }
+    return button;
   }
 }
 
@@ -185,6 +206,11 @@ class PlayerBottomActionsBuilder {
     bool isFullscreen = false,
     bool showFullscreenButton = true,
     bool showSettingsButton = false,
+    bool showVolumeButton = true,
+    bool showTimeDisplay = true,
+    bool showProgressBar = true,
+    bool showMiniPlayerButton = true,
+    PlayerTextConfig? messages,
     bool isLive = false,
     required VoidCallback onFullscreenTap,
     required VoidCallback onMuteTap,
@@ -192,19 +218,24 @@ class PlayerBottomActionsBuilder {
     VoidCallback? onPipTap,
   }) {
     return [
-      MuteButton(
-        onTap: onMuteTap,
-        iconColor: config.iconColor,
-        isMuted: isMuted,
-      ),
-      if (!isLive) CurrentPosition(controller: controller),
-      if (!isLive)
+      if (showVolumeButton)
+        MuteButton(
+          onTap: onMuteTap,
+          iconColor: config.iconColor,
+          isMuted: isMuted,
+          tooltip: isMuted
+              ? (messages?.unmuteAudioText ?? 'Unmute')
+              : (messages?.muteAudioText ?? 'Mute'),
+        ),
+      if (showVolumeButton) const SizedBox(width: 4),
+      if (!isLive && showTimeDisplay) CurrentPosition(controller: controller),
+      if (!isLive && showTimeDisplay)
         TimeSeparator(
           textStyle: config.timeTextStyle,
           textColor: config.textColor,
         ),
-      if (!isLive) RemainingDuration(controller: controller),
-      if (!isLive)
+      if (!isLive && showTimeDisplay) RemainingDuration(controller: controller),
+      if (!isLive && showProgressBar)
         ProgressBar(
           controller: controller,
           playedColor: config.progressBarPlayedColor,
@@ -212,26 +243,45 @@ class PlayerBottomActionsBuilder {
         )
       else
         const Spacer(),
-      if (showSettingsButton && onSettingsTap != null)
-        SettingsButton(onTap: onSettingsTap, iconColor: config.iconColor),
-      if (!isFullscreen && !isLive && onPipTap != null)
-        GestureDetector(
-          onTap: onPipTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Icon(
-              Icons.picture_in_picture_alt_rounded,
-              color: config.iconColor,
-              size: 22,
+      if (showSettingsButton && onSettingsTap != null) ...[
+        const SizedBox(width: 8),
+        SettingsButton(
+          onTap: onSettingsTap,
+          iconColor: config.iconColor,
+          tooltip: messages?.playerSettingsText ?? 'Player Settings',
+        ),
+      ],
+      if (!isFullscreen &&
+          !isLive &&
+          showMiniPlayerButton &&
+          onPipTap != null) ...[
+        const SizedBox(width: 8),
+        Tooltip(
+          message: messages?.miniPlayerText ?? 'Miniplayer',
+          child: GestureDetector(
+            onTap: onPipTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Icon(
+                Icons.picture_in_picture_alt_rounded,
+                color: config.iconColor,
+                size: 22,
+              ),
             ),
           ),
         ),
-      if (showFullscreenButton)
+      ],
+      if (showFullscreenButton) ...[
+        const SizedBox(width: 8),
         FullscreenButton(
           onTap: onFullscreenTap,
           iconColor: config.iconColor,
           isFullscreen: isFullscreen,
+          tooltip: isFullscreen
+              ? (messages?.exitFullscreenText ?? 'Exit Fullscreen')
+              : (messages?.fullscreenText ?? 'Fullscreen'),
         ),
+      ],
     ];
   }
 }

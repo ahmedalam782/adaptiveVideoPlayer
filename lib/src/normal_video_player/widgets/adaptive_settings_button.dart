@@ -140,22 +140,26 @@ class AdaptiveSettingsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        if (onPressed != null) {
-          onAnalyticsEvent?.call('settings_opened', {});
-          onPressed!();
-        } else {
-          _openSettings(context);
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: Icon(
-          Icons.settings,
-          color: styling?.iconColor ?? Colors.white,
-          size: 18,
+    return Tooltip(
+      message: messages?.playerSettingsText ?? 'Player Settings',
+      waitDuration: const Duration(milliseconds: 500),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (onPressed != null) {
+            onAnalyticsEvent?.call('settings_opened', {});
+            onPressed!();
+          } else {
+            _openSettings(context);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: Icon(
+            Icons.settings,
+            color: styling?.iconColor ?? Colors.white,
+            size: 18,
+          ),
         ),
       ),
     );

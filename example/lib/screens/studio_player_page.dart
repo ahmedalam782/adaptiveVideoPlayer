@@ -73,10 +73,19 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
     final isRtl = _localRtlOverride ?? ambientIsRtl;
 
     final basePlayerConfig = demo.config.playerConfig;
-    final effectiveTextConfig = isRtl
-        ? const PlayerTextConfig.arabic()
-        : (_localRtlOverride == false
-            ? const PlayerTextConfig.english()
+    final effectiveTextConfig = _localRtlOverride != null
+        ? (_localRtlOverride!
+            ? const PlayerTextConfig.arabic()
+            : (basePlayerConfig.text.isRtl
+                ? const PlayerTextConfig.english()
+                : basePlayerConfig.text.copyWith(
+                    textDirection: TextDirection.ltr,
+                    languageCode: basePlayerConfig.text.languageCode == 'ar'
+                        ? 'en'
+                        : basePlayerConfig.text.languageCode,
+                  )))
+        : (isRtl && basePlayerConfig.text.isDefaultUnmodified
+            ? const PlayerTextConfig.arabic()
             : basePlayerConfig.text);
 
     final effectivePlayerConfig = YouTubePlayerConfig(
@@ -117,23 +126,7 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
       initialQuality: localizedInitialQuality,
       subtitles: demo.config.subtitles,
       initialSubtitle: demo.config.initialSubtitle,
-      chapters: demo.config.chapters ??
-          (demo.config.isLive
-              ? null
-              : [
-                  VideoChapter(
-                    title: isRtl ? 'المقدمة' : 'Intro',
-                    startTime: Duration.zero,
-                  ),
-                  VideoChapter(
-                    title: isRtl ? 'المشهد الرئيسي' : 'Main Scene',
-                    startTime: const Duration(seconds: 20),
-                  ),
-                  VideoChapter(
-                    title: isRtl ? 'ذروة الأحداث' : 'Action Climax',
-                    startTime: const Duration(seconds: 45),
-                  ),
-                ]),
+      chapters: demo.config.chapters,
       viewerCount: localizedViewerCount,
       controlsBuilder: demo.config.controlsBuilder,
       subtitleBuilder: demo.config.subtitleBuilder,

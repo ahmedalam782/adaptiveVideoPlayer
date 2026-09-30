@@ -44,10 +44,13 @@ class YouTubeDesktopFullscreenManager {
 
   Future<void> openFullscreen({
     required Widget Function() desktopPlayerBuilder,
+    TextDirection? textDirection,
   }) async {
     if (_isInFullscreen || _isTransitioning) return;
     final context = getContext();
     final overlay = Overlay.of(context, rootOverlay: true);
+    final effectiveDirection =
+        textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr;
 
     if (_isInPip) {
       await closePip(pauseOnClose: false);
@@ -59,7 +62,7 @@ class YouTubeDesktopFullscreenManager {
     _overlayEntry = OverlayEntry(
       builder: (ctx) {
         return Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: effectiveDirection,
           child: CallbackShortcuts(
             bindings: {
               const SingleActivator(LogicalKeyboardKey.escape): () {
@@ -111,14 +114,14 @@ class YouTubeDesktopFullscreenManager {
     await _captureWebViewState();
     final shouldKeepPlaying = wasPlaying ?? false;
 
-    exitBrowserFullscreen();
-
     _overlayEntry?.remove();
     _overlayEntry?.dispose();
     _overlayEntry = null;
 
     _isInFullscreen = false;
     onStateChange();
+
+    exitBrowserFullscreen();
 
     if (desktopWebViewKey.currentState != null) {
       try {
@@ -153,15 +156,19 @@ class YouTubeDesktopFullscreenManager {
     required Widget Function() desktopPlayerBuilder,
     String Function()? getExpandTooltip,
     String Function()? getCloseTooltip,
+    TextDirection? textDirection,
   }) async {
     if (_isInPip || _isTransitioning) return;
     final context = getContext();
     final overlay = Overlay.maybeOf(context, rootOverlay: true);
     if (overlay == null) return;
+    final effectiveDirection =
+        textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr;
 
     if (_isInFullscreen) {
       await closeFullscreen();
     }
+    _isTransitioning = true;
 
     await _captureWebViewState();
 
@@ -172,13 +179,13 @@ class YouTubeDesktopFullscreenManager {
         onClose: () => closePip(pauseOnClose: true),
         getExpandTooltip: getExpandTooltip,
         getCloseTooltip: getCloseTooltip,
+        textDirection: effectiveDirection,
       ),
     );
 
     _isInPip = true;
     overlay.insert(_pipOverlayEntry!);
     onStateChange();
-
     enterDesktopPipMode();
     _pipOverlayEntry?.markNeedsBuild();
 
@@ -187,24 +194,30 @@ class YouTubeDesktopFullscreenManager {
         desktopWebViewKey.currentState?.play();
       });
     }
+
+    Future.delayed(const Duration(milliseconds: 400), () {
+      _isTransitioning = false;
+    });
   }
 
   Future<void> closePip({bool pauseOnClose = false}) async {
-    if (!_isInPip || _pipOverlayEntry == null) return;
+    if (!_isInPip || _isTransitioning) return;
+    _isTransitioning = true;
 
     await _captureWebViewState();
     if (pauseOnClose) {
       wasPlaying = false;
     }
 
-    exitDesktopPipMode();
-
-    _pipOverlayEntry?.remove();
-    _pipOverlayEntry?.dispose();
-    _pipOverlayEntry = null;
+    if (_pipOverlayEntry != null) {
+      _pipOverlayEntry?.remove();
+      _pipOverlayEntry?.dispose();
+      _pipOverlayEntry = null;
+    }
     _isInPip = false;
-
     onStateChange();
+
+    exitDesktopPipMode();
 
     if (pauseOnClose) {
       Future.delayed(const Duration(milliseconds: 150), () {
@@ -215,6 +228,10 @@ class YouTubeDesktopFullscreenManager {
         desktopWebViewKey.currentState?.play();
       });
     }
+
+    Future.delayed(const Duration(milliseconds: 400), () {
+      _isTransitioning = false;
+    });
   }
 
   void dispose() {
@@ -264,6 +281,7 @@ class _YouTubeDesktopPipOverlay extends StatefulWidget {
   final VoidCallback onClose;
   final String Function()? getExpandTooltip;
   final String Function()? getCloseTooltip;
+  final TextDirection? textDirection;
 
   const _YouTubeDesktopPipOverlay({
     required this.playerBuilder,
@@ -271,6 +289,7 @@ class _YouTubeDesktopPipOverlay extends StatefulWidget {
     required this.onClose,
     this.getExpandTooltip,
     this.getCloseTooltip,
+    this.textDirection,
   });
 
   @override
@@ -397,10 +416,15 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveDirection = widget.textDirection ??
+        Directionality.maybeOf(context) ??
+        TextDirection.ltr;
+    final isRtl = effectiveDirection == TextDirection.rtl;
     final isOsPipWindow = isDesktopPipMode();
+
     if (isOsPipWindow) {
       return Directionality(
-        textDirection: TextDirection.ltr,
+        textDirection: effectiveDirection,
         child: Scaffold(
           backgroundColor: Colors.black,
           body: SizedBox.expand(
@@ -411,12 +435,13 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
     }
 
     return Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: effectiveDirection,
       child: Stack(
         fit: StackFit.expand,
         children: [
           Positioned(
-            right: 16 - _offset.dx,
+            left: isRtl ? (16 + _offset.dx) : null,
+            right: isRtl ? null : (16 - _offset.dx),
             bottom: 24 - _offset.dy,
             child: _buildContent(false),
           ),

@@ -104,7 +104,6 @@ Real-time subtitle overlays synced perfectly.
         videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
         playerConfig: const YouTubePlayerConfig(
           playback: PlayerPlaybackConfig(
-            forceDesktopMode: true,
             autoPlay: true,
           ),
           text: PlayerTextConfig(
@@ -172,6 +171,100 @@ Real-time subtitle overlays synced perfectly.
         initialSubtitle: SubtitleTrack(
           id: 'ar',
           title: 'عربي (Arabic)',
+        ),
+      ),
+    ),
+    const DemoShowcaseItem(
+      title: 'Reproductor en Español',
+      subtitle:
+          'Interfaz completamente traducida al español con controles localizados',
+      category: 'Languages',
+      tags: ['Español', 'Spanish', 'LTR', 'Localization'],
+      icon: Icons.translate_rounded,
+      accentColor: Color(0xFFF97316),
+      config: VideoConfig(
+        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
+        playerConfig: YouTubePlayerConfig(
+          text: PlayerTextConfig.spanish(),
+        ),
+      ),
+    ),
+    const DemoShowcaseItem(
+      title: 'Lecteur Vidéo en Français',
+      subtitle:
+          'Interface entièrement traduite en français avec commandes localisées',
+      category: 'Languages',
+      tags: ['Français', 'French', 'LTR', 'Localization'],
+      icon: Icons.translate_rounded,
+      accentColor: Color(0xFF8B5CF6),
+      config: VideoConfig(
+        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
+        playerConfig: YouTubePlayerConfig(
+          text: PlayerTextConfig.french(),
+        ),
+      ),
+    ),
+    const DemoShowcaseItem(
+      title: 'Videoplayer auf Deutsch',
+      subtitle:
+          'Vollständig ins Deutsche übersetzte Oberfläche mit lokalisierten Steuerungen',
+      category: 'Languages',
+      tags: ['Deutsch', 'German', 'LTR', 'Localization'],
+      icon: Icons.translate_rounded,
+      accentColor: Color(0xFFEAB308),
+      config: VideoConfig(
+        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
+        playerConfig: YouTubePlayerConfig(
+          text: PlayerTextConfig.german(),
+        ),
+      ),
+    ),
+    const DemoShowcaseItem(
+      title: 'Türkçe Video Oynatıcı',
+      subtitle:
+          'Tamamen Türkçeye çevrilmiş arayüz ve yerelleştirilmiş kontroller',
+      category: 'Languages',
+      tags: ['Türkçe', 'Turkish', 'LTR', 'Localization'],
+      icon: Icons.translate_rounded,
+      accentColor: Color(0xFFE11D48),
+      config: VideoConfig(
+        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
+        playerConfig: YouTubePlayerConfig(
+          text: PlayerTextConfig.turkish(),
+        ),
+      ),
+    ),
+    const DemoShowcaseItem(
+      title: 'Dynamic Emerald Theme & Custom Controls',
+      subtitle:
+          'Dynamic colors, custom text labels, and customized control visibility',
+      category: 'Direct Stream',
+      tags: ['Dynamic Color', 'Custom Texts', 'Visibility Config', 'Theming'],
+      icon: Icons.palette_rounded,
+      accentColor: Color(0xFF10B981),
+      config: VideoConfig(
+        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
+        playerConfig: YouTubePlayerConfig(
+          style: PlayerStyleConfig(
+            progressBarPlayedColor: Color(0xFF10B981),
+            progressBarHandleColor: Color(0xFF34D399),
+            progressBarBufferedColor: Color(0x6610B981),
+            controlsBackgroundColor: Color(0x44064E3B),
+            iconColor: Color(0xFFE0E7FF),
+            textColor: Color(0xFFE0E7FF),
+          ),
+          text: PlayerTextConfig(
+            playerSettingsText: 'Custom Video Controls',
+            playbackSpeedText: 'Speed Multiplier',
+            skipBackwardText: 'Jump Back 10s',
+            skipForwardText: 'Jump Ahead 10s',
+          ),
+          visibility: PlayerVisibilityConfig(
+            showMiniPlayerButton: true,
+            showVolumeButton: true,
+            showTimeDisplay: true,
+            showProgressBar: true,
+          ),
         ),
       ),
     ),

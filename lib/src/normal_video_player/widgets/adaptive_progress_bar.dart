@@ -13,6 +13,8 @@ class AdaptiveProgressBar extends StatefulWidget {
   final ValueChanged<double> onDragEnd;
   final PlayerStyleConfig? styling;
   final List<VideoChapter>? chapters;
+  final PlayerPlaybackConfig? playback;
+  final PlayerTextConfig? messages;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
 
@@ -24,6 +26,8 @@ class AdaptiveProgressBar extends StatefulWidget {
     required this.onDragEnd,
     this.styling,
     this.chapters,
+    this.playback,
+    this.messages,
     this.onAnalyticsEvent,
   });
 
@@ -154,12 +158,17 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
     return '$minutes:$seconds';
   }
 
-  void _updateHoverPosition(Offset localPosition, double maxWidth) {
+  void _updateHoverPosition(
+    Offset localPosition,
+    double maxWidth, {
+    bool isRtl = false,
+  }) {
     const horizontalInset = 12.0;
     final effectiveWidth =
         (maxWidth - horizontalInset * 2).clamp(1.0, double.infinity);
-    final fraction = ((localPosition.dx - horizontalInset) / effectiveWidth)
+    final rawFraction = ((localPosition.dx - horizontalInset) / effectiveWidth)
         .clamp(0.0, 1.0);
+    final fraction = isRtl ? (1.0 - rawFraction) : rawFraction;
     final durationMs = widget.controller.value.duration.inMilliseconds;
     if (durationMs > 0) {
       final target = Duration(milliseconds: (fraction * durationMs).round());
@@ -203,8 +212,15 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
             ? _previewController
             : null;
 
+        final isRtlMode = (widget.playback?.mirrorProgressBarInRtl ?? true) &&
+            (widget.messages?.resolveTextDirection(context) ==
+                    TextDirection.rtl ||
+                Directionality.maybeOf(context) == TextDirection.rtl);
+        final effectiveTextDirection =
+            isRtlMode ? TextDirection.rtl : TextDirection.ltr;
+
         return Directionality(
-          textDirection: TextDirection.ltr,
+          textDirection: effectiveTextDirection,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: LayoutBuilder(
@@ -215,7 +231,11 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                 final trackWidth = (constraints.maxWidth - horizontalInset * 2)
                     .clamp(1.0, double.infinity);
                 final previewX = previewFraction != null
-                    ? horizontalInset + previewFraction * trackWidth
+                    ? (isRtlMode
+                        ? constraints.maxWidth -
+                            horizontalInset -
+                            previewFraction * trackWidth
+                        : horizontalInset + previewFraction * trackWidth)
                     : 0.0;
                 final tooltipLeft = (previewX - thumbWidth / 2).clamp(
                   0.0,
@@ -225,9 +245,15 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
 
                 return MouseRegion(
                   onEnter: (event) => _updateHoverPosition(
-                      event.localPosition, constraints.maxWidth),
+                    event.localPosition,
+                    constraints.maxWidth,
+                    isRtl: isRtlMode,
+                  ),
                   onHover: (event) => _updateHoverPosition(
-                      event.localPosition, constraints.maxWidth),
+                    event.localPosition,
+                    constraints.maxWidth,
+                    isRtl: isRtlMode,
+                  ),
                   onExit: (_) => setState(() {
                     _isHovered = false;
                     _hoverFraction = null;

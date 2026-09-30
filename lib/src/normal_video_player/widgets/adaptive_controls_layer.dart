@@ -42,6 +42,7 @@ class AdaptiveControlsLayer extends StatefulWidget {
   final String? viewerCount;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
+  final PlayerPlaybackConfig? playback;
   final VoidCallback? onMiniPlayerPressed;
 
   const AdaptiveControlsLayer({
@@ -51,6 +52,7 @@ class AdaptiveControlsLayer extends StatefulWidget {
     this.styling,
     this.messages,
     this.visibility,
+    this.playback,
     this.onAnalyticsEvent,
     this.qualities,
     this.currentQuality,
@@ -143,19 +145,23 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                 onQualitySelected: widget.onQualitySelected,
                 onAnalyticsEvent: widget.onAnalyticsEvent,
                 messages: widget.messages,
+                styling: widget.styling,
+                visibility: widget.visibility,
               ),
             ),
           ),
 
         // Center Play/Pause Indicator
-        Align(
-          alignment: Alignment.center,
-          child: AdaptiveCenterPlayPause(
-            controller: widget.controller,
-            styling: widget.styling,
-            onAnalyticsEvent: widget.onAnalyticsEvent,
+        if (widget.visibility?.showCenterPlayPause ?? true)
+          Align(
+            alignment: Alignment.center,
+            child: AdaptiveCenterPlayPause(
+              controller: widget.controller,
+              styling: widget.styling,
+              onAnalyticsEvent: widget.onAnalyticsEvent,
+              isFullScreen: widget.isFullScreen,
+            ),
           ),
-        ),
 
         // Bottom Controls Layer with YouTube capsule/pill design
         Positioned(
@@ -183,7 +189,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  if (!widget.isLive)
+                  if (!widget.isLive &&
+                      (widget.visibility?.showProgressBar ?? true))
                     AdaptiveProgressBar(
                       controller: widget.controller,
                       dragPosition: _dragPosition,
@@ -196,6 +203,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                       },
                       styling: widget.styling,
                       chapters: widget.chapters,
+                      playback: widget.playback,
+                      messages: widget.messages,
                       onAnalyticsEvent: widget.onAnalyticsEvent,
                     ),
                   AdaptiveBottomBar(
@@ -204,6 +213,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                     isLive: widget.isLive,
                     styling: widget.styling,
                     messages: widget.messages,
+                    visibility: widget.visibility,
                     qualities: widget.qualities,
                     currentQuality: widget.currentQuality,
                     onQualitySelected: widget.onQualitySelected,
@@ -312,6 +322,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                             child: AdaptivePlayerSettingsSheet(
                               styling: widget.styling,
                               messages: widget.messages,
+                              visibility: widget.visibility,
                               qualities: widget.qualities,
                               currentQuality: widget.currentQuality,
                               onQualitySelected: (q) {

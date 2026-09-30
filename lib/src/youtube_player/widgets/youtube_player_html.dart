@@ -24,6 +24,14 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             width: 100%;
             height: 100%;
         }
+
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-picture-in-picture-button,
+        video::-webkit-media-controls-fullscreen-button,
+        video::-webkit-media-controls-enclosure,
+        .ytp-fullscreen-button {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -45,11 +53,29 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         var dirFlag = 'ltr';
         var timeUpdateInterval = null;
 
+        function updateRtlStyles(isRtl) {
+            try {
+                var styleId = 'yt-rtl-progress-style';
+                var existing = document.getElementById(styleId);
+                if (isRtl) {
+                    if (!existing) {
+                        var st = document.createElement('style');
+                        st.id = styleId;
+                        st.innerHTML = '.ytp-progress-bar-container, .ytp-progress-bar { transform: scaleX(-1) !important; }';
+                        (document.head || document.documentElement).appendChild(st);
+                    }
+                } else if (existing) {
+                    existing.remove();
+                }
+            } catch(e) {}
+        }
+
         function setLanguage(lang, dir) {
             var nextLang = (lang && typeof lang === 'string' && lang.trim().length > 0) ? lang.trim() : 'en';
             var nextDir = (dir === 'rtl' || nextLang === 'ar' || nextLang === 'he' || nextLang === 'fa' || nextLang === 'ur') ? 'rtl' : 'ltr';
             document.documentElement.dir = nextDir;
             document.documentElement.lang = nextLang;
+            updateRtlStyles(nextDir === 'rtl');
             if (langFlag !== nextLang || dirFlag !== nextDir) {
                 langFlag = nextLang;
                 dirFlag = nextDir;
@@ -94,6 +120,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 dirFlag = (dir === 'rtl' || langFlag === 'ar' || langFlag === 'he' || langFlag === 'fa' || langFlag === 'ur') ? 'rtl' : 'ltr';
                 document.documentElement.dir = dirFlag;
                 document.documentElement.lang = langFlag;
+                updateRtlStyles(dirFlag === 'rtl');
             }
             if (typeof YT !== 'undefined' && YT.Player) {
                 createPlayer();
@@ -113,7 +140,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 'mute': muteFlag,
                 'playsinline': 1,
                 'controls': 1,
-                'fs': 1,
+                'fs': 0,
                 'rel': 0,
                 'showinfo': 0,
                 'modestbranding': 1,

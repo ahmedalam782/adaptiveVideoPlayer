@@ -96,10 +96,12 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
           _hideTimer?.cancel();
         }
 
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _toggleVisibility,
-          child: Stack(
+        return Directionality(
+          textDirection: widget.config.text.resolveTextDirection(context),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _toggleVisibility,
+            child: Stack(
             children: [
               // Background fade when controls are visible
               AnimatedOpacity(
@@ -139,7 +141,7 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                           _resetTimer();
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(10),
                           decoration: const BoxDecoration(
                             color: Colors.black54,
                             shape: BoxShape.circle,
@@ -147,7 +149,7 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                           child: Icon(
                             isPlaying ? Icons.pause : Icons.play_arrow,
                             color: widget.config.style.iconColor,
-                            size: 48,
+                            size: 32,
                           ),
                         ),
                       ),
@@ -222,6 +224,15 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                               widget.config.visibility.showFullscreenButton,
                           showSettingsButton:
                               widget.config.visibility.showSettingsButton,
+                          showVolumeButton:
+                              widget.config.visibility.showVolumeButton,
+                          showTimeDisplay:
+                              widget.config.visibility.showTimeDisplay,
+                          showProgressBar:
+                              widget.config.visibility.showProgressBar,
+                          showMiniPlayerButton:
+                              widget.config.visibility.showMiniPlayerButton,
+                          messages: widget.config.text,
                           onFullscreenTap: widget.onFullscreenTap,
                           onMuteTap: widget.onMuteTap,
                           onSettingsTap: widget.onSettingsTap,
@@ -235,8 +246,9 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
               ),
             ],
           ),
-        );
-      },
+        ),
+      );
+    },
     );
   }
 }

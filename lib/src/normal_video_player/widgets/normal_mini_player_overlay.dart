@@ -10,6 +10,7 @@ class NormalMiniPlayerOverlay extends StatefulWidget {
   final VoidCallback onExpand;
   final VoidCallback onClose;
   final PlayerTextConfig? messages;
+  final PlayerStyleConfig? styling;
 
   const NormalMiniPlayerOverlay({
     super.key,
@@ -17,6 +18,7 @@ class NormalMiniPlayerOverlay extends StatefulWidget {
     required this.onExpand,
     required this.onClose,
     this.messages,
+    this.styling,
   });
 
   @override
@@ -29,6 +31,18 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
   bool _controlsVisible = true;
 
   Widget _buildMiniPlayerContent(bool isOsPipWindow) {
+    final playedColor =
+        widget.styling?.progressBarPlayedColor ?? const Color(0xFFFF0033);
+    final iconColor = widget.styling?.iconColor ?? Colors.white;
+
+    final screenWidth = MediaQuery.maybeSizeOf(context)?.width ?? 360.0;
+    final miniWidth = isOsPipWindow
+        ? double.infinity
+        : (screenWidth < 600
+            ? (screenWidth * 0.58).clamp(190.0, 240.0)
+            : 280.0);
+    final miniHeight = isOsPipWindow ? double.infinity : (miniWidth * 9 / 16);
+
     return GestureDetector(
       onPanUpdate: (details) {
         if (isOsPipWindow) {
@@ -53,8 +67,8 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
         borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
         clipBehavior: Clip.antiAlias,
         child: Container(
-          width: isOsPipWindow ? double.infinity : 280,
-          height: isOsPipWindow ? double.infinity : 158,
+          width: miniWidth,
+          height: miniHeight,
           decoration: BoxDecoration(
             color: Colors.black,
             borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
@@ -66,113 +80,119 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
                   ),
           ),
           child: ValueListenableBuilder(
-                valueListenable: widget.controller,
-                builder: (context, VideoPlayerValue value, _) {
-                  final durationMs = value.duration.inMilliseconds.toDouble();
-                  final positionMs = value.position.inMilliseconds.toDouble();
-                  final progress = durationMs > 0
-                      ? (positionMs / durationMs).clamp(0.0, 1.0)
-                      : 0.0;
+            valueListenable: widget.controller,
+            builder: (context, VideoPlayerValue value, _) {
+              final durationMs = value.duration.inMilliseconds.toDouble();
+              final positionMs = value.position.inMilliseconds.toDouble();
+              final progress = durationMs > 0
+                  ? (positionMs / durationMs).clamp(0.0, 1.0)
+                  : 0.0;
 
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Center(
-                        child: AspectRatio(
-                          aspectRatio:
-                              (value.isInitialized && value.aspectRatio > 0)
-                                  ? value.aspectRatio
-                                  : 16 / 9,
-                          child: VideoPlayer(
-                            widget.controller,
-                            key: AdaptiveVideoSurface.keyForController(
-                              widget.controller,
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Center(
+                    child: AspectRatio(
+                      aspectRatio:
+                          (value.isInitialized && value.aspectRatio > 0)
+                              ? value.aspectRatio
+                              : 16 / 9,
+                      child: VideoPlayer(
+                        widget.controller,
+                        key: AdaptiveVideoSurface.keyForController(
+                          widget.controller,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_controlsVisible)
+                    Container(
+                      color: Colors.black.withValues(alpha: 0.38),
+                      child: Stack(
+                        children: [
+                          // Top bar: Expand & Close buttons
+                          Positioned(
+                            top: 6,
+                            left: 8,
+                            right: 8,
+                            child: Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildMiniIconButton(
+                                  icon: Icons.open_in_full_rounded,
+                                  tooltip: widget.messages?.expandPlayerText ??
+                                      'Expand player',
+                                  color: iconColor,
+                                  onTap: widget.onExpand,
+                                ),
+                                _buildMiniIconButton(
+                                  icon: Icons.close_rounded,
+                                  tooltip:
+                                      widget.messages?.closeMiniPlayerText ??
+                                          'Close miniplayer',
+                                  color: iconColor,
+                                  onTap: widget.onClose,
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ),
-                      if (_controlsVisible)
-                        Container(
-                          color: Colors.black.withValues(alpha: 0.38),
-                          child: Stack(
-                            children: [
-                              // Top bar: Expand & Close buttons
-                              Positioned(
-                                top: 6,
-                                left: 8,
-                                right: 8,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildMiniIconButton(
-                                      icon: Icons.open_in_full_rounded,
-                                      tooltip: widget.messages?.expandPlayerText ??
-                                          'Expand player',
-                                      onTap: widget.onExpand,
-                                    ),
-                                    _buildMiniIconButton(
-                                      icon: Icons.close_rounded,
-                                      tooltip:
-                                          widget.messages?.closeMiniPlayerText ??
-                                              'Close miniplayer',
-                                      onTap: widget.onClose,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Center Play/Pause button
-                              Center(
-                                child: _buildMiniIconButton(
-                                  icon: value.isPlaying
-                                      ? Icons.pause_rounded
-                                      : Icons.play_arrow_rounded,
-                                  tooltip: value.isPlaying
-                                      ? (widget.messages?.pauseText ?? 'Pause')
-                                      : (widget.messages?.playText ?? 'Play'),
-                                  size: 26,
-                                  buttonSize: 42,
-                                  onTap: () {
-                                    if (value.isPlaying) {
-                                      widget.controller.pause();
-                                    } else {
-                                      widget.controller.play();
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
+                          // Center Play/Pause button
+                          Center(
+                            child: _buildMiniIconButton(
+                              icon: value.isPlaying
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded,
+                              tooltip: value.isPlaying
+                                  ? (widget.messages?.pauseText ?? 'Pause')
+                                  : (widget.messages?.playText ?? 'Play'),
+                              size: 26,
+                              buttonSize: 42,
+                              color: iconColor,
+                              onTap: () {
+                                if (value.isPlaying) {
+                                  widget.controller.pause();
+                                } else {
+                                  widget.controller.play();
+                                }
+                              },
+                            ),
                           ),
-                        ),
-                      // Bottom red progress bar
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 3,
-                          backgroundColor: Colors.white24,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            Color(0xFFFF0033),
-                          ),
-                        ),
+                        ],
                       ),
-                    ],
-                  );
-                },
-              ),
-            ),
+                    ),
+                  // Bottom played progress bar
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 3,
+                      backgroundColor: Colors.white24,
+                      valueColor: AlwaysStoppedAnimation<Color>(playedColor),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-        );
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final textDirection = widget.messages?.resolveTextDirection(context) ??
+        Directionality.maybeOf(context) ??
+        TextDirection.ltr;
+    final isRtl = textDirection == TextDirection.rtl;
     final isOsPipWindow = isDesktopPipMode();
+
     if (isOsPipWindow) {
       return Directionality(
-        textDirection: TextDirection.ltr,
+        textDirection: textDirection,
         child: Scaffold(
           backgroundColor: Colors.black,
           body: SizedBox.expand(
@@ -183,12 +203,13 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
     }
 
     return Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: textDirection,
       child: Stack(
         fit: StackFit.expand,
         children: [
           Positioned(
-            right: 16 - _offset.dx,
+            left: isRtl ? (16 + _offset.dx) : null,
+            right: isRtl ? null : (16 - _offset.dx),
             bottom: 24 - _offset.dy,
             child: _buildMiniPlayerContent(false),
           ),
@@ -201,6 +222,7 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
     required IconData icon,
     required String tooltip,
     required VoidCallback onTap,
+    Color? color,
     double size = 18,
     double buttonSize = 30,
   }) {
@@ -219,7 +241,7 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
           alignment: Alignment.center,
           child: Icon(
             icon,
-            color: Colors.white,
+            color: color ?? Colors.white,
             size: size,
           ),
         ),

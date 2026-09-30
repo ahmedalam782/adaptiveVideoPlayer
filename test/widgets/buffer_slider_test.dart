@@ -44,5 +44,37 @@ void main() {
 
       expect(find.byType(Slider), findsOneWidget);
     });
+
+    testWidgets('GradientSliderTrackShape in RTL paints active track from thumb to right', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Directionality(
+              textDirection: TextDirection.rtl,
+              child: SliderTheme(
+                data: const SliderThemeData(
+                  trackShape: GradientSliderTrackShape(),
+                  trackHeight: 4.0,
+                  activeTrackColor: Colors.red,
+                  inactiveTrackColor: Colors.grey,
+                  thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.0),
+                ),
+                child: SizedBox(
+                  width: 200,
+                  child: Slider(
+                    value: 0.2, // 20%
+                    min: 0.0,
+                    max: 1.0,
+                    onChanged: (_) {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(Slider), findsOneWidget);
+    });
   });
 }

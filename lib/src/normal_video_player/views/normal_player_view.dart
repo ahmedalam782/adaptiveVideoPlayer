@@ -17,6 +17,7 @@ class NormalPlayerView extends StatelessWidget {
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
   final PlayerVisibilityConfig? visibility;
+  final PlayerPlaybackConfig? playback;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final List<VideoQuality>? qualities;
@@ -43,6 +44,7 @@ class NormalPlayerView extends StatelessWidget {
     this.styling,
     this.messages,
     this.visibility,
+    this.playback,
     this.onAnalyticsEvent,
     this.qualities,
     this.currentQuality,
@@ -70,6 +72,7 @@ class NormalPlayerView extends StatelessWidget {
       styling: styling,
       messages: messages,
       visibility: visibility,
+      playback: playback,
       onAnalyticsEvent: onAnalyticsEvent,
       qualities: qualities,
       currentQuality: currentQuality,

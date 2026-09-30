@@ -24,6 +24,10 @@ class PlayerPlaybackConfig {
   /// Optional initial playback speed (e.g. 1.0, 1.5, 2.0)
   final double? playbackSpeed;
 
+  /// Whether to mirror the progress bar slider in RTL (Arabic) so that it starts from the right.
+  /// Defaults to `true` when in RTL layouts (Arabic) so the timeline begins on the right.
+  final bool mirrorProgressBarInRtl;
+
   const PlayerPlaybackConfig({
     this.autoPlay = false,
     this.loop = false,
@@ -33,6 +37,7 @@ class PlayerPlaybackConfig {
     this.forceDesktopMode = false,
     this.allowExternalLinks = true,
     this.playbackSpeed,
+    this.mirrorProgressBarInRtl = true,
   });
 
   /// Convenience getter for mute state
@@ -48,6 +53,7 @@ class PlayerPlaybackConfig {
     bool? forceDesktopMode,
     bool? allowExternalLinks,
     double? playbackSpeed,
+    bool? mirrorProgressBarInRtl,
   }) {
     return PlayerPlaybackConfig(
       autoPlay: autoPlay ?? this.autoPlay,
@@ -58,6 +64,8 @@ class PlayerPlaybackConfig {
       forceDesktopMode: forceDesktopMode ?? this.forceDesktopMode,
       allowExternalLinks: allowExternalLinks ?? this.allowExternalLinks,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
+      mirrorProgressBarInRtl:
+          mirrorProgressBarInRtl ?? this.mirrorProgressBarInRtl,
     );
   }
 }

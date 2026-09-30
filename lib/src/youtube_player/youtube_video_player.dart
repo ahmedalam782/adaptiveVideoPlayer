@@ -59,7 +59,8 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   bool _hasRestoredPosition = false;
   bool _videoEnded = false;
   String? _webIframeId;
-  final GlobalKey _webIframeKey = GlobalKey();
+  String? _pipWebIframeId;
+  String? _lastResolvedLang;
   final GlobalKey<YouTubeWebViewPlayerState> _desktopWebViewKey =
       GlobalKey<YouTubeWebViewPlayerState>();
   late final YouTubeDesktopFullscreenManager _desktopFullscreenManager;
@@ -74,7 +75,9 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     if (kIsWeb) return false;
     final isDesktopPlatform = defaultTargetPlatform != TargetPlatform.android &&
         defaultTargetPlatform != TargetPlatform.iOS;
-    return isDesktopPlatform || _cfg.playback.forceDesktopMode;
+    // On mobile devices (Android / iOS), always render the native mobile YouTube player with bottom controls.
+    // Desktop WebView player is reserved for desktop platforms (Windows, macOS, Linux).
+    return isDesktopPlatform;
   }
 
   @override
@@ -98,6 +101,54 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     );
 
     _initializePlayer();
+    // NOTE: For web, iframe registration is deferred to didChangeDependencies
+    // because context is not available during initState.
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (kIsWeb && _videoId != null && mounted) {
+      final effectiveConfig = _resolveEffectiveConfig(context);
+      final isRtl = effectiveConfig.text.resolveTextDirection(context) ==
+          TextDirection.rtl;
+      final currentLang = isRtl
+          ? 'ar'
+          : (effectiveConfig.text.languageCode ?? 'en');
+      // First time: _webIframeId is still null, register the iframe now
+      if (_webIframeId == null) {
+        _lastResolvedLang = currentLang;
+        _webIframeId =
+            'youtube-iframe-$_videoId-${DateTime.now().millisecondsSinceEpoch}';
+        registerYoutubeWebIframe(
+          _webIframeId!,
+          _videoId!,
+          _state.autoPlay,
+          mute: _state.isMuted,
+          loop: _state.loop,
+          enableCaption: _state.enableCaption,
+          languageCode: currentLang,
+        );
+        setState(() => _isControllerDisposed = false);
+      } else if (_lastResolvedLang != null && _lastResolvedLang != currentLang) {
+        // Language changed dynamically, re-register iframe
+        _lastResolvedLang = currentLang;
+        _webIframeId =
+            'youtube-iframe-$_videoId-${DateTime.now().millisecondsSinceEpoch}';
+        registerYoutubeWebIframe(
+          _webIframeId!,
+          _videoId!,
+          true,
+          mute: _state.isMuted,
+          loop: _state.loop,
+          enableCaption: _state.enableCaption,
+          languageCode: currentLang,
+        );
+        setState(() {});
+      } else {
+        _lastResolvedLang = currentLang;
+      }
+    }
   }
 
   @override
@@ -152,17 +203,8 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
       }
 
       if (kIsWeb) {
-        _webIframeId =
-            'youtube-iframe-$_videoId-${DateTime.now().millisecondsSinceEpoch}';
-        registerYoutubeWebIframe(
-          _webIframeId!,
-          _videoId!,
-          _state.autoPlay,
-          mute: _state.isMuted,
-          loop: _state.loop,
-          enableCaption: _state.enableCaption,
-          languageCode: _cfg.text.languageCode ?? 'en',
-        );
+        // Web iframe registration is handled in didChangeDependencies
+        // because context (for Directionality) is not available in initState.
         if (mounted) setState(() => _isControllerDisposed = false);
         return;
       }
@@ -404,9 +446,30 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   void _openMobilePip() {
     if (_isInMobilePip) return;
     if (!kIsWeb && (_controller == null || _isControllerDisposed)) return;
-    if (kIsWeb && _webIframeId == null) return;
+    if (kIsWeb && (_videoId == null || _webIframeId == null)) return;
     final overlay = Overlay.maybeOf(context, rootOverlay: true);
     if (overlay == null) return;
+
+    if (kIsWeb) {
+      final effectiveConfig =
+          mounted ? _resolveEffectiveConfig(context) : _cfg;
+      final isRtl = effectiveConfig.text.resolveTextDirection(context) ==
+          TextDirection.rtl;
+      final currentLang = isRtl
+          ? 'ar'
+          : (effectiveConfig.text.languageCode ?? 'en');
+      _pipWebIframeId =
+          'youtube-iframe-pip-$_videoId-${DateTime.now().millisecondsSinceEpoch}';
+      registerYoutubeWebIframe(
+        _pipWebIframeId!,
+        _videoId!,
+        true,
+        mute: _state.isMuted,
+        loop: _state.loop,
+        enableCaption: _state.enableCaption,
+        languageCode: currentLang,
+      );
+    }
 
     final controller = _controller;
     Offset offset = Offset.zero;
@@ -418,15 +481,19 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
           final currentText = mounted
               ? _resolveEffectiveConfig(context).text
               : _cfg.text;
+          final effectiveDir = currentText.resolveTextDirection(ctx);
+          final isRtl = effectiveDir == TextDirection.rtl;
           return Directionality(
-            textDirection: TextDirection.ltr,
+            textDirection: effectiveDir,
             child: Stack(
               fit: StackFit.expand,
               children: [
                 Positioned(
-                  right: 16 - offset.dx,
+                  left: isRtl ? (16 + offset.dx) : null,
+                  right: isRtl ? null : (16 - offset.dx),
                   bottom: 24 - offset.dy,
                   child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onPanUpdate: (details) {
                       setOverlayState(() {
                         offset += details.delta;
@@ -443,62 +510,101 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            if (kIsWeb && _webIframeId != null)
+                            if (kIsWeb && _pipWebIframeId != null)
                               buildYoutubeWebIframe(
-                                _webIframeId!,
-                                key: _webIframeKey,
+                                _pipWebIframeId!,
+                                key: ValueKey(_pipWebIframeId!),
                               )
                             else if (controller != null)
                               YoutubePlayer(controller: controller),
                             Positioned(
-                              top: 6,
-                              left: 8,
-                              right: 8,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Tooltip(
-                                    message: currentText.expandPlayerText,
-                                    child: GestureDetector(
-                                      onTap: () =>
-                                          _closeMobilePip(pauseOnClose: false),
-                                      child: Container(
-                                        width: 30,
-                                        height: 30,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xAA000000),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.open_in_full_rounded,
-                                          color: Colors.white,
-                                          size: 18,
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: 38,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.black.withValues(alpha: 0.75),
+                                      Colors.transparent,
+                                    ],
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Tooltip(
+                                      message: currentText.expandPlayerText,
+                                      child: GestureDetector(
+                                        onTap: () =>
+                                            _closeMobilePip(pauseOnClose: false),
+                                        child: Container(
+                                          width: 28,
+                                          height: 28,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xAA000000),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.open_in_full_rounded,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Tooltip(
-                                    message: currentText.closeMiniPlayerText,
-                                    child: GestureDetector(
-                                      onTap: () =>
-                                          _closeMobilePip(pauseOnClose: true),
-                                      child: Container(
-                                        width: 30,
-                                        height: 30,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xAA000000),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.close_rounded,
-                                          color: Colors.white,
-                                          size: 18,
+                                    GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onPanUpdate: (details) {
+                                        setOverlayState(() {
+                                          offset += details.delta;
+                                        });
+                                      },
+                                      child: const MouseRegion(
+                                        cursor: SystemMouseCursors.move,
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 4,
+                                          ),
+                                          child: Icon(
+                                            Icons.drag_indicator_rounded,
+                                            color: Colors.white54,
+                                            size: 16,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    Tooltip(
+                                      message: currentText.closeMiniPlayerText,
+                                      child: GestureDetector(
+                                        onTap: () =>
+                                            _closeMobilePip(pauseOnClose: true),
+                                        child: Container(
+                                          width: 28,
+                                          height: 28,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xAA000000),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.close_rounded,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -523,6 +629,27 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     if (!_isInMobilePip) return;
     _mobilePipOverlayEntry?.remove();
     _mobilePipOverlayEntry = null;
+    _pipWebIframeId = null;
+    if (kIsWeb && _videoId != null) {
+      final effectiveConfig =
+          mounted ? _resolveEffectiveConfig(context) : _cfg;
+      final isRtl = effectiveConfig.text.resolveTextDirection(context) ==
+          TextDirection.rtl;
+      final currentLang = isRtl
+          ? 'ar'
+          : (effectiveConfig.text.languageCode ?? 'en');
+      _webIframeId =
+          'youtube-iframe-$_videoId-${DateTime.now().millisecondsSinceEpoch}';
+      registerYoutubeWebIframe(
+        _webIframeId!,
+        _videoId!,
+        !pauseOnClose,
+        mute: _state.isMuted,
+        loop: _state.loop,
+        enableCaption: _state.enableCaption,
+        languageCode: currentLang,
+      );
+    }
     if (pauseOnClose && _controller != null && !_isControllerDisposed) {
       PlayerUtils.pause(_controller);
     }
@@ -585,42 +712,59 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     return ValueListenableBuilder<PlayerCubitState>(
       valueListenable: _cubit,
       builder: (context, state, _) {
+        final isRtl = effectiveConfig.text.resolveTextDirection(context) ==
+            TextDirection.rtl;
+        final showMini = effectiveConfig.visibility.showControls &&
+            effectiveConfig.visibility.showMiniPlayerButton;
+        final showFullscreen = effectiveConfig.visibility.showControls &&
+            effectiveConfig.visibility.showFullscreenButton;
+
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: Directionality(
-              textDirection: TextDirection.ltr,
+              textDirection: effectiveConfig.text.resolveTextDirection(context),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   if (_isInMobilePip)
-                    Container(
-                      color: Colors.black87,
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.picture_in_picture_alt_rounded,
-                            color: Colors.white54,
-                            size: 36,
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton.icon(
-                            onPressed: () =>
-                                _closeMobilePip(pauseOnClose: false),
-                            icon: const Icon(
-                              Icons.open_in_full_rounded,
-                              color: Colors.white,
-                              size: 16,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _closeMobilePip(pauseOnClose: false),
+                      child: Material(
+                        color: Colors.black87,
+                        child: InkWell(
+                          onTap: () => _closeMobilePip(pauseOnClose: false),
+                          hoverColor: Colors.white.withValues(alpha: 0.05),
+                          splashColor: Colors.white.withValues(alpha: 0.1),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.picture_in_picture_alt_rounded,
+                                  color: Colors.white54,
+                                  size: 36,
+                                ),
+                                const SizedBox(height: 8),
+                                TextButton.icon(
+                                  onPressed: () =>
+                                      _closeMobilePip(pauseOnClose: false),
+                                  icon: const Icon(
+                                    Icons.open_in_full_rounded,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  label: Text(
+                                    effectiveConfig.text.restorePlayerText,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
                             ),
-                            label: Text(
-                              effectiveConfig.text.restorePlayerText,
-                              style: const TextStyle(color: Colors.white),
-                            ),
                           ),
-                        ],
+                        ),
                       ),
                     )
                   else if (kIsWeb && _webIframeId != null)
@@ -629,32 +773,76 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                       children: [
                         buildYoutubeWebIframe(
                           _webIframeId!,
-                          key: _webIframeKey,
+                          key: ValueKey(_webIframeId!),
                         ),
-                        if (effectiveConfig.visibility.showControls)
+                        if (showMini || showFullscreen)
                           Positioned(
-                            bottom: 77,
-                            right: 60,
-                            child: Tooltip(
-                              message: effectiveConfig.text.miniPlayerText,
-                              child: Material(
-                                color: const Color(0x99000000),
-                                shape: const CircleBorder(),
-                                clipBehavior: Clip.antiAlias,
-                                child: InkWell(
-                                  customBorder: const CircleBorder(),
-                                  onTap: _openMobilePip,
-                                  child: const SizedBox(
-                                    width: 33,
-                                    height: 33,
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.picture_in_picture_alt_rounded,
-                                        color: Colors.white,
-                                        size: 17,
-                                      ),
-                                    ),
+                            top: 14,
+                            left: isRtl ? 14 : null,
+                            right: isRtl ? null : 14,
+                            child: Directionality(
+                              textDirection: effectiveConfig.text
+                                  .resolveTextDirection(context),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.65),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    width: 0.8,
                                   ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (showMini)
+                                      Tooltip(
+                                        message:
+                                            effectiveConfig.text.miniPlayerText,
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            customBorder: const CircleBorder(),
+                                            onTap: _openMobilePip,
+                                            child: const Padding(
+                                              padding: EdgeInsets.all(4.0),
+                                              child: Icon(
+                                                Icons
+                                                    .picture_in_picture_alt_rounded,
+                                                color: Colors.white,
+                                                size: 16,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    if (showMini && showFullscreen)
+                                      const SizedBox(width: 8),
+                                    if (showFullscreen)
+                                      Tooltip(
+                                        message: effectiveConfig
+                                            .text.fullscreenText,
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            customBorder: const CircleBorder(),
+                                            onTap: _openFullScreen,
+                                            child: const Padding(
+                                              padding: EdgeInsets.all(4.0),
+                                              child: Icon(
+                                                Icons.fullscreen_rounded,
+                                                color: Colors.white,
+                                                size: 18,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),

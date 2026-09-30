@@ -376,10 +376,10 @@ void main() {
       expect(find.text('00:30'), findsOneWidget);
       expect(find.text('01:40'), findsOneWidget);
 
-      // Verify LTR order: -10s is to the left of +10s even inside RTL Directionality
+      // Verify RTL order: in RTL direction, rewind (-10s / later) is first on the right and forward (+10s / increase) is second on the left
       final rewindX = tester.getCenter(find.byIcon(Icons.replay_10_rounded)).dx;
       final forwardX = tester.getCenter(find.byIcon(Icons.forward_10_rounded)).dx;
-      expect(rewindX < forwardX, isTrue);
+      expect(rewindX > forwardX, isTrue);
 
       await controller.dispose();
     });

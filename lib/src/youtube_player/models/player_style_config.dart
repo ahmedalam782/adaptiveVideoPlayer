@@ -50,9 +50,21 @@ class PlayerStyleConfig {
   /// Whether to use modern glassmorphic cinema design for player controls (defaults to true)
   final bool useGlassmorphicControls;
 
+  /// Color for buffered portion of progress bar
+  final Color? progressBarBufferedColor;
+
+  /// Color for background unplayed portion of progress bar
+  final Color? progressBarBackgroundColor;
+
+  /// Background color for controls pills and action bars
+  final Color? controlsBackgroundColor;
+
   const PlayerStyleConfig({
     this.progressBarPlayedColor = Colors.red,
     this.progressBarHandleColor = Colors.redAccent,
+    this.progressBarBufferedColor,
+    this.progressBarBackgroundColor,
+    this.controlsBackgroundColor,
     this.loadingIndicatorColor = const Color(0xFFFF0000),
     this.errorIconColor = const Color(0xFFFF0000),
     this.iconColor = Colors.white,
@@ -73,6 +85,9 @@ class PlayerStyleConfig {
   PlayerStyleConfig copyWith({
     Color? progressBarPlayedColor,
     Color? progressBarHandleColor,
+    Color? progressBarBufferedColor,
+    Color? progressBarBackgroundColor,
+    Color? controlsBackgroundColor,
     Color? loadingIndicatorColor,
     Color? errorIconColor,
     Color? iconColor,
@@ -93,6 +108,12 @@ class PlayerStyleConfig {
           progressBarPlayedColor ?? this.progressBarPlayedColor,
       progressBarHandleColor:
           progressBarHandleColor ?? this.progressBarHandleColor,
+      progressBarBufferedColor:
+          progressBarBufferedColor ?? this.progressBarBufferedColor,
+      progressBarBackgroundColor:
+          progressBarBackgroundColor ?? this.progressBarBackgroundColor,
+      controlsBackgroundColor:
+          controlsBackgroundColor ?? this.controlsBackgroundColor,
       loadingIndicatorColor:
           loadingIndicatorColor ?? this.loadingIndicatorColor,
       errorIconColor: errorIconColor ?? this.errorIconColor,

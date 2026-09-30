@@ -39,6 +39,7 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
   final VoidCallback? onMiniPlayerPressed;
+  final PlayerPlaybackConfig? playback;
 
   const BaseAdaptiveVideoPlayer({
     super.key,
@@ -50,6 +51,7 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
     this.styling,
     this.messages,
     this.visibility,
+    this.playback,
     this.onAnalyticsEvent,
     this.qualities,
     this.currentQuality,
@@ -188,12 +190,13 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
   void _triggerSeekFeedback(int direction) {
     if (!mounted) return;
     _seekResetTimer?.cancel();
+    final skipSec = widget.visibility?.skipDuration.inSeconds ?? 10;
     setState(() {
       if (_seekDirection == direction) {
-        _seekSeconds += 10;
+        _seekSeconds += skipSec;
       } else {
         _seekDirection = direction;
-        _seekSeconds = 10;
+        _seekSeconds = skipSec;
       }
     });
     _startHideTimer();
@@ -201,25 +204,30 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
       if (mounted) {
         setState(() {
           _seekDirection = 0;
-          _seekSeconds = 10;
+          _seekSeconds = widget.visibility?.skipDuration.inSeconds ?? 10;
         });
       }
     });
   }
 
   void _showVolumeFeedback(double volume) {
+    if (!(widget.visibility?.showVolumeFeedback ?? true)) return;
     _volumeFeedbackTimer?.cancel();
     setState(() {
       _feedbackVolume = volume;
     });
-    _volumeFeedbackTimer = Timer(const Duration(milliseconds: 1200), () {
+    final timeout = widget.visibility?.volumeFeedbackTimeout ??
+        const Duration(milliseconds: 1200);
+    _volumeFeedbackTimer = Timer(timeout, () {
       if (mounted) setState(() => _feedbackVolume = null);
     });
   }
 
   void _startHideTimer() {
     _hideTimer?.cancel();
-    _hideTimer = Timer(const Duration(seconds: 3), () {
+    final timeout = widget.visibility?.controlsHideTimeout ??
+        const Duration(seconds: 3);
+    _hideTimer = Timer(timeout, () {
       if (mounted && widget.controller.value.isPlaying) {
         setState(() => _controlsVisible = false);
       }
@@ -245,18 +253,22 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
     final currentPosition = widget.controller.value.position;
     final wasPlaying = widget.controller.value.isPlaying;
     final duration = widget.controller.value.duration;
-    final isRtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    final isRtl = (widget.messages ?? const PlayerTextConfig())
+            .resolveTextDirection(context) ==
+        TextDirection.rtl;
     final tappedRightHalf = position > width / 2;
     final isForward = isRtl ? !tappedRightHalf : tappedRightHalf;
+    final skipDuration =
+        widget.visibility?.skipDuration ?? const Duration(seconds: 10);
 
     if (isForward) {
       _triggerSeekFeedback(1);
-      final newPosition = currentPosition + const Duration(seconds: 10);
+      final newPosition = currentPosition + skipDuration;
       widget.controller
           .seekTo(newPosition > duration ? duration : newPosition);
     } else {
       _triggerSeekFeedback(-1);
-      final newPosition = currentPosition - const Duration(seconds: 10);
+      final newPosition = currentPosition - skipDuration;
       widget.controller
           .seekTo(newPosition.isNegative ? Duration.zero : newPosition);
     }
@@ -392,6 +404,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
                           styling: widget.styling,
                           messages: widget.messages,
                           visibility: widget.visibility,
+                          playback: widget.playback,
                           onAnalyticsEvent: widget.onAnalyticsEvent,
                           qualities: widget.qualities,
                           currentQuality: widget.currentQuality,
