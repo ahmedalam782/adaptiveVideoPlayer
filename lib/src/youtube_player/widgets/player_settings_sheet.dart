@@ -20,6 +20,7 @@ class PlayerSettingsSheet extends StatefulWidget {
   final Color? switchInactiveTrackColor;
   final TextStyle? titleTextStyle;
   final TextStyle? itemTextStyle;
+  final TextDirection? textDirection;
   final String playerSettingsText;
   final String autoPlayText;
   final String loopVideoText;
@@ -51,6 +52,7 @@ class PlayerSettingsSheet extends StatefulWidget {
     required this.switchInactiveTrackColor,
     this.titleTextStyle,
     this.itemTextStyle,
+    this.textDirection,
     required this.playerSettingsText,
     required this.autoPlayText,
     required this.loopVideoText,
@@ -85,22 +87,27 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
     _isMuted = widget.isMuted;
   }
 
-  bool _isArabicOrRtl(BuildContext context) {
-    if (widget.playerSettingsText == 'إعدادات المشغل' ||
-        widget.loopVideoText == 'تكرار الفيديو') {
-      return true;
+  TextDirection _resolveTextDirection(BuildContext context) {
+    if (widget.textDirection != null) {
+      return widget.textDirection!;
     }
-    if (Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
-      return true;
+    if (RegExp(r'[\u0590-\u08FF]').hasMatch(
+      '${widget.playerSettingsText}${widget.autoPlayText}${widget.loopVideoText}',
+    )) {
+      return TextDirection.rtl;
     }
-    return Directionality.maybeOf(context) == TextDirection.rtl;
+    final lang = Localizations.maybeLocaleOf(context)?.languageCode.toLowerCase();
+    if (lang == 'ar' || lang == 'he' || lang == 'fa' || lang == 'ur') {
+      return TextDirection.rtl;
+    }
+    return Directionality.maybeOf(context) ?? TextDirection.ltr;
   }
 
   @override
   Widget build(BuildContext context) {
-    final isRtl = _isArabicOrRtl(context);
+    final textDirection = _resolveTextDirection(context);
     return Directionality(
-      textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+      textDirection: textDirection,
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),

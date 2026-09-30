@@ -12,7 +12,9 @@ class YouTubeDesktopFullscreenManager {
   final GlobalKey<YouTubeWebViewPlayerState> desktopWebViewKey;
 
   OverlayEntry? _overlayEntry;
+  OverlayEntry? _pipOverlayEntry;
   bool _isInFullscreen = false;
+  bool _isInPip = false;
   bool _isTransitioning = false;
   int currentPositionSeconds = 0;
   bool? wasPlaying;
@@ -24,16 +26,9 @@ class YouTubeDesktopFullscreenManager {
   });
 
   bool get isInFullscreen => _isInFullscreen;
+  bool get isInPip => _isInPip;
 
-  Future<void> openFullscreen({
-    required Widget Function() desktopPlayerBuilder,
-  }) async {
-    if (_isInFullscreen || _isTransitioning) return;
-    _isTransitioning = true;
-
-    final context = getContext();
-    final overlay = Overlay.of(context);
-
+  Future<void> _captureWebViewState() async {
     if (desktopWebViewKey.currentState != null) {
       try {
         final time = await desktopWebViewKey.currentState!.getCurrentTime();
@@ -42,19 +37,29 @@ class YouTubeDesktopFullscreenManager {
         }
         wasPlaying = await desktopWebViewKey.currentState!.isPlaying();
       } catch (e) {
-        log('Error reading player state before fullscreen: $e');
+        log('Error reading YouTube player state: $e');
       }
     }
+  }
+
+  Future<void> openFullscreen({
+    required Widget Function() desktopPlayerBuilder,
+  }) async {
+    if (_isInFullscreen || _isTransitioning) return;
+    final context = getContext();
+    final overlay = Overlay.of(context, rootOverlay: true);
+
+    if (_isInPip) {
+      await closePip(pauseOnClose: false);
+    }
+    _isTransitioning = true;
+
+    await _captureWebViewState();
 
     _overlayEntry = OverlayEntry(
       builder: (ctx) {
-        TextDirection effectiveDir = TextDirection.ltr;
-        try {
-          effectiveDir =
-              Directionality.maybeOf(getContext()) ?? TextDirection.ltr;
-        } catch (_) {}
         return Directionality(
-          textDirection: effectiveDir,
+          textDirection: TextDirection.ltr,
           child: CallbackShortcuts(
             bindings: {
               const SingleActivator(LogicalKeyboardKey.escape): () {
@@ -103,12 +108,8 @@ class YouTubeDesktopFullscreenManager {
     if (!_isInFullscreen || _isTransitioning || _overlayEntry == null) return;
     _isTransitioning = true;
 
-    bool shouldKeepPlaying = wasPlaying ?? false;
-    if (desktopWebViewKey.currentState != null) {
-      try {
-        shouldKeepPlaying = await desktopWebViewKey.currentState!.isPlaying();
-      } catch (_) {}
-    }
+    await _captureWebViewState();
+    final shouldKeepPlaying = wasPlaying ?? false;
 
     exitBrowserFullscreen();
 
@@ -143,7 +144,87 @@ class YouTubeDesktopFullscreenManager {
     });
   }
 
+  void markOverlaysNeedBuild() {
+    _overlayEntry?.markNeedsBuild();
+    _pipOverlayEntry?.markNeedsBuild();
+  }
+
+  Future<void> openPip({
+    required Widget Function() desktopPlayerBuilder,
+    String Function()? getExpandTooltip,
+    String Function()? getCloseTooltip,
+  }) async {
+    if (_isInPip || _isTransitioning) return;
+    final context = getContext();
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
+
+    if (_isInFullscreen) {
+      await closeFullscreen();
+    }
+
+    await _captureWebViewState();
+
+    _pipOverlayEntry = OverlayEntry(
+      builder: (ctx) => _YouTubeDesktopPipOverlay(
+        playerBuilder: desktopPlayerBuilder,
+        onExpand: () => closePip(pauseOnClose: false),
+        onClose: () => closePip(pauseOnClose: true),
+        getExpandTooltip: getExpandTooltip,
+        getCloseTooltip: getCloseTooltip,
+      ),
+    );
+
+    _isInPip = true;
+    overlay.insert(_pipOverlayEntry!);
+    onStateChange();
+
+    enterDesktopPipMode();
+    _pipOverlayEntry?.markNeedsBuild();
+
+    if (wasPlaying == true) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        desktopWebViewKey.currentState?.play();
+      });
+    }
+  }
+
+  Future<void> closePip({bool pauseOnClose = false}) async {
+    if (!_isInPip || _pipOverlayEntry == null) return;
+
+    await _captureWebViewState();
+    if (pauseOnClose) {
+      wasPlaying = false;
+    }
+
+    exitDesktopPipMode();
+
+    _pipOverlayEntry?.remove();
+    _pipOverlayEntry?.dispose();
+    _pipOverlayEntry = null;
+    _isInPip = false;
+
+    onStateChange();
+
+    if (pauseOnClose) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        desktopWebViewKey.currentState?.pause();
+      });
+    } else if (wasPlaying == true) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        desktopWebViewKey.currentState?.play();
+      });
+    }
+  }
+
   void dispose() {
+    if (_isInPip) {
+      exitDesktopPipMode();
+      _pipOverlayEntry?.remove();
+      _pipOverlayEntry?.dispose();
+      _pipOverlayEntry = null;
+      _isInPip = false;
+    }
     if (_overlayEntry != null) {
       _overlayEntry?.remove();
       _overlayEntry?.dispose();
@@ -172,6 +253,174 @@ class YouTubeDesktopFullscreenManager {
             size: 28,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _YouTubeDesktopPipOverlay extends StatefulWidget {
+  final Widget Function() playerBuilder;
+  final VoidCallback onExpand;
+  final VoidCallback onClose;
+  final String Function()? getExpandTooltip;
+  final String Function()? getCloseTooltip;
+
+  const _YouTubeDesktopPipOverlay({
+    required this.playerBuilder,
+    required this.onExpand,
+    required this.onClose,
+    this.getExpandTooltip,
+    this.getCloseTooltip,
+  });
+
+  @override
+  State<_YouTubeDesktopPipOverlay> createState() =>
+      _YouTubeDesktopPipOverlayState();
+}
+
+class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
+  Offset _offset = Offset.zero;
+
+  Widget _buildContent(bool isOsPipWindow) {
+    return Material(
+      color: Colors.black,
+      elevation: isOsPipWindow ? 0 : 14,
+      borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        width: isOsPipWindow ? double.infinity : 300,
+        height: isOsPipWindow ? double.infinity : 170,
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
+          border: isOsPipWindow
+              ? null
+              : Border.all(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            widget.playerBuilder(),
+            // Top bar with Drag Handle, Expand, and Close buttons
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 40,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onPanUpdate: (details) {
+                  if (isOsPipWindow) {
+                    moveDesktopPipWindow(
+                      details.delta.dx.round(),
+                      details.delta.dy.round(),
+                    );
+                  } else {
+                    setState(() {
+                      _offset += details.delta;
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.65),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildIconBtn(
+                        icon: Icons.open_in_full_rounded,
+                        tooltip:
+                            widget.getExpandTooltip?.call() ?? 'Expand player',
+                        onTap: widget.onExpand,
+                      ),
+                      const Icon(
+                        Icons.drag_indicator_rounded,
+                        color: Colors.white54,
+                        size: 16,
+                      ),
+                      _buildIconBtn(
+                        icon: Icons.close_rounded,
+                        tooltip:
+                            widget.getCloseTooltip?.call() ?? 'Close miniplayer',
+                        onTap: widget.onClose,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconBtn({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: const BoxDecoration(
+            color: Color(0xAA000000),
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            icon,
+            color: Colors.white,
+            size: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isOsPipWindow = isDesktopPipMode();
+    if (isOsPipWindow) {
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: SizedBox.expand(
+            child: _buildContent(true),
+          ),
+        ),
+      );
+    }
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            right: 16 - _offset.dx,
+            bottom: 24 - _offset.dy,
+            child: _buildContent(false),
+          ),
+        ],
       ),
     );
   }

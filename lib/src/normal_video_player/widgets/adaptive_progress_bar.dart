@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_chapter.dart';
 import '../utils/video_player_web_safe.dart';
+import 'adaptive_video_surface.dart';
 import 'buffer_slider.dart';
 
 /// Progress bar slider for video scrubbing with gradient track, buffered progress, chapters, and YouTube-style hover timestamp tooltip.
@@ -34,6 +35,115 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
   bool _isHovered = false;
   double? _hoverFraction;
 
+  VideoPlayerController? _previewController;
+  bool _isInitializingPreview = false;
+  bool _isSeekingPreview = false;
+  Duration? _pendingSeekDuration;
+  int _lastSeekedMs = -10000;
+
+  @override
+  void didUpdateWidget(covariant AdaptiveProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller.dataSource != widget.controller.dataSource) {
+      _disposePreviewController();
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposePreviewController();
+    super.dispose();
+  }
+
+  void _disposePreviewController() {
+    final ctrl = _previewController;
+    _previewController = null;
+    _isInitializingPreview = false;
+    _isSeekingPreview = false;
+    _pendingSeekDuration = null;
+    _lastSeekedMs = -10000;
+    ctrl?.dispose();
+  }
+
+  Future<void> _ensurePreviewController(Duration initialTarget) async {
+    if (_previewController != null || _isInitializingPreview) return;
+    final mainCtrl = widget.controller;
+    if (!mainCtrl.value.isInitialized ||
+        mainCtrl.value.duration <= Duration.zero ||
+        mainCtrl.dataSource.isEmpty ||
+        mainCtrl.dataSourceType != DataSourceType.network) {
+      return;
+    }
+
+    final uri = Uri.tryParse(mainCtrl.dataSource);
+    if (uri == null) return;
+
+    _isInitializingPreview = true;
+    final previewCtrl = VideoPlayerController.networkUrl(
+      uri,
+      httpHeaders: mainCtrl.httpHeaders,
+    );
+
+    try {
+      await previewCtrl.initialize();
+      if (!mounted || mainCtrl.dataSource != widget.controller.dataSource) {
+        await previewCtrl.dispose();
+        return;
+      }
+      await previewCtrl.setVolume(0.0);
+      _previewController = previewCtrl;
+      _isInitializingPreview = false;
+      final target = _pendingSeekDuration ?? initialTarget;
+      _requestPreviewSeek(target, force: true);
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (_) {
+      _isInitializingPreview = false;
+      await previewCtrl.dispose();
+    }
+  }
+
+  void _requestPreviewSeek(Duration target, {bool force = false}) {
+    _pendingSeekDuration = target;
+    if (_previewController == null) {
+      _ensurePreviewController(target);
+      return;
+    }
+    if (!_previewController!.value.isInitialized) return;
+    if (!force && (target.inMilliseconds - _lastSeekedMs).abs() < 400) {
+      return;
+    }
+    _drainPreviewSeekQueue();
+  }
+
+  Future<void> _drainPreviewSeekQueue() async {
+    if (_isSeekingPreview) return;
+    _isSeekingPreview = true;
+    try {
+      while (mounted &&
+          _previewController != null &&
+          _previewController!.value.isInitialized &&
+          _pendingSeekDuration != null) {
+        final nextTarget = _pendingSeekDuration!;
+        _pendingSeekDuration = null;
+        if ((nextTarget.inMilliseconds - _lastSeekedMs).abs() < 250 &&
+            _lastSeekedMs >= 0) {
+          continue;
+        }
+        _lastSeekedMs = nextTarget.inMilliseconds;
+        await _previewController!.seekTo(nextTarget);
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    } catch (_) {
+      // Ignore transient seek errors on rapid scrubbing
+    } finally {
+      _isSeekingPreview = false;
+    }
+  }
+
   String _formatPreviewTime(Duration d) {
     final hours = d.inHours;
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -50,6 +160,11 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
         (maxWidth - horizontalInset * 2).clamp(1.0, double.infinity);
     final fraction = ((localPosition.dx - horizontalInset) / effectiveWidth)
         .clamp(0.0, 1.0);
+    final durationMs = widget.controller.value.duration.inMilliseconds;
+    if (durationMs > 0) {
+      final target = Duration(milliseconds: (fraction * durationMs).round());
+      _requestPreviewSeek(target);
+    }
     setState(() {
       _isHovered = true;
       _hoverFraction = fraction;
@@ -83,22 +198,28 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
             ? VideoChapter.findChapterAt(widget.chapters, previewDuration)
             : null;
 
+        final activePreviewCtrl = (_previewController != null &&
+                _previewController!.value.isInitialized)
+            ? _previewController
+            : null;
+
         return Directionality(
           textDirection: TextDirection.ltr,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final pillWidth = previewChapter != null ? 130.0 : 56.0;
+                const thumbWidth = 132.0;
+                const thumbHeight = 74.0;
                 const horizontalInset = 12.0;
                 final trackWidth = (constraints.maxWidth - horizontalInset * 2)
                     .clamp(1.0, double.infinity);
                 final previewX = previewFraction != null
                     ? horizontalInset + previewFraction * trackWidth
                     : 0.0;
-                final tooltipLeft = (previewX - pillWidth / 2).clamp(
+                final tooltipLeft = (previewX - thumbWidth / 2).clamp(
                   0.0,
-                  (constraints.maxWidth - pillWidth)
+                  (constraints.maxWidth - thumbWidth)
                       .clamp(0.0, double.infinity),
                 );
 
@@ -117,51 +238,113 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                       clipBehavior: Clip.none,
                       alignment: Alignment.center,
                       children: [
-                        if (previewDuration != null)
+                        if (previewDuration != null || activePreviewCtrl != null)
                           Positioned(
-                            top: previewChapter != null ? -42 : -28,
+                            top: activePreviewCtrl != null
+                                ? (previewChapter != null ? -118 : -102)
+                                : (previewChapter != null ? -48 : -32),
                             left: tooltipLeft,
-                            child: IgnorePointer(
-                              child: Container(
-                                width: pillWidth,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xD9000000),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    width: 0.8,
-                                  ),
-                                ),
-                                alignment: Alignment.center,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (previewChapter != null)
-                                      Text(
-                                        previewChapter.title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w600,
+                            child: Offstage(
+                              offstage: previewDuration == null,
+                              child: IgnorePointer(
+                                child: SizedBox(
+                                  width: thumbWidth,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (activePreviewCtrl != null) ...[
+                                        Container(
+                                          width: thumbWidth,
+                                          height: thumbHeight,
+                                          decoration: BoxDecoration(
+                                            color: Colors.black,
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 1.6,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.55),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(6.4),
+                                            child: FittedBox(
+                                              fit: BoxFit.cover,
+                                              clipBehavior: Clip.hardEdge,
+                                              child: SizedBox(
+                                                width: activePreviewCtrl
+                                                            .value.size.width >
+                                                        0
+                                                    ? activePreviewCtrl
+                                                        .value.size.width
+                                                    : 320,
+                                                height: activePreviewCtrl
+                                                            .value.size.height >
+                                                        0
+                                                    ? activePreviewCtrl
+                                                        .value.size.height
+                                                    : 180,
+                                                child: VideoPlayer(
+                                                  activePreviewCtrl,
+                                                  key: AdaptiveVideoSurface
+                                                      .keyForController(
+                                                    activePreviewCtrl,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    Text(
-                                      _formatPreviewTime(previewDuration),
-                                      style: TextStyle(
-                                        color: previewChapter != null
-                                            ? Colors.white70
-                                            : Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
+                                        const SizedBox(height: 5),
+                                      ],
+                                      if (previewDuration != null)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xCC000000),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (previewChapter != null)
+                                                Text(
+                                                  previewChapter.title,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              Text(
+                                                _formatPreviewTime(
+                                                    previewDuration),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -196,7 +379,14 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                                 0.0, duration > 0 ? duration : 0.0),
                             min: 0.0,
                             max: duration > 0 ? duration : 0.0,
-                            onChanged: widget.onDragChanged,
+                            onChanged: (val) {
+                              if (duration > 0) {
+                                _requestPreviewSeek(
+                                  Duration(milliseconds: val.round()),
+                                );
+                              }
+                              widget.onDragChanged(val);
+                            },
                             onChangeEnd: (newPosition) {
                               widget.onDragEnd(newPosition);
                               widget.onAnalyticsEvent?.call('video_seek', {

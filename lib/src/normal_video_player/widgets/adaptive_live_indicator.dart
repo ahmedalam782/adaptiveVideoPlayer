@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 
 /// Live badge indicator with optional "GO LIVE" button.
@@ -8,6 +9,7 @@ class AdaptiveLiveIndicator extends StatelessWidget {
   final void Function(VideoQuality)? onQualitySelected;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
+  final PlayerTextConfig? messages;
 
   const AdaptiveLiveIndicator({
     super.key,
@@ -15,6 +17,7 @@ class AdaptiveLiveIndicator extends StatelessWidget {
     this.qualities,
     this.onQualitySelected,
     this.onAnalyticsEvent,
+    this.messages,
   });
 
   @override
@@ -39,9 +42,9 @@ class AdaptiveLiveIndicator extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            const Text(
-              'LIVE',
-              style: TextStyle(
+            Text(
+              messages?.liveText ?? 'LIVE',
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -78,9 +81,9 @@ class AdaptiveLiveIndicator extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
               ),
-              const Text(
-                'GO LIVE',
-                style: TextStyle(
+              Text(
+                messages?.goLiveText ?? 'GO LIVE',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,

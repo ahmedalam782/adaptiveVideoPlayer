@@ -34,6 +34,7 @@ class PlayerSettingsConfig {
   // Text styles
   final TextStyle? settingsTitleStyle;
   final TextStyle? settingItemTextStyle;
+  final TextDirection? textDirection;
 
   const PlayerSettingsConfig({
     required this.autoPlay,
@@ -60,6 +61,7 @@ class PlayerSettingsConfig {
     this.muteAudioText = 'Mute Audio',
     this.settingsTitleStyle,
     this.settingItemTextStyle,
+    this.textDirection,
   });
 
   /// Creates a copy with updated values
@@ -69,6 +71,7 @@ class PlayerSettingsConfig {
     bool? forceHD,
     bool? enableCaption,
     bool? isMuted,
+    TextDirection? textDirection,
   }) {
     return PlayerSettingsConfig(
       autoPlay: autoPlay ?? this.autoPlay,
@@ -95,6 +98,7 @@ class PlayerSettingsConfig {
       muteAudioText: muteAudioText,
       settingsTitleStyle: settingsTitleStyle,
       settingItemTextStyle: settingItemTextStyle,
+      textDirection: textDirection ?? this.textDirection,
     );
   }
 }

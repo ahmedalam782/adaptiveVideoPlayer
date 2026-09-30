@@ -42,14 +42,17 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         var muteFlag = 0;
         var startAtFlag = 0;
         var langFlag = 'en';
+        var dirFlag = 'ltr';
         var timeUpdateInterval = null;
 
-        function setLanguage(lang) {
-            var nextLang = (lang === 'ar') ? 'ar' : 'en';
-            document.documentElement.dir = (nextLang === 'ar') ? 'rtl' : 'ltr';
+        function setLanguage(lang, dir) {
+            var nextLang = (lang && typeof lang === 'string' && lang.trim().length > 0) ? lang.trim() : 'en';
+            var nextDir = (dir === 'rtl' || nextLang === 'ar' || nextLang === 'he' || nextLang === 'fa' || nextLang === 'ur') ? 'rtl' : 'ltr';
+            document.documentElement.dir = nextDir;
             document.documentElement.lang = nextLang;
-            if (langFlag !== nextLang) {
+            if (langFlag !== nextLang || dirFlag !== nextDir) {
                 langFlag = nextLang;
+                dirFlag = nextDir;
                 if (player && typeof player.destroy === 'function') {
                     try {
                         if (typeof player.getCurrentTime === 'function') {
@@ -81,14 +84,15 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             timeUpdateInterval = setInterval(sendTimeUpdate, 500);
         }
 
-        function initPlayer(vid, autoplay, mute, startSeconds, lang) {
+        function initPlayer(vid, autoplay, mute, startSeconds, lang, dir) {
             videoId = vid;
             autoplayFlag = autoplay;
             muteFlag = mute;
             startAtFlag = startSeconds || 0;
             if (lang) {
-                langFlag = (lang === 'ar') ? 'ar' : 'en';
-                document.documentElement.dir = (langFlag === 'ar') ? 'rtl' : 'ltr';
+                langFlag = (typeof lang === 'string' && lang.trim().length > 0) ? lang.trim() : 'en';
+                dirFlag = (dir === 'rtl' || langFlag === 'ar' || langFlag === 'he' || langFlag === 'fa' || langFlag === 'ur') ? 'rtl' : 'ltr';
+                document.documentElement.dir = dirFlag;
                 document.documentElement.lang = langFlag;
             }
             if (typeof YT !== 'undefined' && YT.Player) {

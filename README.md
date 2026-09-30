@@ -41,22 +41,27 @@ AdaptiveVideoPlayer(
 
 ### 📺 YouTube Player
 - Full YouTube video support with a native-like experience
-- Custom controls on mobile (seek, settings, fullscreen)
-- Native YouTube controls on Desktop & Web
+- Custom controls on mobile (seek, settings, miniplayer/PiP, fullscreen)
+- Native YouTube controls on Desktop & Web with top-right Miniplayer (`i`) button
+- **Picture-in-Picture (PiP) & Floating Miniplayer** — always-on-top borderless OS PiP window on Windows (`HWND_TOPMOST`) and draggable floating Miniplayer on Mobile/Desktop
 - Auto-play, loop, captions, mute, force HD
 - Force Desktop Mode on mobile (`forceDesktopMode: true` to use WebViews on Android/iOS)
-- Settings panel with runtime toggles
+- Settings panel with runtime toggles (localized in Arabic & English)
 - Fullscreen mode with state preservation
 - Safe external link handling (opens YouTube URLs in the system browser)
 - Live stream support with a "LIVE" indicator and viewer count
 
 ### 🎞️ Normal Video Player
-- Supports MP4, MOV, AVI, MKV, WebM, M4V, 3GP, and more
+- Supports MP4, MOV, AVI, MKV, WebM, M4V, 3GP, HLS (`.m3u8`), DASH (`.mpd`), and more
 - Network streaming, local file, and in-memory bytes playback
-- Built-in adaptive controls with double-tap-to-seek (±10s)
-- Error handling with customizable messages
-- Quality selection (resolution/source picker)
-- Subtitle/CC support (SRT/VTT) with custom subtitle builder
+- **YouTube Capsule/Pill Controls Design** — circular `-10s`, `Play/Pause`, `+10s` pills, hover-expanding Volume slider pill, Time + Chapter pill, and Right Action pill (`Loop`, `CC`, `Settings`, `Miniplayer`, `Fullscreen`)
+- **Timeline Hover & Scrub Timestamp Pill** — shows timestamp and active chapter title above the cursor/thumb with smooth track expansion
+- **Video Chapters (`VideoChapter`)** — segmented progress bar with chapter gap markers and active chapter titles
+- **Hold-to-2x Speed Gesture (`2x ⏩`)** — long-press anywhere on the video to play at `2.0x` speed and release to restore
+- **Picture-in-Picture (PiP) & Background Mini-Player** — native always-on-top OS PiP window on Windows (`HWND_TOPMOST`), native browser PiP on Web (`requestPictureInPicture()`), and persistent draggable in-app Miniplayer across routes with background playback (`allowBackgroundPlayback: true`)
+- **Draggable Floating Settings Dialog** — quality/resolution picker and SRT/VTT subtitle selector
+- **Built-in Arabic (`ar`) & English (`en`) Localization** — automatic settings sheet RTL/LTR localization while preserving standard LTR video timeline and controls
+- **Desktop Keyboard Shortcuts** — `Space` (Play/Pause), `←`/`→` (Seek ±10s), `↑`/`↓` (Volume), `M` (Mute), `F` / `Esc` (Fullscreen)
 - Analytics callback hook (`onAnalyticsEvent`)
 
 ---
@@ -65,11 +70,11 @@ AdaptiveVideoPlayer(
 
 | Platform | YouTube Engine | Direct Video Engine | Notes |
 |---|---|---|---|
-| **Android / iOS** | `youtube_player_flutter` (native-like) | `video_player` | Full custom controls overlay |
-| **Windows** | `flutter_inappwebview` via localhost | `video_player_win` | Requires NuGet (see setup) |
+| **Android / iOS** | `youtube_player_flutter` (native-like) | `video_player` | Full custom controls overlay & background audio/PiP |
+| **Windows** | `flutter_inappwebview` via localhost | `video_player_win` | Native Win32 borderless fullscreen & always-on-top PiP window |
 | **macOS** | `flutter_inappwebview` (best-effort) | `video_player` | Native AVFoundation playback |
 | **Linux** | `flutter_inappwebview` (best-effort) | `video_player_media_kit` | Initialized via `AdaptiveVideoPlayerPlatform.ensureInitialized()` |
-| **Web** | HTML iframe | `video_player` | CORS must be enabled on your video host |
+| **Web** | HTML iframe | `video_player` | HTML5 Fullscreen, native browser PiP, WASM-ready |
 
 > **Why localhost for desktop YouTube?** YouTube blocks iframe embedding from `data:`/`file://` origins (Error 153). Serving via `http://localhost` provides a trusted origin YouTube allows.
 
@@ -80,10 +85,14 @@ AdaptiveVideoPlayer(
 | Feature | `adaptive_video_player` | `youtube_player_flutter` | `chewie` | `video_player` |
 |---|---|---|---|---|
 | YouTube + direct URLs in one widget | ✅ | ❌ | ❌ | ❌ |
-| Desktop support | ✅ | ❌ | ⚠️ | ⚠️ |
-| Live stream indicator | ✅ | ❌ | ❌ | ❌ |
-| Quality selection | ✅ | ❌ | ❌ | ❌ |
-| Subtitle / CC support | ✅ | ❌ | ✅ | ❌ |
+| Desktop support (Windows, macOS, Linux) | ✅ | ❌ | ⚠️ | ⚠️ |
+| YouTube capsule pill controls (`-10s` / `+10s`) | ✅ | ❌ | ❌ | ❌ |
+| Timeline hover timestamp & Video Chapters | ✅ | ❌ | ❌ | ❌ |
+| Hold-to-2x speed gesture (`2x ⏩`) | ✅ | ❌ | ❌ | ❌ |
+| Picture-in-Picture (PiP) & Background playback | ✅ | ❌ | ❌ | ❌ |
+| Live stream indicator & viewer count | ✅ | ❌ | ❌ | ❌ |
+| Quality selection & SRT/VTT Subtitles | ✅ | ❌ | ✅ | ❌ |
+| Built-in Arabic & English localization | ✅ | ❌ | ❌ | ❌ |
 | External link safety | ✅ | ❌ | ❌ | ❌ |
 
 ---
@@ -100,22 +109,33 @@ dependencies:
 ## 🔒 Platform Permissions & Setup
 
 ### 🤖 Android
-Ensure you have the `INTERNET` permission in `android/app/src/main/AndroidManifest.xml`:
+Add the required permissions in `android/app/src/main/AndroidManifest.xml`:
 ```xml
 <uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.WAKE_LOCK"/>
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 ```
-For `http://` URLs **and** `forceDesktopMode: true`:
+To support **Picture-in-Picture (PiP)**, background playback, and smooth fullscreen transitions without activity restarts, update `<activity>` and `<application>` in `AndroidManifest.xml`:
 ```xml
 <application
     ...
     android:usesCleartextTraffic="true">
+    <activity
+        android:name=".MainActivity"
+        android:supportsPictureInPicture="true"
+        android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+        ...>
 ```
 
 ### 🍎 iOS
-Add to `ios/Runner/Info.plist`:
+Add to `ios/Runner/Info.plist` for WebView rendering and **background audio / Picture-in-Picture (PiP)**:
 ```xml
 <key>io.flutter.embedded_views_preview</key>
 <true/>
+<key>UIBackgroundModes</key>
+<array>
+  <string>audio</string>
+</array>
 ```
 *(Optional, for `http://` video URLs)*
 ```xml
@@ -140,6 +160,7 @@ YouTube playback on Windows requires **NuGet** for building `flutter_inappwebvie
 ```powershell
 winget install Microsoft.NuGet
 ```
+*(Note: Borderless Fullscreen and Always-on-Top Picture-in-Picture on Windows use native Win32 `user32.dll` APIs automatically—no extra permissions needed).*
 
 ### 🐧 Linux
 Requires WebKit/GTK (e.g. `libwebkit2gtk-4.1-dev` on Ubuntu/Debian).
@@ -155,7 +176,7 @@ void main() {
 ```
 
 ### 🌐 Web
-No extra permission files needed. Ensure direct video hosts have CORS enabled. Fully WASM-compatible.
+No extra permission files needed. Native HTML5 Fullscreen and `requestPictureInPicture()` work out of the box. Ensure direct video hosts have CORS enabled. Fully WASM-compatible.
 
 ---
 
@@ -183,11 +204,16 @@ AdaptiveVideoPlayer(
 
 ## 📖 Usage Examples
 
-### 1. Quality Picker & Multi-Language Subtitles
+### 1. Quality Picker, Video Chapters & Multi-Language Subtitles
 ```dart
 AdaptiveVideoPlayer(
   config: VideoConfig(
     videoUrl: 'https://www.mp3quran.net/uploads/videos/group1_pbuh/maher.mp4',
+    chapters: const [
+      VideoChapter(title: 'Introduction', startTime: Duration.zero),
+      VideoChapter(title: 'Main Recitation', startTime: Duration(seconds: 20)),
+      VideoChapter(title: 'Conclusion', startTime: Duration(seconds: 45)),
+    ],
     qualities: const [
       VideoQuality(
         title: 'Auto (HLS)',
@@ -229,6 +255,13 @@ This is a sample English subtitle.
     initialSubtitle: const SubtitleTrack(
       id: 'en',
       title: 'English',
+    ),
+    playerConfig: const YouTubePlayerConfig(
+      text: PlayerTextConfig.arabic(), // Or PlayerTextConfig.english()
+      visibility: PlayerVisibilityConfig(
+        showSkipButtons: true,
+        skipDuration: Duration(seconds: 10),
+      ),
     ),
     onAnalyticsEvent: (event, data) {
       debugPrint('Analytics: $event - Data: $data');
@@ -342,10 +375,11 @@ AdaptiveVideoPlayer(
 | `initialQuality` | `VideoQuality?` | `null` | Initial active quality |
 | `subtitles` | `List<SubtitleTrack>?` | `null` | Available subtitle tracks |
 | `initialSubtitle` | `SubtitleTrack?` | `null` | Initial active subtitle track |
+| `chapters` | `List<VideoChapter>?` | `null` | Timeline chapters with gap markers and hover titles |
 | `controlsBuilder` | `AdaptiveControlsBuilder?` | `null` | Custom controls overlay builder |
 | `subtitleBuilder` | `SubtitleBuilder?` | `null` | Custom subtitles UI builder |
 | `onAnalyticsEvent` | `void Function(String, Map<String, dynamic>)?` | `null` | External analytics hook |
-| `playerConfig` | `YouTubePlayerConfig` | `const YouTubePlayerConfig()` | YouTube-specific settings |
+| `playerConfig` | `YouTubePlayerConfig` | `const YouTubePlayerConfig()` | Player style, text, visibility, and playback config |
 
 ### YouTubePlayerConfig
 
@@ -363,21 +397,23 @@ AdaptiveVideoPlayer(
 #### PlayerStyleConfig
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `progressBarPlayedColor` | `Color` | `Colors.red` | Progress bar color |
-| `progressBarHandleColor` | `Color` | `Colors.redAccent` | Handle color |
+| `progressBarPlayedColor` | `Color` | `#FF0033` | Progress bar active color |
+| `progressBarHandleColor` | `Color` | `#FF0033` | Progress bar thumb color |
 | `iconColor` | `Color` | `Colors.white` | Control icons color |
 | `textColor` | `Color` | `Colors.white` | Text color |
 | `backgroundColor` | `Color` | `#1D1D1D` | Player background |
-| `loadingIndicatorColor` | `Color` | `Colors.red` | Loading spinner color |
+| `loadingIndicatorColor` | `Color` | `#FF0033` | Loading spinner color |
 | `errorIconColor` | `Color` | `Colors.red` | Error icon color |
 | `settingsBackgroundColor` | `Color` | `#1D1D1D` | Settings sheet background |
 
 #### PlayerTextConfig
+Includes built-in presets `PlayerTextConfig.english()` and `PlayerTextConfig.arabic()`:
+
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `invalidYoutubeUrlText` | `String` | `"Invalid YouTube URL"` | Error when YouTube URL is invalid |
 | `videoLoadFailedText` | `String` | `"Failed to load video"` | Error when video fails to load |
-| `playerSettingsText` | `String` | `"Player Settings"`        | Settings sheet header title |
+| `playerSettingsText` | `String` | `"Player Settings"` | Settings sheet header title |
 | `autoPlayText` | `String` | `"Auto Play"` | Auto-play toggle label |
 | `loopVideoText` | `String` | `"Loop Video"` | Loop toggle label |
 | `forceHdQualityText` | `String` | `"Force HD Quality"` | Force HD toggle label |
@@ -389,18 +425,22 @@ AdaptiveVideoPlayer(
 | `offText` | `String` | `"Off"` | Disabled subtitle option |
 | `noQualitiesAvailableText` | `String` | `"No qualities available"` | Notice when no resolutions exist |
 | `noSubtitlesAvailableText` | `String` | `"No subtitles available"` | Notice when no subtitles exist |
+| `skipBackwardText` | `String` | `"Rewind 10s"` | Tooltip for `-10s` button |
+| `skipForwardText` | `String` | `"Forward 10s"` | Tooltip for `+10s` button |
 
 #### PlayerVisibilityConfig
-| Property | Type | Default |
-|---|---|---|
-| `showControls` | `bool` | `true` |
-| `showFullscreenButton` | `bool` | `true` |
-| `showSettingsButton` | `bool` | `true` |
-| `showAutoPlaySetting` | `bool` | `true` |
-| `showLoopSetting` | `bool` | `true` |
-| `showForceHDSetting` | `bool` | `true` |
-| `showCaptionsSetting` | `bool` | `true` |
-| `showMuteSetting` | `bool` | `true` |
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `showControls` | `bool` | `true` | Show player controls overlay |
+| `showFullscreenButton` | `bool` | `true` | Show fullscreen toggle button |
+| `showSettingsButton` | `bool` | `true` | Show settings gear button |
+| `showSkipButtons` | `bool` | `true` | Show `-10s` and `+10s` seek buttons |
+| `skipDuration` | `Duration` | `Duration(seconds: 10)` | Relative seek duration for skip buttons |
+| `showAutoPlaySetting` | `bool` | `true` | Show auto-play toggle in settings |
+| `showLoopSetting` | `bool` | `true` | Show loop toggle in settings |
+| `showForceHDSetting` | `bool` | `true` | Show Force HD toggle in settings |
+| `showCaptionsSetting` | `bool` | `true` | Show captions toggle in settings |
+| `showMuteSetting` | `bool` | `true` | Show mute toggle in settings |
 
 ---
 
@@ -467,17 +507,18 @@ A: Direct videos work out of the box on macOS via AVFoundation and on Linux via 
 
 ## 🔮 Roadmap
 
-- [x] Double-tap-to-seek gesture (±10s)
-- [ ] Playback speed control in the UI
-- [ ] External `AdaptiveVideoController`: `play()`, `pause()`, `seekTo()`, `setSpeed()`
-- [ ] Granular analytics callbacks: `onPlay`, `onPause`, `onCompleted`, `onPositionChanged`
+- [x] Double-tap-to-seek gesture (±10s) and `-10s` / `+10s` capsule buttons
+- [x] Hold-to-2x speed gesture (`2x ⏩`) on long-press
+- [x] Timeline hover & scrub timestamp preview pill
+- [x] Video Chapters (`VideoChapter`) with segmented progress bar markers
+- [x] Picture-in-Picture (PiP) & Background Mini-Player (Windows OS topmost PiP, Web native PiP, and in-app Miniplayer)
+- [x] Keyboard shortcuts on desktop (`Space`, `←`/`→`, `↑`/`↓`, `M`, `F`, `Esc`)
+- [x] Built-in Arabic (RTL) & English (LTR) localization (`PlayerTextConfig.arabic()`)
+- [ ] Playback speed selector in settings sheet
 - [ ] Custom HTTP headers for protected/authenticated video streams
 - [ ] Automatic quality selection from HLS (.m3u8) manifests
-- [ ] Picture-in-Picture (Android & iOS)
 - [ ] `AdaptiveVideoPlaylist(videos: [...])`
 - [ ] Poster/thumbnail before playback starts
-- [ ] Keyboard shortcuts on desktop
-- [ ] Built-in Arabic (RTL) localization
 
 Got a feature request? [Open an issue](https://github.com/ahmedalam782/vidoes_player/issues).
 

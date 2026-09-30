@@ -16,6 +16,7 @@ class CustomYoutubeControls extends StatefulWidget {
   final VoidCallback onFullscreenTap;
   final VoidCallback onMuteTap;
   final VoidCallback? onSettingsTap;
+  final VoidCallback? onPipTap;
   final VoidCallback onSeekBackward;
   final VoidCallback onSeekForward;
   final Widget? topActions;
@@ -30,6 +31,7 @@ class CustomYoutubeControls extends StatefulWidget {
     required this.onFullscreenTap,
     required this.onMuteTap,
     this.onSettingsTap,
+    this.onPipTap,
     required this.onSeekBackward,
     required this.onSeekForward,
     this.topActions,
@@ -223,6 +225,7 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                           onFullscreenTap: widget.onFullscreenTap,
                           onMuteTap: widget.onMuteTap,
                           onSettingsTap: widget.onSettingsTap,
+                          onPipTap: widget.onPipTap,
                           isLive: widget.isLive,
                         ),
                       ),

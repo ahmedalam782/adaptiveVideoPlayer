@@ -16,6 +16,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
   final VoidCallback? onSeekBackward;
   final VoidCallback? onToggleFullscreen;
   final ValueChanged<int>? onPositionUpdate;
+  final ValueChanged<bool>? onPlayingStateChanged;
 
   const YouTubeWebViewPlayer({
     super.key,
@@ -31,6 +32,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
     this.onSeekBackward,
     this.onToggleFullscreen,
     this.onPositionUpdate,
+    this.onPlayingStateChanged,
   });
 
   @override

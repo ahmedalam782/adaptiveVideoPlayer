@@ -170,15 +170,17 @@ class AdaptiveBottomBar extends StatelessWidget {
               color: textColor.withValues(alpha: 0.6),
             ),
           ),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 120),
-            child: Text(
-              activeChapter.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: style.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w500,
+          Flexible(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: Text(
+                activeChapter.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: style.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -286,149 +288,169 @@ class AdaptiveBottomBar extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 640;
+          final isCompact = constraints.maxWidth < 460;
 
           return Padding(
-            padding: const EdgeInsets.fromLTRB(12.0, 4.0, 12.0, 10.0),
+            padding: EdgeInsets.fromLTRB(
+              isCompact ? 8.0 : 12.0,
+              4.0,
+              isCompact ? 8.0 : 12.0,
+              10.0,
+            ),
             child: ValueListenableBuilder(
               valueListenable: controller,
               builder: (context, VideoPlayerValue value, child) {
                 final isPlaying = value.isPlaying;
                 final position = value.position;
                 final duration = value.duration;
-                final canShowSkip = showSkipButtons && !isLive;
+                final canShowSkip = showSkipButtons && !isLive && !isCompact;
 
                 return Row(
-                children: [
-                  // Flanking -10s circular pill button
-                  if (canShowSkip)
-                    _buildCirclePillButton(
-                      icon: Icons.replay_10_rounded,
-                      tooltip: messages?.skipBackwardText ?? 'Rewind 10s',
-                      onTap: () => _seekRelative(-skipDuration),
+                  children: [
+                    Expanded(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Flanking -10s circular pill button
+                          if (canShowSkip)
+                            _buildCirclePillButton(
+                              icon: Icons.replay_10_rounded,
+                              tooltip:
+                                  messages?.skipBackwardText ?? 'Rewind 10s',
+                              onTap: () => _seekRelative(-skipDuration),
+                            ),
+                          if (canShowSkip) const SizedBox(width: 6),
+
+                          // Central Play/Pause circular pill button
+                          _buildPlayPauseButton(isPlaying),
+
+                          if (canShowSkip) const SizedBox(width: 6),
+                          // Flanking +10s circular pill button
+                          if (canShowSkip)
+                            _buildCirclePillButton(
+                              icon: Icons.forward_10_rounded,
+                              tooltip:
+                                  messages?.skipForwardText ?? 'Forward 10s',
+                              onTap: () => _seekRelative(skipDuration),
+                            ),
+
+                          SizedBox(width: isCompact ? 6 : 8),
+
+                          // YouTube-style Volume Pill (Speaker circular pill by default, expands slider on hover)
+                          Container(
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: _pillColor,
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: AdaptiveVolumeControl(
+                              controller: controller,
+                              styling: styling,
+                            ),
+                          ),
+
+                          SizedBox(width: isCompact ? 6 : 8),
+
+                          // YouTube-style Time Display Pill (0:00 / 1:22 • Chapter)
+                          if (!isLive)
+                            Flexible(
+                              child: Container(
+                                height: 38,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isCompact ? 10.0 : 14.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _pillColor,
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: Center(
+                                  widthFactor: 1.0,
+                                  child: _buildDurationText(
+                                    position,
+                                    duration,
+                                    isWide: !isCompact,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  if (canShowSkip) const SizedBox(width: 6),
 
-                  // Central Play/Pause circular pill button
-                  _buildPlayPauseButton(isPlaying),
+                    const SizedBox(width: 6),
 
-                  if (canShowSkip) const SizedBox(width: 6),
-                  // Flanking +10s circular pill button
-                  if (canShowSkip)
-                    _buildCirclePillButton(
-                      icon: Icons.forward_10_rounded,
-                      tooltip: messages?.skipForwardText ?? 'Forward 10s',
-                      onTap: () => _seekRelative(skipDuration),
-                    ),
-
-                  const SizedBox(width: 8),
-
-                  // YouTube-style Volume Pill (Speaker + White Slider)
-                  Container(
-                    height: 38,
-                    padding:
-                        EdgeInsets.symmetric(horizontal: isWide ? 10.0 : 4.0),
-                    decoration: BoxDecoration(
-                      color: _pillColor,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: AdaptiveVolumeControl(
-                      controller: controller,
-                      styling: styling,
-                      alwaysShowSlider: isWide,
-                    ),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // YouTube-style Time Display Pill (0:00 / 1:22 • Chapter)
-                  if (!isLive)
+                    // YouTube-style Right Action Pill (Loop/Autoplay, CC, Settings, MiniPlayer, Fullscreen)
                     Container(
                       height: 38,
-                      padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isCompact ? 6.0 : 8.0,
+                      ),
                       decoration: BoxDecoration(
                         color: _pillColor,
                         borderRadius: BorderRadius.circular(24),
                       ),
-                      alignment: Alignment.center,
-                      child: _buildDurationText(
-                        position,
-                        duration,
-                        isWide: isWide,
-                      ),
-                    ),
-
-                  const Spacer(),
-
-                  // YouTube-style Right Action Pill (Loop/Autoplay, CC, Settings, MiniPlayer, Fullscreen)
-                  Container(
-                    height: 38,
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    decoration: BoxDecoration(
-                      color: _pillColor,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (isWide) ...[
-                          _buildLoopToggle(value),
-                          const SizedBox(width: 2),
-                          _buildSubtitlesQuickButton(),
-                          const SizedBox(width: 2),
-                        ],
-                        AdaptiveSettingsButton(
-                          isFullScreen: isFullScreen,
-                          styling: styling,
-                          messages: messages,
-                          qualities: qualities,
-                          currentQuality: currentQuality,
-                          onQualitySelected: onQualitySelected,
-                          subtitles: subtitles,
-                          currentSubtitleTrack: currentSubtitleTrack,
-                          onSubtitleSelected: onSubtitleSelected,
-                          onAnalyticsEvent: onAnalyticsEvent,
-                          onPressed: onSettingsPressed,
-                        ),
-                        if (onMiniPlayerPressed != null &&
-                            !isFullScreen &&
-                            !isLive) ...[
-                          const SizedBox(width: 4),
-                          Tooltip(
-                            message: 'Miniplayer',
-                            waitDuration: const Duration(milliseconds: 500),
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: onMiniPlayerPressed,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4.0,
-                                  vertical: 4.0,
-                                ),
-                                child: Icon(
-                                  Icons.picture_in_picture_alt_rounded,
-                                  color: styling?.iconColor ?? Colors.white,
-                                  size: 19,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isWide) ...[
+                            _buildLoopToggle(value),
+                            const SizedBox(width: 2),
+                            _buildSubtitlesQuickButton(),
+                            const SizedBox(width: 2),
+                          ],
+                          AdaptiveSettingsButton(
+                            isFullScreen: isFullScreen,
+                            styling: styling,
+                            messages: messages,
+                            qualities: qualities,
+                            currentQuality: currentQuality,
+                            onQualitySelected: onQualitySelected,
+                            subtitles: subtitles,
+                            currentSubtitleTrack: currentSubtitleTrack,
+                            onSubtitleSelected: onSubtitleSelected,
+                            onAnalyticsEvent: onAnalyticsEvent,
+                            onPressed: onSettingsPressed,
+                          ),
+                          if (onMiniPlayerPressed != null &&
+                              !isFullScreen &&
+                              !isLive) ...[
+                            const SizedBox(width: 4),
+                            Tooltip(
+                              message: messages?.miniPlayerText ?? 'Miniplayer',
+                              waitDuration: const Duration(milliseconds: 500),
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: onMiniPlayerPressed,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4.0,
+                                    vertical: 4.0,
+                                  ),
+                                  child: Icon(
+                                    Icons.picture_in_picture_alt_rounded,
+                                    color: styling?.iconColor ?? Colors.white,
+                                    size: 19,
+                                  ),
                                 ),
                               ),
                             ),
+                          ],
+                          const SizedBox(width: 4),
+                          AdaptiveFullscreenButton(
+                            isFullScreen: isFullScreen,
+                            styling: styling,
+                            onEnterFullscreen: onEnterFullscreen,
+                            onExitFullscreen: onExitFullscreen,
                           ),
                         ],
-                        const SizedBox(width: 4),
-                        AdaptiveFullscreenButton(
-                          isFullScreen: isFullScreen,
-                          styling: styling,
-                          onEnterFullscreen: onEnterFullscreen,
-                          onExitFullscreen: onExitFullscreen,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
+                  ],
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

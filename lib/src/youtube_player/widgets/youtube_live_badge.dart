@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 class YouTubeLiveBadge extends StatelessWidget {
   final bool isLive;
   final String? viewerCount;
+  final String liveText;
 
   const YouTubeLiveBadge({
     super.key,
     this.isLive = false,
     this.viewerCount,
+    this.liveText = 'LIVE',
   });
 
   @override
@@ -38,9 +40,9 @@ class YouTubeLiveBadge extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Text(
-                  'LIVE',
-                  style: TextStyle(
+                Text(
+                  liveText,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,

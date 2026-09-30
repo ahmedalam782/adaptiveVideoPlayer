@@ -25,6 +25,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
   final VoidCallback? onSeekBackward;
   final VoidCallback? onToggleFullscreen;
   final ValueChanged<int>? onPositionUpdate;
+  final ValueChanged<bool>? onPlayingStateChanged;
 
   const YouTubeWebViewPlayer({
     super.key,
@@ -40,6 +41,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
     this.onSeekBackward,
     this.onToggleFullscreen,
     this.onPositionUpdate,
+    this.onPlayingStateChanged,
   });
 
   @override
@@ -53,28 +55,30 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   String? _serverUrl;
   int _currentPosition = 0;
   String _currentLang = 'en';
+  String _currentDir = 'ltr';
 
   int get currentPosition => _currentPosition;
 
-  bool _isRtl(BuildContext context) {
-    if (Directionality.maybeOf(context) == TextDirection.rtl ||
-        Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
-      return true;
-    }
-    const arabicConfig = PlayerTextConfig.arabic();
-    if (widget.config.text.playerSettingsText ==
-        arabicConfig.playerSettingsText) {
-      return true;
-    }
-    return false;
+  (String, String) _resolveLangAndDir(BuildContext context) {
+    final ambientDir = Directionality.maybeOf(context);
+    final lang = widget.config.text.resolveLanguageCode(
+      context,
+      ambientDirection: ambientDir,
+    );
+    final dir = widget.config.text.resolveTextDirection(
+      context,
+      ambientDirection: ambientDir,
+    );
+    return (lang, dir == TextDirection.rtl ? 'rtl' : 'ltr');
   }
 
   void _syncLanguage(BuildContext context) {
-    final nextLang = _isRtl(context) ? 'ar' : 'en';
-    if (_currentLang != nextLang) {
+    final (nextLang, nextDir) = _resolveLangAndDir(context);
+    if (_currentLang != nextLang || _currentDir != nextDir) {
       _currentLang = nextLang;
+      _currentDir = nextDir;
       _webViewController?.evaluateJavascript(
-        source: "setLanguage('$_currentLang');",
+        source: "setLanguage('$_currentLang', '$_currentDir');",
       );
     }
   }
@@ -267,6 +271,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
               }
             } else if (event == 'onStateChange') {
               final state = data['data'];
+              widget.onPlayingStateChanged?.call(state == 1);
               if (state == 0) {
                 // YT.PlayerState.ENDED
                 widget.onEnded?.call();
@@ -302,10 +307,12 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         final autoplay = isAutoPlay ? 1 : 0;
         final mute = widget.config.playback.mute ? 1 : 0;
         final startAt = widget.startAt;
-        _currentLang = _isRtl(context) ? 'ar' : 'en';
+        final (lang, dir) = _resolveLangAndDir(context);
+        _currentLang = lang;
+        _currentDir = dir;
         controller.evaluateJavascript(
           source:
-              "initPlayer('${widget.videoId}', $autoplay, $mute, $startAt, '$_currentLang');",
+              "initPlayer('${widget.videoId}', $autoplay, $mute, $startAt, '$_currentLang', '$_currentDir');",
         );
       },
       onConsoleMessage: (controller, consoleMessage) {

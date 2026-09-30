@@ -59,6 +59,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   bool _hasRestoredPosition = false;
   bool _videoEnded = false;
   String? _webIframeId;
+  final GlobalKey _webIframeKey = GlobalKey();
   final GlobalKey<YouTubeWebViewPlayerState> _desktopWebViewKey =
       GlobalKey<YouTubeWebViewPlayerState>();
   late final YouTubeDesktopFullscreenManager _desktopFullscreenManager;
@@ -107,6 +108,16 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
       _desktopFullscreenManager.wasPlaying = null;
       _disposeController();
       _initializePlayer();
+      return;
+    }
+    if (oldWidget.config != widget.config ||
+        oldWidget.viewerCount != widget.viewerCount ||
+        oldWidget.isLive != widget.isLive) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _mobilePipOverlayEntry?.markNeedsBuild();
+        _desktopFullscreenManager.markOverlaysNeedBuild();
+      });
     }
   }
 
@@ -143,7 +154,15 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
       if (kIsWeb) {
         _webIframeId =
             'youtube-iframe-$_videoId-${DateTime.now().millisecondsSinceEpoch}';
-        registerYoutubeWebIframe(_webIframeId!, _videoId!, _state.autoPlay);
+        registerYoutubeWebIframe(
+          _webIframeId!,
+          _videoId!,
+          _state.autoPlay,
+          mute: _state.isMuted,
+          loop: _state.loop,
+          enableCaption: _state.enableCaption,
+          languageCode: _cfg.text.languageCode ?? 'en',
+        );
         if (mounted) setState(() => _isControllerDisposed = false);
         return;
       }
@@ -229,6 +248,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     final controller = _controller;
     if (controller == null || _isControllerDisposed) return;
 
+    final effectiveConfig = _resolveEffectiveConfig(context);
     _isInFullscreen = true;
     await YouTubeFullscreenCoordinator.openFullScreen(
       context: context,
@@ -236,7 +256,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
       videoId: _videoId!,
       currentPosition: _currentPosition,
       cubit: _cubit,
-      config: _cfg,
+      config: effectiveConfig,
       isLive: widget.isLive,
       viewerCount: widget.viewerCount,
       onEnded: widget.onEnded,
@@ -283,26 +303,24 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     );
   }
 
-  bool _isArabicOrRtl(BuildContext context) {
-    if (Directionality.maybeOf(context) == TextDirection.rtl ||
-        Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
-      return true;
-    }
-    const arabicConfig = PlayerTextConfig.arabic();
-    if (_cfg.text.playerSettingsText == arabicConfig.playerSettingsText) {
-      return true;
-    }
-    return false;
-  }
-
   YouTubePlayerConfig _resolveEffectiveConfig(BuildContext context) {
-    final isAr = _isArabicOrRtl(context);
-    if (isAr &&
-        _cfg.text.playerSettingsText ==
-            const PlayerTextConfig.english().playerSettingsText) {
+    final ambientDirection = Directionality.maybeOf(context);
+    final resolvedDir = _cfg.text.resolveTextDirection(
+      context,
+      ambientDirection: ambientDirection,
+    );
+    final resolvedLang = _cfg.text.resolveLanguageCode(
+      context,
+      ambientDirection: ambientDirection,
+    );
+
+    if (resolvedDir == TextDirection.rtl && _cfg.text.isDefaultUnmodified) {
       return YouTubePlayerConfig(
         style: _cfg.style,
-        text: const PlayerTextConfig.arabic(),
+        text: const PlayerTextConfig.arabic().copyWith(
+          languageCode: resolvedLang,
+          textDirection: resolvedDir,
+        ),
         visibility: _cfg.visibility,
         playback: _cfg.playback,
         loadingBuilder: _cfg.loadingBuilder,
@@ -311,7 +329,25 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
         liveBadgeBuilder: _cfg.liveBadgeBuilder,
       );
     }
-    return _cfg;
+
+    if (_cfg.text.textDirection == resolvedDir &&
+        _cfg.text.languageCode == resolvedLang) {
+      return _cfg;
+    }
+
+    return YouTubePlayerConfig(
+      style: _cfg.style,
+      text: _cfg.text.copyWith(
+        languageCode: resolvedLang,
+        textDirection: resolvedDir,
+      ),
+      visibility: _cfg.visibility,
+      playback: _cfg.playback,
+      loadingBuilder: _cfg.loadingBuilder,
+      errorBuilder: _cfg.errorBuilder,
+      replayBuilder: _cfg.replayBuilder,
+      liveBadgeBuilder: _cfg.liveBadgeBuilder,
+    );
   }
 
   void _showSettingsBottomSheet() {
@@ -362,8 +398,141 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     }
   }
 
+  OverlayEntry? _mobilePipOverlayEntry;
+  bool get _isInMobilePip => _mobilePipOverlayEntry != null;
+
+  void _openMobilePip() {
+    if (_isInMobilePip) return;
+    if (!kIsWeb && (_controller == null || _isControllerDisposed)) return;
+    if (kIsWeb && _webIframeId == null) return;
+    final overlay = Overlay.maybeOf(context, rootOverlay: true);
+    if (overlay == null) return;
+
+    final controller = _controller;
+    Offset offset = Offset.zero;
+
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setOverlayState) {
+          final currentText = mounted
+              ? _resolveEffectiveConfig(context).text
+              : _cfg.text;
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned(
+                  right: 16 - offset.dx,
+                  bottom: 24 - offset.dy,
+                  child: GestureDetector(
+                    onPanUpdate: (details) {
+                      setOverlayState(() {
+                        offset += details.delta;
+                      });
+                    },
+                    child: Material(
+                      color: Colors.black,
+                      elevation: 14,
+                      borderRadius: BorderRadius.circular(12),
+                      clipBehavior: Clip.antiAlias,
+                      child: SizedBox(
+                        width: 280,
+                        height: 158,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (kIsWeb && _webIframeId != null)
+                              buildYoutubeWebIframe(
+                                _webIframeId!,
+                                key: _webIframeKey,
+                              )
+                            else if (controller != null)
+                              YoutubePlayer(controller: controller),
+                            Positioned(
+                              top: 6,
+                              left: 8,
+                              right: 8,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Tooltip(
+                                    message: currentText.expandPlayerText,
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          _closeMobilePip(pauseOnClose: false),
+                                      child: Container(
+                                        width: 30,
+                                        height: 30,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xAA000000),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.open_in_full_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Tooltip(
+                                    message: currentText.closeMiniPlayerText,
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          _closeMobilePip(pauseOnClose: true),
+                                      child: Container(
+                                        width: 30,
+                                        height: 30,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xAA000000),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.close_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    _mobilePipOverlayEntry = entry;
+    overlay.insert(entry);
+    if (mounted) setState(() {});
+  }
+
+  void _closeMobilePip({bool pauseOnClose = false}) {
+    if (!_isInMobilePip) return;
+    _mobilePipOverlayEntry?.remove();
+    _mobilePipOverlayEntry = null;
+    if (pauseOnClose && _controller != null && !_isControllerDisposed) {
+      PlayerUtils.pause(_controller);
+    }
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    _mobilePipOverlayEntry?.remove();
+    _mobilePipOverlayEntry = null;
     _desktopFullscreenManager.dispose();
     _videoStateSub?.cancel();
     _playerValueSub?.cancel();
@@ -425,8 +594,73 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  if (kIsWeb && _webIframeId != null)
-                    buildYoutubeWebIframe(_webIframeId!)
+                  if (_isInMobilePip)
+                    Container(
+                      color: Colors.black87,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.picture_in_picture_alt_rounded,
+                            color: Colors.white54,
+                            size: 36,
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: () =>
+                                _closeMobilePip(pauseOnClose: false),
+                            icon: const Icon(
+                              Icons.open_in_full_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            label: Text(
+                              effectiveConfig.text.restorePlayerText,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (kIsWeb && _webIframeId != null)
+                    Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        buildYoutubeWebIframe(
+                          _webIframeId!,
+                          key: _webIframeKey,
+                        ),
+                        if (effectiveConfig.visibility.showControls)
+                          Positioned(
+                            bottom: 77,
+                            right: 60,
+                            child: Tooltip(
+                              message: effectiveConfig.text.miniPlayerText,
+                              child: Material(
+                                color: const Color(0x99000000),
+                                shape: const CircleBorder(),
+                                clipBehavior: Clip.antiAlias,
+                                child: InkWell(
+                                  customBorder: const CircleBorder(),
+                                  onTap: _openMobilePip,
+                                  child: const SizedBox(
+                                    width: 33,
+                                    height: 33,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.picture_in_picture_alt_rounded,
+                                        color: Colors.white,
+                                        size: 17,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    )
                   else if (_useDesktopPlayer)
                     YouTubeDesktopPlayerView(
                       desktopWebViewKey: _desktopWebViewKey,
@@ -447,6 +681,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                       onFullscreenTap: _openFullScreen,
                       onMuteTap: _toggleMute,
                       onSettingsTap: _showSettingsBottomSheet,
+                      onPipTap: _openMobilePip,
                       onSeekBackward: _seekBackward,
                       onSeekForward: _seekForward,
                       onRestartVideo: _restartVideo,

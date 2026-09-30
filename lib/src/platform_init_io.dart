@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
+import 'normal_video_player/utils/fullscreen_utils_export.dart';
 
 /// Initializes platform-specific video player backends on IO platforms (Linux/Windows/macOS/iOS/Android).
 class AdaptiveVideoPlayerPlatform {
@@ -21,6 +22,7 @@ class AdaptiveVideoPlayerPlatform {
   /// It is safe to call this method multiple times; subsequent calls
   /// will be ignored.
   static void ensureInitialized() {
+    restoreDesktopWindowIfStuckInPip();
     if (_initialized) return;
     _initialized = true;
 

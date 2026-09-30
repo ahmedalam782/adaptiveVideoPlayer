@@ -17,6 +17,7 @@ class YouTubeMobilePlayerView extends StatelessWidget {
   final VoidCallback onFullscreenTap;
   final VoidCallback onMuteTap;
   final VoidCallback onSettingsTap;
+  final VoidCallback? onPipTap;
   final VoidCallback onSeekBackward;
   final VoidCallback onSeekForward;
   final VoidCallback onRestartVideo;
@@ -34,6 +35,7 @@ class YouTubeMobilePlayerView extends StatelessWidget {
     required this.onFullscreenTap,
     required this.onMuteTap,
     required this.onSettingsTap,
+    this.onPipTap,
     required this.onSeekBackward,
     required this.onSeekForward,
     required this.onRestartVideo,
@@ -58,6 +60,7 @@ class YouTubeMobilePlayerView extends StatelessWidget {
               onFullscreenTap: onFullscreenTap,
               onMuteTap: onMuteTap,
               onSettingsTap: onSettingsTap,
+              onPipTap: onPipTap,
               onSeekBackward: onSeekBackward,
               onSeekForward: onSeekForward,
               topActions: (isLive || viewerCount != null)
@@ -72,6 +75,7 @@ class YouTubeMobilePlayerView extends StatelessWidget {
                           YouTubeLiveBadge(
                             isLive: isLive,
                             viewerCount: viewerCount,
+                            liveText: config.text.liveText,
                           ),
                     )
                   : null,

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 import 'adaptive_live_indicator.dart';
 
@@ -14,6 +15,7 @@ class AdaptiveTopBar extends StatelessWidget {
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final bool? showBackButton;
+  final PlayerTextConfig? messages;
 
   const AdaptiveTopBar({
     super.key,
@@ -25,6 +27,7 @@ class AdaptiveTopBar extends StatelessWidget {
     this.onQualitySelected,
     this.onAnalyticsEvent,
     this.showBackButton,
+    this.messages,
   });
 
   bool get _shouldShowBackButton {
@@ -63,6 +66,7 @@ class AdaptiveTopBar extends StatelessWidget {
               qualities: qualities,
               onQualitySelected: onQualitySelected,
               onAnalyticsEvent: onAnalyticsEvent,
+              messages: messages,
             ),
             if (viewerCount != null)
               Container(

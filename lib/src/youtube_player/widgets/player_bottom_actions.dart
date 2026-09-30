@@ -189,6 +189,7 @@ class PlayerBottomActionsBuilder {
     required VoidCallback onFullscreenTap,
     required VoidCallback onMuteTap,
     VoidCallback? onSettingsTap,
+    VoidCallback? onPipTap,
   }) {
     return [
       MuteButton(
@@ -213,6 +214,18 @@ class PlayerBottomActionsBuilder {
         const Spacer(),
       if (showSettingsButton && onSettingsTap != null)
         SettingsButton(onTap: onSettingsTap, iconColor: config.iconColor),
+      if (!isFullscreen && !isLive && onPipTap != null)
+        GestureDetector(
+          onTap: onPipTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Icon(
+              Icons.picture_in_picture_alt_rounded,
+              color: config.iconColor,
+              size: 22,
+            ),
+          ),
+        ),
       if (showFullscreenButton)
         FullscreenButton(
           onTap: onFullscreenTap,

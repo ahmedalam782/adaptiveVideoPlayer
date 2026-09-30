@@ -10,5 +10,9 @@ bool checkFileExists(String path) {
 VideoPlayerController getFileVideoController(String path) {
   return VideoPlayerController.file(
     File(path),
+    videoPlayerOptions: VideoPlayerOptions(
+      allowBackgroundPlayback: true,
+      mixWithOthers: true,
+    ),
   );
 }

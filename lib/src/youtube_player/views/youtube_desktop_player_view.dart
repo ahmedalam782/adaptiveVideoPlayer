@@ -35,6 +35,32 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   int _seekDirection = 0;
   int _seekSeconds = 10;
   Timer? _seekResetTimer;
+  Timer? _controlsHideTimer;
+  bool _isHovered = true;
+  bool _isPlaying = false;
+
+  void _onMouseActivity() {
+    if (!mounted) return;
+    if (!_isHovered) {
+      setState(() {
+        _isHovered = true;
+      });
+    }
+    _scheduleHideControls();
+  }
+
+  void _scheduleHideControls() {
+    _controlsHideTimer?.cancel();
+    if (_isPlaying) {
+      _controlsHideTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted && _isPlaying) {
+          setState(() {
+            _isHovered = false;
+          });
+        }
+      });
+    }
+  }
 
   void _triggerSeekFeedback(int direction) {
     if (!mounted) return;
@@ -98,12 +124,34 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
     );
   }
 
+  void _togglePip() {
+    if (widget.fullscreenManager.isInPip) {
+      widget.fullscreenManager.closePip(pauseOnClose: false);
+    } else {
+      _openPip();
+    }
+  }
+
+  void _openPip() {
+    widget.fullscreenManager.openPip(
+      desktopPlayerBuilder: _buildPlayerWithOverlay,
+      getExpandTooltip: () => widget.config.text.expandPlayerText,
+      getCloseTooltip: () => widget.config.text.closeMiniPlayerText,
+    );
+  }
+
   Widget _buildPlayerWithOverlay() {
+    final isNormalInline = !widget.fullscreenManager.isInFullscreen &&
+        !widget.fullscreenManager.isInPip;
+    final showPipButton = _isHovered || !_isPlaying;
+
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () {
           if (widget.fullscreenManager.isInFullscreen) {
             widget.fullscreenManager.closeFullscreen();
+          } else if (widget.fullscreenManager.isInPip) {
+            widget.fullscreenManager.closePip(pauseOnClose: false);
           }
         },
         const SingleActivator(LogicalKeyboardKey.arrowRight): () => _seekBy(10),
@@ -113,33 +161,100 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
         const SingleActivator(LogicalKeyboardKey.space): _togglePlayPause,
         const SingleActivator(LogicalKeyboardKey.keyK): _togglePlayPause,
         const SingleActivator(LogicalKeyboardKey.keyF): _toggleFullscreen,
+        const SingleActivator(LogicalKeyboardKey.keyI): _togglePip,
         const SingleActivator(LogicalKeyboardKey.keyM): _toggleMute,
       },
       child: Focus(
         autofocus: true,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            YouTubeWebViewPlayer(
-              key: widget.desktopWebViewKey,
-              videoId: widget.videoId,
-              config: widget.config,
-              onPositionUpdate: (pos) {
-                widget.fullscreenManager.currentPositionSeconds = pos;
-              },
-              onReady: widget.onReady,
-              onEnded: widget.onEnded,
-              onEnterFullscreen: _openFullscreen,
-              onExitFullscreen: widget.fullscreenManager.closeFullscreen,
-              onSeekForward: () => _triggerSeekFeedback(1),
-              onSeekBackward: () => _triggerSeekFeedback(-1),
-              onToggleFullscreen: _toggleFullscreen,
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: MouseRegion(
+            onEnter: (_) => _onMouseActivity(),
+            onHover: (_) => _onMouseActivity(),
+            onExit: (_) {
+              if (_isPlaying && mounted) {
+                setState(() {
+                  _isHovered = false;
+                });
+              }
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                YouTubeWebViewPlayer(
+                  key: widget.desktopWebViewKey,
+                  videoId: widget.videoId,
+                  config: widget.config,
+                  startAt: widget.fullscreenManager.currentPositionSeconds,
+                  autoPlay: widget.fullscreenManager.wasPlaying,
+                  onPositionUpdate: (pos) {
+                    widget.fullscreenManager.currentPositionSeconds = pos;
+                  },
+                  onPlayingStateChanged: (playing) {
+                    if (!mounted) return;
+                    setState(() {
+                      _isPlaying = playing;
+                      if (!playing) {
+                        _isHovered = true;
+                      }
+                    });
+                    if (playing) {
+                      _scheduleHideControls();
+                    } else {
+                      _controlsHideTimer?.cancel();
+                    }
+                  },
+                  onReady: widget.onReady,
+                  onEnded: widget.onEnded,
+                  onEnterFullscreen: _openFullscreen,
+                  onExitFullscreen: widget.fullscreenManager.closeFullscreen,
+                  onSeekForward: () => _triggerSeekFeedback(1),
+                  onSeekBackward: () => _triggerSeekFeedback(-1),
+                  onToggleFullscreen: _toggleFullscreen,
+                ),
+                AdaptiveSeekFeedbackOverlay(
+                  seekDirection: _seekDirection,
+                  seekSeconds: _seekSeconds,
+                ),
+                if (isNormalInline)
+                  Positioned(
+                    bottom: 77,
+                    right: 60,
+                    child: AnimatedOpacity(
+                      opacity: showPipButton ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 220),
+                      child: IgnorePointer(
+                        ignoring: !showPipButton,
+                        child: Tooltip(
+                          message: widget.config.text.miniPlayerText,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _openPip,
+                              customBorder: const CircleBorder(),
+                              child: Container(
+                                width: 33,
+                                height: 33,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.45),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  Icons.picture_in_picture_alt_rounded,
+                                  color: Colors.white,
+                                  size: 17,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            AdaptiveSeekFeedbackOverlay(
-              seekDirection: _seekDirection,
-              seekSeconds: _seekSeconds,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -148,6 +263,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   @override
   void dispose() {
     _seekResetTimer?.cancel();
+    _controlsHideTimer?.cancel();
     super.dispose();
   }
 
@@ -155,6 +271,37 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   Widget build(BuildContext context) {
     if (widget.fullscreenManager.isInFullscreen) {
       return const SizedBox.shrink();
+    }
+
+    if (widget.fullscreenManager.isInPip) {
+      return Container(
+        color: Colors.black87,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.picture_in_picture_alt_rounded,
+              color: Colors.white54,
+              size: 36,
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () =>
+                  widget.fullscreenManager.closePip(pauseOnClose: false),
+              icon: const Icon(
+                Icons.open_in_full_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
+              label: Text(
+                widget.config.text.restorePlayerText,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return _buildPlayerWithOverlay();

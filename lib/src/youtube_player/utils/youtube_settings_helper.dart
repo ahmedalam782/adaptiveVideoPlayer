@@ -42,6 +42,7 @@ class YouTubeSettingsHelper {
         showMuteSetting: config.visibility.showMuteSetting,
         settingsTitleStyle: config.style.settingsTitleStyle,
         settingItemTextStyle: config.style.settingItemTextStyle,
+        textDirection: config.text.resolveTextDirection(context),
       ),
       onAutoPlayChanged: (value) async {
         if (state.autoPlay != value) {

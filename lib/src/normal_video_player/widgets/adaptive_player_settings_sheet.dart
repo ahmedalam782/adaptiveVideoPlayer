@@ -43,18 +43,8 @@ class AdaptivePlayerSettingsSheetState
   SettingsPage _currentPage = SettingsPage.main;
 
   bool _isArabicOrRtl(BuildContext context) {
-    const arabicConfig = PlayerTextConfig.arabic();
-    final msg = widget.messages;
-    if (msg != null &&
-        (msg.qualityText == arabicConfig.qualityText ||
-            msg.subtitlesText == arabicConfig.subtitlesText ||
-            msg.playerSettingsText == arabicConfig.playerSettingsText)) {
-      return true;
-    }
-    if (Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
-      return true;
-    }
-    return Directionality.maybeOf(context) == TextDirection.rtl;
+    final msg = widget.messages ?? const PlayerTextConfig();
+    return msg.resolveTextDirection(context) == TextDirection.rtl;
   }
 
   @override

@@ -373,6 +373,7 @@ class PlayerUtils {
       switchInactiveTrackColor: config.switchInactiveTrackColor,
       titleTextStyle: config.settingsTitleStyle,
       itemTextStyle: config.settingItemTextStyle,
+      textDirection: config.textDirection,
       playerSettingsText: config.playerSettingsText,
       autoPlayText: config.autoPlayText,
       loopVideoText: config.loopVideoText,

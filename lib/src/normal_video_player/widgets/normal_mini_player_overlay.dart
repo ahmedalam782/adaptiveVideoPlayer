@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import '../../youtube_player/models/youtube_player_config.dart';
+import '../utils/fullscreen_utils_export.dart';
 import '../utils/video_player_web_safe.dart';
+import 'adaptive_video_surface.dart';
 
 /// Floating draggable Picture-in-Picture (Mini-Player) overlay for NormalVideoPlayer.
 class NormalMiniPlayerOverlay extends StatefulWidget {
   final VideoPlayerController controller;
   final VoidCallback onExpand;
   final VoidCallback onClose;
+  final PlayerTextConfig? messages;
 
   const NormalMiniPlayerOverlay({
     super.key,
     required this.controller,
     required this.onExpand,
     required this.onClose,
+    this.messages,
   });
 
   @override
@@ -23,41 +28,44 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
   Offset _offset = Offset.zero;
   bool _controlsVisible = true;
 
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Positioned(
-        right: 16 - _offset.dx,
-        bottom: 24 - _offset.dy,
-        child: GestureDetector(
-          onPanUpdate: (details) {
-            setState(() {
-              _offset += details.delta;
-            });
-          },
-          onTap: () {
-            setState(() {
-              _controlsVisible = !_controlsVisible;
-            });
-          },
-          child: Material(
-            color: Colors.transparent,
-            elevation: 14,
-            borderRadius: BorderRadius.circular(12),
-            clipBehavior: Clip.antiAlias,
-            child: Container(
-              width: 280,
-              height: 158,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  width: 1,
-                ),
-              ),
-              child: ValueListenableBuilder(
+  Widget _buildMiniPlayerContent(bool isOsPipWindow) {
+    return GestureDetector(
+      onPanUpdate: (details) {
+        if (isOsPipWindow) {
+          moveDesktopPipWindow(
+            details.delta.dx.round(),
+            details.delta.dy.round(),
+          );
+        } else {
+          setState(() {
+            _offset += details.delta;
+          });
+        }
+      },
+      onTap: () {
+        setState(() {
+          _controlsVisible = !_controlsVisible;
+        });
+      },
+      child: Material(
+        color: Colors.transparent,
+        elevation: isOsPipWindow ? 0 : 14,
+        borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
+        clipBehavior: Clip.antiAlias,
+        child: Container(
+          width: isOsPipWindow ? double.infinity : 280,
+          height: isOsPipWindow ? double.infinity : 158,
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
+            border: isOsPipWindow
+                ? null
+                : Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    width: 1,
+                  ),
+          ),
+          child: ValueListenableBuilder(
                 valueListenable: widget.controller,
                 builder: (context, VideoPlayerValue value, _) {
                   final durationMs = value.duration.inMilliseconds.toDouble();
@@ -71,10 +79,16 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
                     children: [
                       Center(
                         child: AspectRatio(
-                          aspectRatio: value.isInitialized
-                              ? value.aspectRatio
-                              : 16 / 9,
-                          child: VideoPlayer(widget.controller),
+                          aspectRatio:
+                              (value.isInitialized && value.aspectRatio > 0)
+                                  ? value.aspectRatio
+                                  : 16 / 9,
+                          child: VideoPlayer(
+                            widget.controller,
+                            key: AdaptiveVideoSurface.keyForController(
+                              widget.controller,
+                            ),
+                          ),
                         ),
                       ),
                       if (_controlsVisible)
@@ -93,12 +107,15 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
                                   children: [
                                     _buildMiniIconButton(
                                       icon: Icons.open_in_full_rounded,
-                                      tooltip: 'Expand player',
+                                      tooltip: widget.messages?.expandPlayerText ??
+                                          'Expand player',
                                       onTap: widget.onExpand,
                                     ),
                                     _buildMiniIconButton(
                                       icon: Icons.close_rounded,
-                                      tooltip: 'Close miniplayer',
+                                      tooltip:
+                                          widget.messages?.closeMiniPlayerText ??
+                                              'Close miniplayer',
                                       onTap: widget.onClose,
                                     ),
                                   ],
@@ -110,7 +127,9 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
                                   icon: value.isPlaying
                                       ? Icons.pause_rounded
                                       : Icons.play_arrow_rounded,
-                                  tooltip: value.isPlaying ? 'Pause' : 'Play',
+                                  tooltip: value.isPlaying
+                                      ? (widget.messages?.pauseText ?? 'Pause')
+                                      : (widget.messages?.playText ?? 'Play'),
                                   size: 26,
                                   buttonSize: 42,
                                   onTap: () {
@@ -145,7 +164,35 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
               ),
             ),
           ),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isOsPipWindow = isDesktopPipMode();
+    if (isOsPipWindow) {
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: SizedBox.expand(
+            child: _buildMiniPlayerContent(true),
+          ),
         ),
+      );
+    }
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            right: 16 - _offset.dx,
+            bottom: 24 - _offset.dy,
+            child: _buildMiniPlayerContent(false),
+          ),
+        ],
       ),
     );
   }

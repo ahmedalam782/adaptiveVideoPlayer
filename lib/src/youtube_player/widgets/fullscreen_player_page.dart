@@ -335,6 +335,7 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                                       YouTubeLiveBadge(
                                         isLive: widget.isLive,
                                         viewerCount: widget.viewerCount,
+                                        liveText: widget.config.text.liveText,
                                       ),
                                 ),
                                 PositionedDirectional(

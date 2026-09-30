@@ -9,6 +9,7 @@ import 'adaptive_controls.dart';
 import 'coordinator/normal_fullscreen_coordinator.dart';
 import 'models/video_config.dart';
 import 'utils/file_utils_export.dart';
+import 'utils/fullscreen_utils_export.dart';
 import 'utils/subtitle_parser.dart';
 import 'utils/video_player_web_safe.dart';
 import 'views/normal_player_view.dart';
@@ -117,9 +118,22 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   SubtitleTrack? _currentSubtitleTrack;
   List<SubtitleItem> _parsedSubtitles = [];
 
+  static OverlayEntry? _activeBackgroundMiniEntry;
+  static VideoPlayerController? _activeBackgroundMiniController;
+
+  static void _disposeBackgroundMiniPlayer() {
+    exitDesktopPipMode();
+    _activeBackgroundMiniEntry?.remove();
+    _activeBackgroundMiniEntry = null;
+    _activeBackgroundMiniController?.dispose();
+    _activeBackgroundMiniController = null;
+  }
+
   final NormalFullscreenCoordinator _fullscreenCoordinator =
       NormalFullscreenCoordinator();
+  final GlobalKey _playerViewKey = GlobalKey();
   OverlayEntry? _miniPlayerOverlayEntry;
+  bool _transferredToBackgroundMini = false;
 
   bool get _isInMiniPlayer => _miniPlayerOverlayEntry != null;
   bool get _effectiveIsLive => _currentQuality?.isLive ?? widget.isLive;
@@ -139,6 +153,55 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
         if (mounted) setState(() {});
       },
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant NormalVideoPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Sync selected quality label when qualities list updates (e.g. language change)
+    if (widget.qualities != null &&
+        widget.qualities!.isNotEmpty &&
+        _currentQuality != null) {
+      final oldList = oldWidget.qualities;
+      final oldIndex =
+          oldList != null ? oldList.indexOf(_currentQuality!) : -1;
+      if (oldIndex >= 0 && oldIndex < widget.qualities!.length) {
+        _currentQuality = widget.qualities![oldIndex];
+      } else {
+        final byUrl = widget.qualities!
+            .where((q) =>
+                q.url == _currentQuality!.url &&
+                q.isLive == _currentQuality!.isLive)
+            .firstOrNull;
+        if (byUrl != null) {
+          _currentQuality = byUrl;
+        }
+      }
+    }
+
+    // Sync selected subtitle track when subtitles list updates (e.g. language change)
+    if (widget.subtitles != null && _currentSubtitleTrack != null) {
+      final byId = widget.subtitles!
+          .where((s) => s.id == _currentSubtitleTrack!.id)
+          .firstOrNull;
+      if (byId != null && byId != _currentSubtitleTrack) {
+        _currentSubtitleTrack = byId;
+        _loadSubtitleTrack();
+      }
+    }
+
+    if (_fullscreenCoordinator.isInFullscreen || _isInMiniPlayer) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_fullscreenCoordinator.isInFullscreen) {
+          _fullscreenCoordinator.rebuildOverlay();
+        }
+        if (_isInMiniPlayer) {
+          _miniPlayerOverlayEntry?.markNeedsBuild();
+        }
+      });
+    }
   }
 
   Future<void> _loadSubtitleTrack() async {
@@ -222,6 +285,10 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
           : VideoPlayerController.networkUrl(
               Uri.parse(newQuality.url),
               formatHint: formatHint,
+              videoPlayerOptions: VideoPlayerOptions(
+                allowBackgroundPlayback: true,
+                mixWithOthers: true,
+              ),
             );
 
       await newController.initialize();
@@ -341,18 +408,16 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
           : VideoPlayerController.networkUrl(
               Uri.parse(_effectiveSource),
               formatHint: formatHint,
+              videoPlayerOptions: VideoPlayerOptions(
+                allowBackgroundPlayback: true,
+                mixWithOthers: true,
+              ),
             );
 
       await _videoPlayerController!.initialize();
 
       if (startAt != null && !_effectiveIsLive) {
         await _videoPlayerController!.seekTo(startAt);
-      }
-
-      if (widget.playback?.autoPlay ?? true) {
-        if (wasPlaying || (widget.playback?.autoPlay ?? true)) {
-          await _videoPlayerController!.play();
-        }
       }
 
       if (widget.playback?.loop ?? false) {
@@ -373,6 +438,19 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
           _isInitialized = true;
           _hasError = false;
         });
+      }
+
+      if (wasPlaying || (widget.playback?.autoPlay ?? true)) {
+        try {
+          await _videoPlayerController!.play();
+        } catch (playError) {
+          log('Unmuted autoplay blocked by browser, falling back to muted autoplay: $playError');
+          try {
+            await _videoPlayerController!.setVolume(0.0);
+            await _videoPlayerController!.play();
+          } catch (_) {}
+        }
+        _ensurePlaybackContinues(true);
       }
     } catch (e) {
       log('Video player initialization error: $e');
@@ -412,36 +490,50 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
   @override
   void dispose() {
-    _miniPlayerOverlayEntry?.remove();
-    _miniPlayerOverlayEntry = null;
     _fullscreenCoordinator.dispose();
-    _videoPlayerController?.dispose();
+    if (_isInMiniPlayer && _videoPlayerController != null) {
+      // Keep mini-player and controller alive in background when page pops
+      _activeBackgroundMiniEntry = _miniPlayerOverlayEntry;
+      _activeBackgroundMiniController = _videoPlayerController;
+      _miniPlayerOverlayEntry = null;
+      _videoPlayerController = null;
+      _transferredToBackgroundMini = true;
+    } else if (!_transferredToBackgroundMini) {
+      _miniPlayerOverlayEntry?.remove();
+      _miniPlayerOverlayEntry = null;
+      _videoPlayerController?.dispose();
+    }
     super.dispose();
   }
 
-  bool _isArabicOrRtl(BuildContext context) {
-    if (Directionality.maybeOf(context) == TextDirection.rtl ||
-        Localizations.maybeLocaleOf(context)?.languageCode == 'ar') {
-      return true;
-    }
-    const arabicConfig = PlayerTextConfig.arabic();
-    if (widget.messages?.qualityText == arabicConfig.qualityText) {
-      return true;
-    }
-    return false;
-  }
-
   PlayerTextConfig _resolveEffectiveMessages(BuildContext context) {
-    final isAr = _isArabicOrRtl(context);
-    if (widget.messages == null ||
-        (isAr &&
-            widget.messages?.qualityText ==
-                const PlayerTextConfig.english().qualityText)) {
-      return isAr
-          ? const PlayerTextConfig.arabic()
-          : const PlayerTextConfig.english();
+    final ambientDir = Directionality.maybeOf(context);
+    final msg = widget.messages;
+    if (msg == null || msg.isDefaultUnmodified) {
+      final resolvedDir = (msg ?? const PlayerTextConfig())
+          .resolveTextDirection(context, ambientDirection: ambientDir);
+      final resolvedLang = (msg ?? const PlayerTextConfig())
+          .resolveLanguageCode(context, ambientDirection: ambientDir);
+      if (resolvedLang.toLowerCase() == 'ar' ||
+          resolvedDir == TextDirection.rtl) {
+        return PlayerTextConfig.arabic(
+          languageCode: resolvedLang,
+          textDirection: resolvedDir,
+        );
+      }
+      return PlayerTextConfig.english(
+        languageCode: resolvedLang,
+        textDirection: resolvedDir,
+      );
     }
-    return widget.messages!;
+    final resolvedDir =
+        msg.resolveTextDirection(context, ambientDirection: ambientDir);
+    final resolvedLang =
+        msg.resolveLanguageCode(context, ambientDirection: ambientDir);
+    return msg.copyWith(
+      languageCode: resolvedLang,
+      textDirection: resolvedDir,
+    );
   }
 
   void _handleOpenFullscreen() {
@@ -478,6 +570,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
           textDirection: TextDirection.ltr,
           onExitFullscreen: _handleCloseFullscreen,
           child: NormalPlayerView(
+            key: _playerViewKey,
             controller: _videoPlayerController!,
             showControls: widget.visibility?.showControls ?? true,
             isFullScreen: true,
@@ -518,16 +611,49 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     final overlay = Overlay.maybeOf(context, rootOverlay: true);
     if (overlay == null) return;
 
+    // Clean up any older background mini-player before opening a new one
+    _disposeBackgroundMiniPlayer();
+
     final wasPlaying = _videoPlayerController!.value.isPlaying;
-    _miniPlayerOverlayEntry = OverlayEntry(
-      builder: (_) => NormalMiniPlayerOverlay(
-        controller: _videoPlayerController!,
-        onExpand: () => _handleCloseMiniPlayer(pauseOnClose: false),
-        onClose: () => _handleCloseMiniPlayer(pauseOnClose: true),
-      ),
+    final controller = _videoPlayerController!;
+
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (overlayCtx) {
+        final activeCtx = mounted ? context : overlayCtx;
+        final effectiveMessages = _resolveEffectiveMessages(activeCtx);
+        return NormalMiniPlayerOverlay(
+          controller: controller,
+          messages: effectiveMessages,
+          onExpand: () {
+            if (mounted) {
+              _handleCloseMiniPlayer(pauseOnClose: false);
+            } else {
+              exitDesktopPipMode();
+              entry.remove();
+              if (_activeBackgroundMiniEntry == entry) {
+                _activeBackgroundMiniEntry = null;
+              }
+            }
+          },
+          onClose: () {
+            if (mounted) {
+              _handleCloseMiniPlayer(pauseOnClose: true);
+            } else {
+              _disposeBackgroundMiniPlayer();
+            }
+          },
+        );
+      },
     );
-    overlay.insert(_miniPlayerOverlayEntry!);
+    _miniPlayerOverlayEntry = entry;
+    overlay.insert(entry);
     if (mounted) setState(() {});
+
+    // Activate OS-level Picture-in-Picture (Windows always-on-top PiP window or Web native PiP)
+    enterDesktopPipMode();
+    entry.markNeedsBuild();
+
     _ensurePlaybackContinues(wasPlaying);
     widget.onAnalyticsEvent?.call('mini_player_opened', {});
   }
@@ -535,6 +661,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   void _handleCloseMiniPlayer({bool pauseOnClose = false}) {
     if (!_isInMiniPlayer) return;
     final wasPlaying = _videoPlayerController?.value.isPlaying ?? false;
+    exitDesktopPipMode();
     _miniPlayerOverlayEntry?.remove();
     _miniPlayerOverlayEntry = null;
     if (pauseOnClose) {
@@ -549,24 +676,21 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   void _ensurePlaybackContinues(bool wasPlaying) {
     if (!wasPlaying) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted &&
-          _videoPlayerController != null &&
-          !_videoPlayerController!.value.isPlaying) {
-        _videoPlayerController!.play();
+      final ctrl = _videoPlayerController ?? _activeBackgroundMiniController;
+      if (ctrl != null && !ctrl.value.isPlaying) {
+        ctrl.play();
       }
     });
     Future.delayed(const Duration(milliseconds: 120), () {
-      if (mounted &&
-          _videoPlayerController != null &&
-          !_videoPlayerController!.value.isPlaying) {
-        _videoPlayerController!.play();
+      final ctrl = _videoPlayerController ?? _activeBackgroundMiniController;
+      if (ctrl != null && !ctrl.value.isPlaying) {
+        ctrl.play();
       }
     });
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted &&
-          _videoPlayerController != null &&
-          !_videoPlayerController!.value.isPlaying) {
-        _videoPlayerController!.play();
+      final ctrl = _videoPlayerController ?? _activeBackgroundMiniController;
+      if (ctrl != null && !ctrl.value.isPlaying) {
+        ctrl.play();
       }
     });
   }
@@ -591,6 +715,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     final effectiveMessages = _resolveEffectiveMessages(context);
 
     final playerView = NormalPlayerView(
+      key: _playerViewKey,
       controller: _videoPlayerController!,
       showControls: widget.visibility?.showControls ?? true,
       isFullScreen: _fullscreenCoordinator.isInFullscreen,
@@ -620,7 +745,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       child: Directionality(
         textDirection: TextDirection.ltr,
         child: AspectRatio(
-          aspectRatio: _videoPlayerController!.value.isInitialized
+          aspectRatio: (_videoPlayerController!.value.isInitialized &&
+                  _videoPlayerController!.value.aspectRatio > 0)
               ? _videoPlayerController!.value.aspectRatio
               : 16 / 9,
           child: _fullscreenCoordinator.isInFullscreen
@@ -646,9 +772,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
                               color: Colors.white,
                               size: 16,
                             ),
-                            label: const Text(
-                              'Restore Player',
-                              style: TextStyle(color: Colors.white),
+                            label: Text(
+                              effectiveMessages.restorePlayerText,
+                              style: const TextStyle(color: Colors.white),
                             ),
                           ),
                         ],

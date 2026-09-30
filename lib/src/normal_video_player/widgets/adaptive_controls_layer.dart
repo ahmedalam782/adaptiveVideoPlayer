@@ -89,7 +89,9 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
   void _updateSettingsOffset(Offset delta, BoxConstraints constraints) {
     final dialogWidth = widget.isFullScreen ? 330.0 : 300.0;
     final dialogMaxHeight = widget.isFullScreen ? 380.0 : 220.0;
-    final isRtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    final isRtl = (widget.messages ?? const PlayerTextConfig())
+            .resolveTextDirection(context) ==
+        TextDirection.rtl;
     final minX = isRtl ? -8.0 : -(constraints.maxWidth - dialogWidth - 32.0);
     final maxX = isRtl ? (constraints.maxWidth - dialogWidth - 32.0) : 8.0;
     final minY = -(constraints.maxHeight - dialogMaxHeight - 64.0);
@@ -140,6 +142,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                 qualities: widget.qualities,
                 onQualitySelected: widget.onQualitySelected,
                 onAnalyticsEvent: widget.onAnalyticsEvent,
+                messages: widget.messages,
               ),
             ),
           ),

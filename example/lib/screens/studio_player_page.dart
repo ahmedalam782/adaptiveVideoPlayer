@@ -40,21 +40,48 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
     super.dispose();
   }
 
+  List<VideoQuality>? _localizeDemoQualities(
+    List<VideoQuality>? qualities,
+    bool isRtl,
+  ) {
+    if (qualities == null) return null;
+    return qualities.map((q) {
+      final translatedTitle = switch (q.title) {
+        'Auto (HLS)' => isRtl ? 'تلقائي (HLS)' : 'Auto (HLS)',
+        '1080p HD' => isRtl ? '1080p عالي الدقة' : '1080p HD',
+        '720p SD' => isRtl ? '720p قياسي' : '720p SD',
+        'Recorded Episode (MP4)' =>
+          isRtl ? 'حلقة مسجلة (MP4)' : 'Recorded Episode (MP4)',
+        'Mux HLS Stream (.m3u8)' =>
+          isRtl ? 'بث مباشر HLS (.m3u8)' : 'Mux HLS Stream (.m3u8)',
+        _ => q.title,
+      };
+      return VideoQuality(
+        title: translatedTitle,
+        url: q.url,
+        isLive: q.isLive,
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final demo = widget.demo;
     final ambientIsRtl = Directionality.of(context) == TextDirection.rtl ||
         Localizations.maybeLocaleOf(context)?.languageCode == 'ar' ||
-        demo.config.messages.qualityText ==
-            const PlayerTextConfig.arabic().qualityText;
+        demo.config.messages.resolveTextDirection(context) == TextDirection.rtl;
     final isRtl = _localRtlOverride ?? ambientIsRtl;
 
     final basePlayerConfig = demo.config.playerConfig;
+    final effectiveTextConfig = isRtl
+        ? const PlayerTextConfig.arabic()
+        : (_localRtlOverride == false
+            ? const PlayerTextConfig.english()
+            : basePlayerConfig.text);
+
     final effectivePlayerConfig = YouTubePlayerConfig(
       style: basePlayerConfig.style,
-      text: isRtl
-          ? const PlayerTextConfig.arabic()
-          : const PlayerTextConfig.english(),
+      text: effectiveTextConfig,
       visibility: basePlayerConfig.visibility,
       playback: basePlayerConfig.playback,
       loadingBuilder: basePlayerConfig.loadingBuilder,
@@ -63,31 +90,51 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
       liveBadgeBuilder: basePlayerConfig.liveBadgeBuilder,
     );
 
+    final localizedQualities =
+        _localizeDemoQualities(demo.config.qualities, isRtl);
+    final localizedInitialQuality = demo.config.initialQuality != null &&
+            localizedQualities != null &&
+            localizedQualities.isNotEmpty
+        ? localizedQualities.firstWhere(
+            (q) => q.url == demo.config.initialQuality!.url,
+            orElse: () => localizedQualities.first,
+          )
+        : null;
+
+    final localizedViewerCount = switch (demo.config.viewerCount) {
+      '142k VIEWERS' => isRtl ? '142 ألف مشاهد' : '142k VIEWERS',
+      '15.4K' => isRtl ? '15.4 ألف مشاهد' : '15.4K',
+      _ => demo.config.viewerCount,
+    };
+
     // Attach real-time analytics logger to config
     final configWithAnalytics = VideoConfig(
       videoUrl: demo.config.videoUrl,
       isFile: demo.config.isFile,
       isLive: demo.config.isLive,
       videoBytes: demo.config.videoBytes,
-      qualities: demo.config.qualities,
-      initialQuality: demo.config.initialQuality,
+      qualities: localizedQualities,
+      initialQuality: localizedInitialQuality,
       subtitles: demo.config.subtitles,
       initialSubtitle: demo.config.initialSubtitle,
       chapters: demo.config.chapters ??
           (demo.config.isLive
               ? null
-              : const [
-                  VideoChapter(title: 'Intro', startTime: Duration.zero),
+              : [
                   VideoChapter(
-                    title: 'Main Scene',
-                    startTime: Duration(seconds: 20),
+                    title: isRtl ? 'المقدمة' : 'Intro',
+                    startTime: Duration.zero,
                   ),
                   VideoChapter(
-                    title: 'Action Climax',
-                    startTime: Duration(seconds: 45),
+                    title: isRtl ? 'المشهد الرئيسي' : 'Main Scene',
+                    startTime: const Duration(seconds: 20),
+                  ),
+                  VideoChapter(
+                    title: isRtl ? 'ذروة الأحداث' : 'Action Climax',
+                    startTime: const Duration(seconds: 45),
                   ),
                 ]),
-      viewerCount: demo.config.viewerCount,
+      viewerCount: localizedViewerCount,
       controlsBuilder: demo.config.controlsBuilder,
       subtitleBuilder: demo.config.subtitleBuilder,
       playerConfig: effectivePlayerConfig,

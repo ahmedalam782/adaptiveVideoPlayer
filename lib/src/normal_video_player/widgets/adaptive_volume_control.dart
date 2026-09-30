@@ -21,6 +21,7 @@ class AdaptiveVolumeControl extends StatefulWidget {
 
 class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
   bool _isVolumeHovered = false;
+  bool _isDraggingVolume = false;
   double _lastNonZeroVolume = 1.0;
 
   @override
@@ -29,70 +30,91 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
       valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, child) {
         final isMuted = value.volume == 0;
-        final showSlider = widget.alwaysShowSlider || _isVolumeHovered;
+        final showSlider =
+            widget.alwaysShowSlider || _isVolumeHovered || _isDraggingVolume;
 
         return Directionality(
           textDirection: TextDirection.ltr,
           child: MouseRegion(
             onEnter: (_) => setState(() => _isVolumeHovered = true),
             onExit: (_) => setState(() => _isVolumeHovered = false),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  if (isMuted) {
-                    widget.controller.setVolume(_lastNonZeroVolume);
-                  } else {
-                    _lastNonZeroVolume = value.volume;
-                    widget.controller.setVolume(0);
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(6.0),
-                  child: Icon(
-                    isMuted
-                        ? Icons.volume_off_rounded
-                        : value.volume < 0.5
-                            ? Icons.volume_down_rounded
-                            : Icons.volume_up_rounded,
-                    color: widget.styling?.iconColor ?? Colors.white,
-                    size: 20,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              height: 38,
+              padding: EdgeInsets.only(
+                left: 6.0,
+                right: showSlider ? 10.0 : 6.0,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (isMuted) {
+                        widget.controller.setVolume(_lastNonZeroVolume);
+                      } else {
+                        _lastNonZeroVolume = value.volume;
+                        widget.controller.setVolume(0);
+                      }
+                    },
+                    child: SizedBox(
+                      width: 26,
+                      height: 26,
+                      child: Center(
+                        child: Icon(
+                          isMuted
+                              ? Icons.volume_off_rounded
+                              : value.volume < 0.5
+                                  ? Icons.volume_down_rounded
+                                  : Icons.volume_up_rounded,
+                          color: widget.styling?.iconColor ?? Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: showSlider ? 66 : 0,
+                    curve: Curves.easeInOut,
+                    child: ClipRect(
+                      child: showSlider
+                          ? SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 3.0,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 5.5,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 10.0,
+                                ),
+                                activeTrackColor: Colors.white,
+                                inactiveTrackColor: Colors.white30,
+                                thumbColor: Colors.white,
+                              ),
+                              child: Slider(
+                                value: value.volume.clamp(0.0, 1.0),
+                                min: 0.0,
+                                max: 1.0,
+                                onChangeStart: (_) {
+                                  setState(() => _isDraggingVolume = true);
+                                },
+                                onChanged: (newVolume) {
+                                  widget.controller.setVolume(newVolume);
+                                },
+                                onChangeEnd: (_) {
+                                  setState(() => _isDraggingVolume = false);
+                                },
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ),
+                ],
               ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: showSlider ? 64 : 0,
-                curve: Curves.easeInOut,
-                child: ClipRect(
-                  child: showSlider
-                      ? SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            trackHeight: 3.0,
-                            thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 5.5),
-                            overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 10.0),
-                            activeTrackColor: Colors.white,
-                            inactiveTrackColor: Colors.white30,
-                            thumbColor: Colors.white,
-                          ),
-                          child: Slider(
-                            value: value.volume.clamp(0.0, 1.0),
-                            min: 0.0,
-                            max: 1.0,
-                            onChanged: (newVolume) {
-                              widget.controller.setVolume(newVolume);
-                            },
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ),
-            ],
-          ),
+            ),
           ),
         );
       },
