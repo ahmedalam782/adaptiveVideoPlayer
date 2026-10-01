@@ -24,7 +24,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.fullscreen), findsOneWidget);
+      expect(find.byIcon(Icons.fullscreen_rounded), findsOneWidget);
       await tester.tap(find.byType(GestureDetector));
       expect(tapped, true);
     });
@@ -42,7 +42,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.fullscreen_exit), findsOneWidget);
+      expect(find.byIcon(Icons.fullscreen_exit_rounded), findsOneWidget);
     });
   });
 
@@ -61,7 +61,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.volume_up), findsOneWidget);
+      expect(find.byIcon(Icons.volume_up_rounded), findsOneWidget);
       await tester.tap(find.byType(GestureDetector));
       expect(tapped, true);
     });
@@ -79,7 +79,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.volume_off), findsOneWidget);
+      expect(find.byIcon(Icons.volume_off_rounded), findsOneWidget);
     });
   });
 
@@ -97,7 +97,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.settings), findsOneWidget);
+      expect(find.byIcon(Icons.settings_rounded), findsOneWidget);
       await tester.tap(find.byType(GestureDetector));
       expect(tapped, true);
     });

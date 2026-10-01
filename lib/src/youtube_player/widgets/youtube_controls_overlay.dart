@@ -102,74 +102,101 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
             behavior: HitTestBehavior.opaque,
             onTap: _toggleVisibility,
             child: Stack(
-            children: [
-              // Background fade when controls are visible
-              AnimatedOpacity(
-                opacity: _isVisible ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                child: IgnorePointer(
-                  ignoring: !_isVisible,
-                  child: Container(
-                    color: Colors.black.withValues(alpha: 0.4),
-                  ),
-                ),
-              ),
-
-              // Buffering indicator (always visible when buffering)
-              if (isBuffering)
-                Center(
-                  child: CircularProgressIndicator(
-                    color: widget.config.style.loadingIndicatorColor,
-                  ),
-                ),
-
-              // Center play/pause (only when not buffering)
-              if (!isBuffering)
-                Center(
+              fit: StackFit.expand,
+              children: [
+                // Background fade when controls are visible
+                Positioned.fill(
                   child: AnimatedOpacity(
                     opacity: _isVisible ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
                     child: IgnorePointer(
                       ignoring: !_isVisible,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (isPlaying) {
-                            widget.controller.pauseVideo();
-                          } else {
-                            widget.controller.playVideo();
-                          }
-                          _resetTimer();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(
-                            color: Colors.black54,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isPlaying ? Icons.pause : Icons.play_arrow,
-                            color: widget.config.style.iconColor,
-                            size: 32,
-                          ),
-                        ),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.4),
                       ),
                     ),
                   ),
                 ),
 
-              // Seek buttons overlay (always in the center, ignored if controls not visible)
-              if (!isBuffering && !widget.isLive)
-                AnimatedOpacity(
-                  opacity: _isVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: IgnorePointer(
-                    ignoring: !_isVisible,
-                    child: SeekButtonsOverlay(
-                      onSeekBackward: widget.onSeekBackward,
-                      onSeekForward: widget.onSeekForward,
+                // Buffering indicator (always visible when buffering)
+                if (isBuffering)
+                  Positioned.fill(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: widget.config.style.loadingIndicatorColor,
+                      ),
                     ),
                   ),
-                ),
+
+                // Center play/pause (only when not buffering)
+                if (!isBuffering)
+                  Positioned.fill(
+                    child: Center(
+                      child: AnimatedOpacity(
+                        opacity: _isVisible ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 300),
+                        child: IgnorePointer(
+                          ignoring: !_isVisible,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (isPlaying) {
+                                widget.controller.pauseVideo();
+                              } else {
+                                widget.controller.playVideo();
+                              }
+                              _resetTimer();
+                            },
+                            child: Container(
+                              width: 58,
+                              height: 58,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                  width: 1.2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.35),
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  isPlaying
+                                      ? Icons.pause_rounded
+                                      : Icons.play_arrow_rounded,
+                                  color: widget.config.style.iconColor,
+                                  size: 36,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Seek buttons overlay (always in the center, ignored if controls not visible)
+                if (!isBuffering && !widget.isLive)
+                  Positioned.fill(
+                    child: Center(
+                      child: AnimatedOpacity(
+                        opacity: _isVisible ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 300),
+                        child: IgnorePointer(
+                          ignoring: !_isVisible,
+                          child: SeekButtonsOverlay(
+                            onSeekBackward: widget.onSeekBackward,
+                            onSeekForward: widget.onSeekForward,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
               // Top Actions
               if (widget.topActions != null)
@@ -198,7 +225,6 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                   child: IgnorePointer(
                     ignoring: !_isVisible,
                     child: Container(
-                      padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           colors: [Colors.transparent, Colors.black87],
@@ -206,7 +232,17 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                           end: Alignment.bottomCenter,
                         ),
                       ),
-                      child: Row(
+                      child: SafeArea(
+                        top: false,
+                        bottom: widget.isFullscreen,
+                        left: widget.isFullscreen,
+                        right: widget.isFullscreen,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Row(
                         children: PlayerBottomActionsBuilder.build(
                           controller: widget.controller,
                           config: PlayerBottomActionsConfig(
@@ -244,10 +280,12 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
     },
     );
   }

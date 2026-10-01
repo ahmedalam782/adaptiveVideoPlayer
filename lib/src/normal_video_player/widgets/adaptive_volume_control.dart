@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../utils/video_player_web_safe.dart';
 
-/// Interactive volume button and hoverable slider.
+/// Interactive volume button and hoverable / touch-expandable slider.
 class AdaptiveVolumeControl extends StatefulWidget {
   final VideoPlayerController controller;
   final PlayerStyleConfig? styling;
@@ -24,7 +25,54 @@ class AdaptiveVolumeControl extends StatefulWidget {
 class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
   bool _isVolumeHovered = false;
   bool _isDraggingVolume = false;
+  bool _isTouchExpanded = false;
+  Timer? _collapseTimer;
   double _lastNonZeroVolume = 1.0;
+
+  @override
+  void dispose() {
+    _collapseTimer?.cancel();
+    super.dispose();
+  }
+
+  void _resetCollapseTimer() {
+    _collapseTimer?.cancel();
+    _collapseTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted && !_isDraggingVolume) {
+        setState(() => _isTouchExpanded = false);
+      }
+    });
+  }
+
+  void _handleVolumeTap(VideoPlayerValue value, bool isMuted, bool showSlider) {
+    // On mobile / touch screens (when slider is collapsed):
+    // First tap expands the volume slider so user can adjust it!
+    if (!showSlider) {
+      setState(() => _isTouchExpanded = true);
+      _resetCollapseTimer();
+      return;
+    }
+
+    // When already showing slider, tap toggles mute/unmute
+    if (isMuted) {
+      final target = _lastNonZeroVolume > 0 ? _lastNonZeroVolume : 1.0;
+      widget.controller.setVolume(target);
+    } else {
+      _lastNonZeroVolume = value.volume > 0 ? value.volume : 1.0;
+      widget.controller.setVolume(0);
+    }
+    _resetCollapseTimer();
+  }
+
+  void _handleVolumeLongPress(VideoPlayerValue value, bool isMuted) {
+    if (isMuted) {
+      final target = _lastNonZeroVolume > 0 ? _lastNonZeroVolume : 1.0;
+      widget.controller.setVolume(target);
+    } else {
+      _lastNonZeroVolume = value.volume > 0 ? value.volume : 1.0;
+      widget.controller.setVolume(0);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +80,10 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
       valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, child) {
         final isMuted = value.volume == 0;
-        final showSlider =
-            widget.alwaysShowSlider || _isVolumeHovered || _isDraggingVolume;
+        final showSlider = widget.alwaysShowSlider ||
+            _isVolumeHovered ||
+            _isDraggingVolume ||
+            _isTouchExpanded;
         final textDirection = widget.messages?.resolveTextDirection(context) ??
             Directionality.maybeOf(context) ??
             TextDirection.ltr;
@@ -51,7 +101,12 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
           textDirection: textDirection,
           child: MouseRegion(
             onEnter: (_) => setState(() => _isVolumeHovered = true),
-            onExit: (_) => setState(() => _isVolumeHovered = false),
+            onExit: (_) {
+              setState(() {
+                _isVolumeHovered = false;
+                _isTouchExpanded = false;
+              });
+            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
@@ -68,14 +123,8 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
                     waitDuration: const Duration(milliseconds: 500),
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        if (isMuted) {
-                          widget.controller.setVolume(_lastNonZeroVolume);
-                        } else {
-                          _lastNonZeroVolume = value.volume;
-                          widget.controller.setVolume(0);
-                        }
-                      },
+                      onTap: () => _handleVolumeTap(value, isMuted, showSlider),
+                      onLongPress: () => _handleVolumeLongPress(value, isMuted),
                       child: SizedBox(
                         width: 26,
                         height: 26,
@@ -117,13 +166,18 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
                                 min: 0.0,
                                 max: 1.0,
                                 onChangeStart: (_) {
+                                  _collapseTimer?.cancel();
                                   setState(() => _isDraggingVolume = true);
                                 },
                                 onChanged: (newVolume) {
+                                  if (newVolume > 0) {
+                                    _lastNonZeroVolume = newVolume;
+                                  }
                                   widget.controller.setVolume(newVolume);
                                 },
                                 onChangeEnd: (_) {
                                   setState(() => _isDraggingVolume = false);
+                                  _resetCollapseTimer();
                                 },
                               ),
                             )

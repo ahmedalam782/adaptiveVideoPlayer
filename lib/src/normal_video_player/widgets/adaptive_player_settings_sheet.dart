@@ -52,10 +52,7 @@ class AdaptivePlayerSettingsSheetState
   @override
   Widget build(BuildContext context) {
     final isRtl = _isArabicOrRtl(context);
-    final effectiveMessages = widget.messages ??
-        (isRtl
-            ? const PlayerTextConfig.arabic()
-            : const PlayerTextConfig.english());
+    final effectiveMessages = widget.messages ?? const PlayerTextConfig();
 
     Widget page;
     switch (_currentPage) {

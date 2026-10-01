@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../core/services/native_pip_service.dart';
 import '../youtube_player/models/youtube_player_config.dart';
 import 'adaptive_controls.dart';
 import 'coordinator/normal_fullscreen_coordinator.dart';
@@ -77,6 +80,9 @@ class NormalVideoPlayer extends StatefulWidget {
   /// Optional explicit video source type (e.g. VideoSourceType.network)
   final VideoSourceType? sourceType;
 
+  /// Optional aspect ratio override for the video container
+  final double? aspectRatio;
+
   const NormalVideoPlayer({
     super.key,
     required this.videoSource,
@@ -100,6 +106,7 @@ class NormalVideoPlayer extends StatefulWidget {
     this.onAnalyticsEvent,
     this.extension,
     this.sourceType,
+    this.aspectRatio,
   });
 
   @override
@@ -131,9 +138,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
   final NormalFullscreenCoordinator _fullscreenCoordinator =
       NormalFullscreenCoordinator();
-  final GlobalKey _playerViewKey = GlobalKey();
   OverlayEntry? _miniPlayerOverlayEntry;
   bool _transferredToBackgroundMini = false;
+  bool? _lastReportedPipPlaying;
 
   bool get _isInMiniPlayer => _miniPlayerOverlayEntry != null;
   bool get _effectiveIsLive => _currentQuality?.isLive ?? widget.isLive;
@@ -141,6 +148,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   @override
   void initState() {
     super.initState();
+    NativePipService.isInPip.addListener(_onNativePipModeChanged);
+    NativePipService.pipAction.addListener(_onPipActionReceived);
     _currentQuality = widget.initialQuality ?? widget.qualities?.firstOrNull;
     _currentSubtitleTrack = widget.initialSubtitle;
     _hasInMemoryData = widget.videoBytes != null;
@@ -154,6 +163,37 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       },
     );
   }
+
+  void _onNativePipModeChanged() {
+    if (mounted) {
+      setState(() {});
+      if (NativePipService.isInPip.value && _videoPlayerController != null) {
+        final currentPlaying = _videoPlayerController!.value.isPlaying;
+        _lastReportedPipPlaying = currentPlaying;
+        NativePipService.updatePlaybackState(isPlaying: currentPlaying);
+      }
+    }
+  }
+
+  void _onPipActionReceived() {
+    if (!mounted) return;
+    final action = NativePipService.pipAction.value;
+    if (action == 'toggle_play') {
+      final ctrl = _videoPlayerController;
+      if (ctrl != null) {
+        final isPlaying = ctrl.value.isPlaying;
+        if (isPlaying) {
+          ctrl.pause();
+        } else {
+          ctrl.play();
+        }
+        _lastReportedPipPlaying = !isPlaying;
+        NativePipService.updatePlaybackState(isPlaying: !isPlaying);
+        if (mounted) setState(() {});
+      }
+    }
+  }
+
 
   @override
   void didUpdateWidget(covariant NormalVideoPlayer oldWidget) {
@@ -292,6 +332,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
             );
 
       await newController.initialize();
+      newController.addListener(_handlePlayerControllerUpdate);
       if (!newQuality.isLive && currentPosition > Duration.zero) {
         await newController.seekTo(currentPosition);
       }
@@ -315,6 +356,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       }
 
       // Dispose old controller only after new controller is safely active
+      oldController?.removeListener(_handlePlayerControllerUpdate);
       await oldController?.dispose();
     } catch (e) {
       log('Error during seamless quality change: $e');
@@ -415,6 +457,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
             );
 
       await _videoPlayerController!.initialize();
+      _videoPlayerController!.addListener(_handlePlayerControllerUpdate);
 
       if (startAt != null && !_effectiveIsLive) {
         await _videoPlayerController!.seekTo(startAt);
@@ -480,6 +523,35 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     }
   }
 
+  void _handlePlayerControllerUpdate() {
+    if (!mounted || _videoPlayerController == null) return;
+    if (_videoPlayerController!.value.hasError && !_hasError) {
+      final errorMsg = _videoPlayerController!.value.errorDescription ?? '';
+      log('Controller reported playback error: $errorMsg');
+      setState(() {
+        _hasError = true;
+        if (errorMsg.contains('MediaCodec') ||
+            errorMsg.contains('ExoPlaybackException') ||
+            errorMsg.contains('MEDIA_ERR_SRC_NOT_SUPPORTED') ||
+            errorMsg.contains('DEMUXER_ERROR') ||
+            errorMsg.contains('not supported')) {
+          _errorMessage = widget.messages?.videoNotCompatibleText ??
+              'Video Not Compatible';
+        } else {
+          _errorMessage = widget.messages?.videoLoadFailedText ??
+              (errorMsg.isNotEmpty ? errorMsg : 'Video Load Failed');
+        }
+      });
+    }
+    if (NativePipService.isInPip.value && _videoPlayerController != null) {
+      final currentPlaying = _videoPlayerController!.value.isPlaying;
+      if (_lastReportedPipPlaying != currentPlaying) {
+        _lastReportedPipPlaying = currentPlaying;
+        NativePipService.updatePlaybackState(isPlaying: currentPlaying);
+      }
+    }
+  }
+
   @override
   void setState(VoidCallback fn) {
     super.setState(fn);
@@ -490,6 +562,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
   @override
   void dispose() {
+    NativePipService.isInPip.removeListener(_onNativePipModeChanged);
+    NativePipService.pipAction.removeListener(_onPipActionReceived);
     _fullscreenCoordinator.dispose();
     if (_isInMiniPlayer && _videoPlayerController != null) {
       // Keep mini-player and controller alive in background when page pops
@@ -501,6 +575,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     } else if (!_transferredToBackgroundMini) {
       _miniPlayerOverlayEntry?.remove();
       _miniPlayerOverlayEntry = null;
+      _videoPlayerController?.removeListener(_handlePlayerControllerUpdate);
       _videoPlayerController?.dispose();
     }
     super.dispose();
@@ -508,24 +583,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
   PlayerTextConfig _resolveEffectiveMessages(BuildContext context) {
     final ambientDir = Directionality.maybeOf(context);
-    final msg = widget.messages;
-    if (msg == null || msg.isDefaultUnmodified) {
-      final resolvedDir = (msg ?? const PlayerTextConfig())
-          .resolveTextDirection(context, ambientDirection: ambientDir);
-      final resolvedLang = (msg ?? const PlayerTextConfig())
-          .resolveLanguageCode(context, ambientDirection: ambientDir);
-      if (resolvedLang.toLowerCase() == 'ar' ||
-          resolvedDir == TextDirection.rtl) {
-        return PlayerTextConfig.arabic(
-          languageCode: resolvedLang,
-          textDirection: resolvedDir,
-        );
-      }
-      return PlayerTextConfig.english(
-        languageCode: resolvedLang,
-        textDirection: resolvedDir,
-      );
-    }
+    final msg = widget.messages ?? const PlayerTextConfig();
     final resolvedDir =
         msg.resolveTextDirection(context, ambientDirection: ambientDir);
     final resolvedLang =
@@ -551,6 +609,13 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
               errorMessage: _errorMessage,
               styling: widget.styling,
               customBuilder: widget.errorBuilder,
+              onRetry: () {
+                setState(() {
+                  _hasError = false;
+                  _isInitialized = false;
+                });
+                _initializeVideo();
+              },
             ),
           );
         }
@@ -570,7 +635,6 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
           textDirection: effectiveMessages.resolveTextDirection(activeCtx),
           onExitFullscreen: _handleCloseFullscreen,
           child: NormalPlayerView(
-            key: _playerViewKey,
             controller: _videoPlayerController!,
             showControls: widget.visibility?.showControls ?? true,
             isFullScreen: true,
@@ -606,7 +670,12 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     _ensurePlaybackContinues(wasPlaying);
   }
 
-  void _handleOpenMiniPlayer() {
+  void _handleOpenMiniPlayer() async {
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      final entered = await NativePipService.enterPip();
+      if (entered) return;
+    }
+    if (!mounted) return;
     if (_isInMiniPlayer || _videoPlayerController == null) return;
     final overlay = Overlay.maybeOf(context, rootOverlay: true);
     if (overlay == null) return;
@@ -714,6 +783,13 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
         errorMessage: _errorMessage,
         styling: widget.styling,
         customBuilder: widget.errorBuilder,
+        onRetry: () {
+          setState(() {
+            _hasError = false;
+            _isInitialized = false;
+          });
+          _initializeVideo();
+        },
       );
     }
 
@@ -726,10 +802,13 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
     final effectiveMessages = _resolveEffectiveMessages(context);
 
+    final inNativePip = NativePipService.isInPip.value;
+    final showControls =
+        !inNativePip && (widget.visibility?.showControls ?? true);
+
     final playerView = NormalPlayerView(
-      key: _playerViewKey,
       controller: _videoPlayerController!,
-      showControls: widget.visibility?.showControls ?? true,
+      showControls: showControls,
       isFullScreen: _fullscreenCoordinator.isInFullscreen,
       isLive: _effectiveIsLive,
       controlsBuilder: widget.controlsBuilder,
@@ -753,59 +832,87 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       onMiniPlayerPressed: _handleOpenMiniPlayer,
     );
 
+    final resolvedAspectRatio = widget.aspectRatio ??
+        ((_videoPlayerController!.value.isInitialized &&
+                _videoPlayerController!.value.aspectRatio > 0 &&
+                !_videoPlayerController!.value.size.isEmpty &&
+                _videoPlayerController!.value.size.width > 0 &&
+                _videoPlayerController!.value.size.height > 0)
+            ? _videoPlayerController!.value.aspectRatio
+            : 16 / 9);
+
+    final Widget contentChild;
+    if (inNativePip) {
+      contentChild = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          final ctrl = _videoPlayerController;
+          if (ctrl != null) {
+            final isPlaying = ctrl.value.isPlaying;
+            if (isPlaying) {
+              ctrl.pause();
+            } else {
+              ctrl.play();
+            }
+            _lastReportedPipPlaying = !isPlaying;
+            NativePipService.updatePlaybackState(isPlaying: !isPlaying);
+            if (mounted) setState(() {});
+          }
+        },
+        child: playerView,
+      );
+    } else if (_fullscreenCoordinator.isInFullscreen) {
+      contentChild = const SizedBox();
+    } else if (_isInMiniPlayer) {
+      contentChild = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _handleCloseMiniPlayer(pauseOnClose: false),
+        child: Material(
+          color: Colors.black87,
+          child: InkWell(
+            onTap: () => _handleCloseMiniPlayer(pauseOnClose: false),
+            hoverColor: Colors.white.withValues(alpha: 0.05),
+            splashColor: Colors.white.withValues(alpha: 0.1),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.picture_in_picture_alt_rounded,
+                    color: Colors.white54,
+                    size: 36,
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () =>
+                        _handleCloseMiniPlayer(pauseOnClose: false),
+                    icon: const Icon(
+                      Icons.open_in_full_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    label: Text(
+                      effectiveMessages.restorePlayerText,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      contentChild = playerView;
+    }
+
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: inNativePip ? BorderRadius.zero : BorderRadius.circular(8),
       child: Directionality(
         textDirection: effectiveMessages.resolveTextDirection(context),
         child: AspectRatio(
-          aspectRatio: (_videoPlayerController!.value.isInitialized &&
-                  _videoPlayerController!.value.aspectRatio > 0)
-              ? _videoPlayerController!.value.aspectRatio
-              : 16 / 9,
-          child: _fullscreenCoordinator.isInFullscreen
-              ? const SizedBox()
-              : _isInMiniPlayer
-                  ? GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () =>
-                          _handleCloseMiniPlayer(pauseOnClose: false),
-                      child: Material(
-                        color: Colors.black87,
-                        child: InkWell(
-                          onTap: () =>
-                              _handleCloseMiniPlayer(pauseOnClose: false),
-                          hoverColor: Colors.white.withValues(alpha: 0.05),
-                          splashColor: Colors.white.withValues(alpha: 0.1),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.picture_in_picture_alt_rounded,
-                                  color: Colors.white54,
-                                  size: 36,
-                                ),
-                                const SizedBox(height: 8),
-                                TextButton.icon(
-                                  onPressed: () =>
-                                      _handleCloseMiniPlayer(pauseOnClose: false),
-                                  icon: const Icon(
-                                    Icons.open_in_full_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                  label: Text(
-                                    effectiveMessages.restorePlayerText,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  : playerView,
+          aspectRatio: resolvedAspectRatio,
+          child: contentChild,
         ),
       ),
     );

@@ -33,6 +33,7 @@ export 'src/core/mixins/controls_visibility_mixin.dart';
 export 'src/core/mixins/volume_feedback_mixin.dart';
 export 'src/core/services/analytics_service.dart';
 export 'src/core/services/fullscreen_service.dart';
+export 'src/core/services/native_pip_service.dart';
 export 'src/normal_video_player/adaptive_controls.dart'
     show AdaptiveControlsBuilder, SubtitleBuilder;
 export 'src/normal_video_player/models/video_config.dart';
@@ -58,6 +59,7 @@ class AdaptiveVideoPlayer extends StatefulWidget {
   final IVideoPlayerController? customController;
   final IFullscreenService? fullscreenService;
   final IAnalyticsService? analyticsService;
+  final double? aspectRatio;
 
   const AdaptiveVideoPlayer({
     super.key,
@@ -65,6 +67,7 @@ class AdaptiveVideoPlayer extends StatefulWidget {
     this.customController,
     this.fullscreenService,
     this.analyticsService,
+    this.aspectRatio,
   });
 
   @override
@@ -127,6 +130,7 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
         isLive: widget.config.isLive,
         loadingBuilder: widget.config.loadingBuilder,
         errorBuilder: widget.config.errorBuilder,
+        aspectRatio: widget.aspectRatio ?? widget.config.aspectRatio,
       );
     }
 
@@ -153,6 +157,7 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
       onAnalyticsEvent: widget.config.onAnalyticsEvent,
       extension: widget.config.extension,
       sourceType: widget.config.sourceType,
+      aspectRatio: widget.config.aspectRatio,
     );
   }
 }

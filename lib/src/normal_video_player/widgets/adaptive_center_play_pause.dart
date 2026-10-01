@@ -10,6 +10,7 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
   final bool isFullScreen;
+  final VoidCallback? onPlayPause;
 
   const AdaptiveCenterPlayPause({
     super.key,
@@ -17,6 +18,7 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
     this.styling,
     this.onAnalyticsEvent,
     this.isFullScreen = false,
+    this.onPlayPause,
   });
 
   @override
@@ -25,49 +27,65 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
       valueListenable: controller,
       builder: (context, VideoPlayerValue value, child) {
         final isPlaying = value.isPlaying;
-        final iconSize = isFullScreen ? 38.0 : 26.0;
-        final padding = isFullScreen
-            ? const EdgeInsets.all(14)
-            : const EdgeInsets.all(10);
+        final buttonSize = isFullScreen ? 64.0 : 52.0;
+        final iconSize = isFullScreen ? 38.0 : 30.0;
         final blurSigma = isFullScreen ? 12.0 : 8.0;
 
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            if (isPlaying) {
-              controller.pause();
-              onAnalyticsEvent?.call('video_paused',
-                  {'position': controller.value.position.inSeconds});
-            } else {
-              controller.play();
-              onAnalyticsEvent?.call('video_played',
-                  {'position': controller.value.position.inSeconds});
-            }
-          },
-          child: ClipOval(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-              child: Container(
-                padding: padding,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.22),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.35),
-                      blurRadius: isFullScreen ? 24 : 12,
-                      offset: const Offset(0, 4),
+        return Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              if (isPlaying) {
+                controller.pause();
+                onAnalyticsEvent?.call('video_paused',
+                    {'position': controller.value.position.inSeconds});
+              } else {
+                if (value.position >= value.duration &&
+                    value.duration > Duration.zero) {
+                  controller.seekTo(Duration.zero);
+                }
+                controller.play();
+                onAnalyticsEvent?.call('video_played',
+                    {'position': controller.value.position.inSeconds});
+              }
+              onPlayPause?.call();
+            },
+            splashColor: Colors.white24,
+            highlightColor: Colors.white10,
+            child: ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+                child: Container(
+                  width: buttonSize,
+                  height: buttonSize,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      width: 1.5,
                     ),
-                  ],
-                ),
-                child: Icon(
-                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  color: styling?.iconColor ?? Colors.white,
-                  size: iconSize,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        blurRadius: isFullScreen ? 24 : 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Transform.translate(
+                    offset: Offset(isPlaying ? 0.0 : 2.0, 0.0),
+                    child: Icon(
+                      isPlaying
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded,
+                      color: styling?.iconColor ?? Colors.white,
+                      size: iconSize,
+                    ),
+                  ),
                 ),
               ),
             ),

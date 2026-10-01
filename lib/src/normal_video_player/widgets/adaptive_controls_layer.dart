@@ -136,30 +136,37 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                   ],
                 ),
               ),
-              child: AdaptiveTopBar(
-                isFullScreen: widget.isFullScreen,
-                onExitFullscreen: widget.onExitFullscreen,
-                isLive: widget.isLive,
-                viewerCount: widget.viewerCount,
-                qualities: widget.qualities,
-                onQualitySelected: widget.onQualitySelected,
-                onAnalyticsEvent: widget.onAnalyticsEvent,
-                messages: widget.messages,
-                styling: widget.styling,
-                visibility: widget.visibility,
+              child: SafeArea(
+                bottom: false,
+                top: widget.isFullScreen,
+                left: widget.isFullScreen,
+                right: widget.isFullScreen,
+                child: AdaptiveTopBar(
+                  isFullScreen: widget.isFullScreen,
+                  onExitFullscreen: widget.onExitFullscreen,
+                  isLive: widget.isLive,
+                  viewerCount: widget.viewerCount,
+                  qualities: widget.qualities,
+                  onQualitySelected: widget.onQualitySelected,
+                  onAnalyticsEvent: widget.onAnalyticsEvent,
+                  messages: widget.messages,
+                  styling: widget.styling,
+                  visibility: widget.visibility,
+                ),
               ),
             ),
           ),
 
-        // Center Play/Pause Indicator
+        // Center Play/Pause Indicator (centered in video frame)
         if (widget.visibility?.showCenterPlayPause ?? true)
-          Align(
-            alignment: Alignment.center,
-            child: AdaptiveCenterPlayPause(
-              controller: widget.controller,
-              styling: widget.styling,
-              onAnalyticsEvent: widget.onAnalyticsEvent,
-              isFullScreen: widget.isFullScreen,
+          Positioned.fill(
+            child: Center(
+              child: AdaptiveCenterPlayPause(
+                controller: widget.controller,
+                styling: widget.styling,
+                onAnalyticsEvent: widget.onAnalyticsEvent,
+                isFullScreen: widget.isFullScreen,
+              ),
             ),
           ),
 

@@ -62,19 +62,40 @@ class AdaptiveTopBar extends StatelessWidget {
               message: messages?.backText ??
                   messages?.exitFullscreenText ??
                   'Back',
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: onExitFullscreen,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    isRtl ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
-                    color: iconColor,
-                    size: 20,
+              child: Material(
+                color: Colors.transparent,
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: onExitFullscreen,
+                  splashColor: Colors.white24,
+                  highlightColor: Colors.white10,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        width: 1.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      isRtl
+                          ? Icons.arrow_forward_rounded
+                          : Icons.arrow_back_rounded,
+                      color: iconColor,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),

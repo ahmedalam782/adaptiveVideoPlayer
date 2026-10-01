@@ -8,12 +8,16 @@ class CreativeDemoCard extends StatelessWidget {
   final DemoShowcaseItem demo;
   final bool isDark;
   final VoidCallback? onToggleLanguage;
+  final String? currentLanguageCode;
+  final ValueChanged<String>? onSelectLanguage;
 
   const CreativeDemoCard({
     super.key,
     required this.demo,
     required this.isDark,
     this.onToggleLanguage,
+    this.currentLanguageCode,
+    this.onSelectLanguage,
   });
 
   @override
@@ -46,6 +50,8 @@ class CreativeDemoCard extends StatelessWidget {
                 builder: (_) => StudioPlayerPage(
                   demo: demo,
                   onToggleLanguage: onToggleLanguage,
+                  currentLanguageCode: currentLanguageCode,
+                  onSelectLanguage: onSelectLanguage,
                 ),
               ),
             );

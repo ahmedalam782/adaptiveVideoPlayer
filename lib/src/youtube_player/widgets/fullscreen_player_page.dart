@@ -73,20 +73,19 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
       startAt: targetPosition.inSeconds,
     );
 
-    if (_state.isMuted) {
-      _controller!.mute();
-    } else {
-      _controller!.unMute();
-    }
-
     _videoStateSub?.cancel();
-    _videoStateSub = _controller!.videoStateStream.listen((state) {
-      if (mounted) {
-        setState(() {
-          _currentPosition = state.position;
-        });
-      }
-    });
+    _videoStateSub = _controller!.videoStateStream.listen(
+      (state) {
+        if (mounted) {
+          setState(() {
+            _currentPosition = state.position;
+          });
+        }
+      },
+      onError: (e) {
+        debugPrint('YouTube fullscreen videoStateStream error: $e');
+      },
+    );
 
     _playerValueSub?.cancel();
     _playerValueSub = _controller!.stream.listen((value) {
@@ -124,12 +123,18 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
           }
         }
       }
+    }, onError: (e) {
+      debugPrint('YouTube fullscreen stream error: $e');
     });
   }
 
   Future<void> _verifyAndCorrectPosition(Duration targetPosition) async {
     if (_isDisposed || !mounted || _controller == null) return;
-    await PlayerUtils.verifyAndCorrectPosition(_controller, targetPosition);
+    try {
+      await PlayerUtils.verifyAndCorrectPosition(_controller, targetPosition);
+    } catch (e) {
+      debugPrint('YouTube verifyAndCorrectPosition error: $e');
+    }
   }
 
   @override
@@ -265,11 +270,7 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
     await Future.delayed(const Duration(milliseconds: 500));
 
     if (mounted && _controller != null && !_isDisposed) {
-      if (_state.isMuted) {
-        _controller!.mute();
-      } else {
-        _controller!.unMute();
-      }
+      PlayerUtils.setMute(_controller!, _state.isMuted);
     }
 
     if (mounted && _controller != null && !_isDisposed && wasPlaying) {
@@ -322,44 +323,66 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                             onSettingsTap: _showSettingsBottomSheet,
                             onSeekBackward: _seekBackward,
                             onSeekForward: _seekForward,
-                            topActions: Stack(
-                              children: [
-                                PositionedDirectional(
-                                  top: 40,
-                                  end: 16,
-                                  child: widget.config.liveBadgeBuilder?.call(
-                                        context,
-                                        isLive: widget.isLive,
-                                        viewerCount: widget.viewerCount,
-                                      ) ??
-                                      YouTubeLiveBadge(
-                                        isLive: widget.isLive,
-                                        viewerCount: widget.viewerCount,
-                                        liveText: widget.config.text.liveText,
-                                      ),
+                            topActions: SafeArea(
+                              bottom: false,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
                                 ),
-                                PositionedDirectional(
-                                  top: 40,
-                                  start: 16,
-                                  child: GestureDetector(
-                                    onTap: _exitFullscreen,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black
-                                            .withValues(alpha: 0.6),
-                                        borderRadius:
-                                            BorderRadius.circular(25),
-                                      ),
-                                      child: const Icon(
-                                        Icons.arrow_back,
-                                        color: Colors.white,
-                                        size: 28,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _exitFullscreen,
+                                        borderRadius: BorderRadius.circular(24),
+                                        child: Container(
+                                          width: 44,
+                                          height: 44,
+                                          decoration: BoxDecoration(
+                                            color: Colors.black
+                                                .withValues(alpha: 0.65),
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.25),
+                                              width: 1.2,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.35),
+                                                blurRadius: 8,
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.arrow_back_rounded,
+                                              color: Colors.white,
+                                              size: 24,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                    widget.config.liveBadgeBuilder?.call(
+                                          context,
+                                          isLive: widget.isLive,
+                                          viewerCount: widget.viewerCount,
+                                        ) ??
+                                        YouTubeLiveBadge(
+                                          isLive: widget.isLive,
+                                          viewerCount: widget.viewerCount,
+                                          liveText: widget.config.text.liveText,
+                                        ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ],

@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 
 /// Configuration model for player localization, text labels, and error messages (SRP).
-/// All UI labels in the package are driven dynamically by this configuration
-/// so developers can provide any language, text direction, or wording they want.
+///
+/// In the package, all labels and error messages default strictly to English ('en').
+/// Host applications can supply any language, text direction, or wording they need
+/// via [PlayerTextConfig], [PlayerTextConfig.fromMap], or [PlayerTextConfig.dynamic].
 class PlayerTextConfig {
   /// Optional ISO language code (e.g. 'en', 'ar', 'fr', 'es', 'tr', 'de', 'ur')
   final String? languageCode;
@@ -115,6 +117,7 @@ class PlayerTextConfig {
   /// Tooltip / label for volume slider / button
   final String volumeText;
 
+  /// Creates a player text configuration with default English labels.
   const PlayerTextConfig({
     this.languageCode,
     this.textDirection,
@@ -156,284 +159,624 @@ class PlayerTextConfig {
     this.volumeText = 'Volume',
   });
 
-  /// Arabic (RTL) localization preset
-  const PlayerTextConfig.arabic({
-    this.languageCode = 'ar',
-    this.textDirection = TextDirection.rtl,
-    this.invalidYoutubeUrlText = 'رابط يوتيوب غير صالح',
-    this.videoLoadFailedText = 'فشل تحميل الفيديو',
-    this.videoUnavailableText = 'الفيديو غير متاح',
-    this.videoNotCompatibleText = 'صيغة الفيديو غير مدعومة',
-    this.videoCannotBeLoadedSecurityPolicyText =
-        'تعذر تحميل الفيديو بسبب سياسة الأمان',
-    this.playerSettingsText = 'إعدادات المشغل',
-    this.autoPlayText = 'التشغيل التلقائي',
-    this.loopVideoText = 'تكرار الفيديو',
-    this.forceHdQualityText = 'فرض جودة عالية HD',
-    this.enableCaptionsText = 'تفعيل الترجمة',
-    this.muteAudioText = 'كتم الصوت',
-    this.unmuteAudioText = 'إلغاء كتم الصوت',
-    this.noQualitiesAvailableText = 'لا توجد جودات متاحة',
-    this.noSubtitlesAvailableText = 'لا توجد ترجمات متاحة',
-    this.qualityText = 'الجودة (الدقة)',
-    this.subtitlesText = 'الترجمة',
-    this.playbackSpeedText = 'سرعة التشغيل',
-    this.normalSpeedText = 'عادي',
-    this.autoText = 'تلقائي',
-    this.offText = 'إيقاف',
-    this.skipBackwardText = 'تأخير 10 ثواني',
-    this.skipForwardText = 'تقديم 10 ثواني',
-    this.miniPlayerText = 'المشغل المصغر',
-    this.restorePlayerText = 'استعادة المشغل',
-    this.expandPlayerText = 'تكبير المشغل',
-    this.closeMiniPlayerText = 'إغلاق المشغل المصغر',
-    this.playText = 'تشغيل',
-    this.pauseText = 'إيقاف مؤقت',
-    this.fullscreenText = 'ملء الشاشة',
-    this.exitFullscreenText = 'إنهاء ملء الشاشة',
-    this.liveText = 'مباشر',
-    this.goLiveText = 'البث المباشر',
-    this.speed2xText = '2x',
-    this.backText = 'رجوع',
-    this.volumeText = 'مستوى الصوت',
-  });
-
-  /// English (LTR) localization preset
+  /// Explicit English (LTR) localization constructor.
   const PlayerTextConfig.english({
-    this.languageCode = 'en',
-    this.textDirection = TextDirection.ltr,
-    this.invalidYoutubeUrlText = 'Invalid YouTube URL',
-    this.videoLoadFailedText = 'Failed to load video',
-    this.videoUnavailableText = 'Video unavailable',
-    this.videoNotCompatibleText = 'Video format not compatible',
-    this.videoCannotBeLoadedSecurityPolicyText =
+    String? languageCode = 'en',
+    TextDirection? textDirection = TextDirection.ltr,
+    String invalidYoutubeUrlText = 'Invalid YouTube URL',
+    String videoLoadFailedText = 'Failed to load video',
+    String videoUnavailableText = 'Video unavailable',
+    String videoNotCompatibleText = 'Video format not compatible',
+    String videoCannotBeLoadedSecurityPolicyText =
         'Video cannot be loaded due to security policy',
-    this.playerSettingsText = 'Player Settings',
-    this.autoPlayText = 'Auto Play',
-    this.loopVideoText = 'Loop Video',
-    this.forceHdQualityText = 'Force HD Quality',
-    this.enableCaptionsText = 'Enable Captions',
-    this.muteAudioText = 'Mute Audio',
-    this.unmuteAudioText = 'Unmute Audio',
-    this.noQualitiesAvailableText = 'No qualities available',
-    this.noSubtitlesAvailableText = 'No subtitles available',
-    this.qualityText = 'Quality (Resolution)',
-    this.subtitlesText = 'Subtitles',
-    this.playbackSpeedText = 'Playback Speed',
-    this.normalSpeedText = 'Normal',
-    this.autoText = 'Auto',
-    this.offText = 'Off',
-    this.skipBackwardText = 'Rewind 10s',
-    this.skipForwardText = 'Forward 10s',
-    this.miniPlayerText = 'Miniplayer',
-    this.restorePlayerText = 'Restore Player',
-    this.expandPlayerText = 'Expand player',
-    this.closeMiniPlayerText = 'Close miniplayer',
-    this.playText = 'Play',
-    this.pauseText = 'Pause',
-    this.fullscreenText = 'Fullscreen',
-    this.exitFullscreenText = 'Exit Fullscreen',
-    this.liveText = 'LIVE',
-    this.goLiveText = 'GO LIVE',
-    this.speed2xText = '2x',
-    this.backText = 'Back',
-    this.volumeText = 'Volume',
-  });
+    String playerSettingsText = 'Player Settings',
+    String autoPlayText = 'Auto Play',
+    String loopVideoText = 'Loop Video',
+    String forceHdQualityText = 'Force HD Quality',
+    String enableCaptionsText = 'Enable Captions',
+    String muteAudioText = 'Mute Audio',
+    String unmuteAudioText = 'Unmute Audio',
+    String noQualitiesAvailableText = 'No qualities available',
+    String noSubtitlesAvailableText = 'No subtitles available',
+    String qualityText = 'Quality (Resolution)',
+    String subtitlesText = 'Subtitles',
+    String playbackSpeedText = 'Playback Speed',
+    String normalSpeedText = 'Normal',
+    String autoText = 'Auto',
+    String offText = 'Off',
+    String skipBackwardText = 'Rewind 10s',
+    String skipForwardText = 'Forward 10s',
+    String miniPlayerText = 'Miniplayer',
+    String restorePlayerText = 'Restore Player',
+    String expandPlayerText = 'Expand player',
+    String closeMiniPlayerText = 'Close miniplayer',
+    String playText = 'Play',
+    String pauseText = 'Pause',
+    String fullscreenText = 'Fullscreen',
+    String exitFullscreenText = 'Exit Fullscreen',
+    String liveText = 'LIVE',
+    String goLiveText = 'GO LIVE',
+    String speed2xText = '2x',
+    String backText = 'Back',
+    String volumeText = 'Volume',
+  }) : this(
+          languageCode: languageCode,
+          textDirection: textDirection,
+          invalidYoutubeUrlText: invalidYoutubeUrlText,
+          videoLoadFailedText: videoLoadFailedText,
+          videoUnavailableText: videoUnavailableText,
+          videoNotCompatibleText: videoNotCompatibleText,
+          videoCannotBeLoadedSecurityPolicyText:
+              videoCannotBeLoadedSecurityPolicyText,
+          playerSettingsText: playerSettingsText,
+          autoPlayText: autoPlayText,
+          loopVideoText: loopVideoText,
+          forceHdQualityText: forceHdQualityText,
+          enableCaptionsText: enableCaptionsText,
+          muteAudioText: muteAudioText,
+          unmuteAudioText: unmuteAudioText,
+          noQualitiesAvailableText: noQualitiesAvailableText,
+          noSubtitlesAvailableText: noSubtitlesAvailableText,
+          qualityText: qualityText,
+          subtitlesText: subtitlesText,
+          playbackSpeedText: playbackSpeedText,
+          normalSpeedText: normalSpeedText,
+          autoText: autoText,
+          offText: offText,
+          skipBackwardText: skipBackwardText,
+          skipForwardText: skipForwardText,
+          miniPlayerText: miniPlayerText,
+          restorePlayerText: restorePlayerText,
+          expandPlayerText: expandPlayerText,
+          closeMiniPlayerText: closeMiniPlayerText,
+          playText: playText,
+          pauseText: pauseText,
+          fullscreenText: fullscreenText,
+          exitFullscreenText: exitFullscreenText,
+          liveText: liveText,
+          goLiveText: goLiveText,
+          speed2xText: speed2xText,
+          backText: backText,
+          volumeText: volumeText,
+        );
 
-  /// Spanish (Español - LTR) localization preset
+  /// Deprecated convenience constructor.
+  /// To localize the player into Arabic, provide Arabic strings in your app using
+  /// [PlayerTextConfig.fromMap] or custom language files as demonstrated in the example app.
+  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
+  const PlayerTextConfig.arabic({
+    String? languageCode = 'ar',
+    TextDirection? textDirection = TextDirection.rtl,
+    String invalidYoutubeUrlText = 'رابط يوتيوب غير صالح',
+    String videoLoadFailedText = 'فشل تحميل الفيديو',
+    String videoUnavailableText = 'الفيديو غير متاح',
+    String videoNotCompatibleText = 'صيغة الفيديو غير مدعومة',
+    String videoCannotBeLoadedSecurityPolicyText =
+        'تعذر تحميل الفيديو بسبب سياسة الأمان',
+    String playerSettingsText = 'إعدادات المشغل',
+    String autoPlayText = 'التشغيل التلقائي',
+    String loopVideoText = 'تكرار الفيديو',
+    String forceHdQualityText = 'فرض جودة عالية HD',
+    String enableCaptionsText = 'تفعيل الترجمة',
+    String muteAudioText = 'كتم الصوت',
+    String unmuteAudioText = 'إلغاء كتم الصوت',
+    String noQualitiesAvailableText = 'لا توجد جودات متاحة',
+    String noSubtitlesAvailableText = 'لا توجد ترجمات متاحة',
+    String qualityText = 'الجودة (الدقة)',
+    String subtitlesText = 'الترجمة',
+    String playbackSpeedText = 'سرعة التشغيل',
+    String normalSpeedText = 'عادي',
+    String autoText = 'تلقائي',
+    String offText = 'إيقاف',
+    String skipBackwardText = 'تأخير 10 ثواني',
+    String skipForwardText = 'تقديم 10 ثواني',
+    String miniPlayerText = 'المشغل المصغر',
+    String restorePlayerText = 'استعادة المشغل',
+    String expandPlayerText = 'تكبير المشغل',
+    String closeMiniPlayerText = 'إغلاق المشغل المصغر',
+    String playText = 'تشغيل',
+    String pauseText = 'إيقاف مؤقت',
+    String fullscreenText = 'ملء الشاشة',
+    String exitFullscreenText = 'إنهاء ملء الشاشة',
+    String liveText = 'مباشر',
+    String goLiveText = 'البث المباشر',
+    String speed2xText = '2x',
+    String backText = 'رجوع',
+    String volumeText = 'مستوى الصوت',
+  }) : this(
+          languageCode: languageCode,
+          textDirection: textDirection,
+          invalidYoutubeUrlText: invalidYoutubeUrlText,
+          videoLoadFailedText: videoLoadFailedText,
+          videoUnavailableText: videoUnavailableText,
+          videoNotCompatibleText: videoNotCompatibleText,
+          videoCannotBeLoadedSecurityPolicyText:
+              videoCannotBeLoadedSecurityPolicyText,
+          playerSettingsText: playerSettingsText,
+          autoPlayText: autoPlayText,
+          loopVideoText: loopVideoText,
+          forceHdQualityText: forceHdQualityText,
+          enableCaptionsText: enableCaptionsText,
+          muteAudioText: muteAudioText,
+          unmuteAudioText: unmuteAudioText,
+          noQualitiesAvailableText: noQualitiesAvailableText,
+          noSubtitlesAvailableText: noSubtitlesAvailableText,
+          qualityText: qualityText,
+          subtitlesText: subtitlesText,
+          playbackSpeedText: playbackSpeedText,
+          normalSpeedText: normalSpeedText,
+          autoText: autoText,
+          offText: offText,
+          skipBackwardText: skipBackwardText,
+          skipForwardText: skipForwardText,
+          miniPlayerText: miniPlayerText,
+          restorePlayerText: restorePlayerText,
+          expandPlayerText: expandPlayerText,
+          closeMiniPlayerText: closeMiniPlayerText,
+          playText: playText,
+          pauseText: pauseText,
+          fullscreenText: fullscreenText,
+          exitFullscreenText: exitFullscreenText,
+          liveText: liveText,
+          goLiveText: goLiveText,
+          speed2xText: speed2xText,
+          backText: backText,
+          volumeText: volumeText,
+        );
+
+  /// Deprecated convenience constructor.
+  /// To localize into Spanish, provide Spanish translations in your app via [PlayerTextConfig.fromMap].
+  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.spanish({
-    this.languageCode = 'es',
-    this.textDirection = TextDirection.ltr,
-    this.invalidYoutubeUrlText = 'URL de YouTube no válida',
-    this.videoLoadFailedText = 'Error al cargar el vídeo',
-    this.videoUnavailableText = 'Vídeo no disponible',
-    this.videoNotCompatibleText = 'Formato de vídeo no compatible',
-    this.videoCannotBeLoadedSecurityPolicyText =
+    String? languageCode = 'es',
+    TextDirection? textDirection = TextDirection.ltr,
+    String invalidYoutubeUrlText = 'URL de YouTube no válida',
+    String videoLoadFailedText = 'Error al cargar el vídeo',
+    String videoUnavailableText = 'Vídeo no disponible',
+    String videoNotCompatibleText = 'Formato de vídeo no compatible',
+    String videoCannotBeLoadedSecurityPolicyText =
         'No se puede cargar el vídeo debido a la política de seguridad',
-    this.playerSettingsText = 'Ajustes del reproductor',
-    this.autoPlayText = 'Reproducción automática',
-    this.loopVideoText = 'Repetir vídeo',
-    this.forceHdQualityText = 'Forzar calidad HD',
-    this.enableCaptionsText = 'Activar subtítulos',
-    this.muteAudioText = 'Silenciar audio',
-    this.unmuteAudioText = 'Activar audio',
-    this.noQualitiesAvailableText = 'No hay calidades disponibles',
-    this.noSubtitlesAvailableText = 'No hay subtítulos disponibles',
-    this.qualityText = 'Calidad (Resolución)',
-    this.subtitlesText = 'Subtítulos',
-    this.playbackSpeedText = 'Velocidad de reproducción',
-    this.normalSpeedText = 'Normal',
-    this.autoText = 'Automático',
-    this.offText = 'Desactivado',
-    this.skipBackwardText = 'Retroceder 10s',
-    this.skipForwardText = 'Avanzar 10s',
-    this.miniPlayerText = 'Minirreproductor',
-    this.restorePlayerText = 'Restaurar reproductor',
-    this.expandPlayerText = 'Expandir reproductor',
-    this.closeMiniPlayerText = 'Cerrar minirreproductor',
-    this.playText = 'Reproducir',
-    this.pauseText = 'Pausar',
-    this.fullscreenText = 'Pantalla completa',
-    this.exitFullscreenText = 'Salir de pantalla completa',
-    this.liveText = 'EN DIRECTO',
-    this.goLiveText = 'IR AL DIRECTO',
-    this.speed2xText = '2x',
-    this.backText = 'Atrás',
-    this.volumeText = 'Volumen',
-  });
+    String playerSettingsText = 'Ajustes del reproductor',
+    String autoPlayText = 'Reproducción automática',
+    String loopVideoText = 'Repetir vídeo',
+    String forceHdQualityText = 'Forzar calidad HD',
+    String enableCaptionsText = 'Activar subtítulos',
+    String muteAudioText = 'Silenciar audio',
+    String unmuteAudioText = 'Activar audio',
+    String noQualitiesAvailableText = 'No hay calidades disponibles',
+    String noSubtitlesAvailableText = 'No hay subtítulos disponibles',
+    String qualityText = 'Calidad (Resolución)',
+    String subtitlesText = 'Subtítulos',
+    String playbackSpeedText = 'Velocidad de reproducción',
+    String normalSpeedText = 'Normal',
+    String autoText = 'Automático',
+    String offText = 'Desactivado',
+    String skipBackwardText = 'Retroceder 10s',
+    String skipForwardText = 'Avanzar 10s',
+    String miniPlayerText = 'Minirreproductor',
+    String restorePlayerText = 'Restaurar reproductor',
+    String expandPlayerText = 'Expandir reproductor',
+    String closeMiniPlayerText = 'Cerrar minirreproductor',
+    String playText = 'Reproducir',
+    String pauseText = 'Pausar',
+    String fullscreenText = 'Pantalla completa',
+    String exitFullscreenText = 'Salir de pantalla completa',
+    String liveText = 'EN DIRECTO',
+    String goLiveText = 'IR AL DIRECTO',
+    String speed2xText = '2x',
+    String backText = 'Atrás',
+    String volumeText = 'Volumen',
+  }) : this(
+          languageCode: languageCode,
+          textDirection: textDirection,
+          invalidYoutubeUrlText: invalidYoutubeUrlText,
+          videoLoadFailedText: videoLoadFailedText,
+          videoUnavailableText: videoUnavailableText,
+          videoNotCompatibleText: videoNotCompatibleText,
+          videoCannotBeLoadedSecurityPolicyText:
+              videoCannotBeLoadedSecurityPolicyText,
+          playerSettingsText: playerSettingsText,
+          autoPlayText: autoPlayText,
+          loopVideoText: loopVideoText,
+          forceHdQualityText: forceHdQualityText,
+          enableCaptionsText: enableCaptionsText,
+          muteAudioText: muteAudioText,
+          unmuteAudioText: unmuteAudioText,
+          noQualitiesAvailableText: noQualitiesAvailableText,
+          noSubtitlesAvailableText: noSubtitlesAvailableText,
+          qualityText: qualityText,
+          subtitlesText: subtitlesText,
+          playbackSpeedText: playbackSpeedText,
+          normalSpeedText: normalSpeedText,
+          autoText: autoText,
+          offText: offText,
+          skipBackwardText: skipBackwardText,
+          skipForwardText: skipForwardText,
+          miniPlayerText: miniPlayerText,
+          restorePlayerText: restorePlayerText,
+          expandPlayerText: expandPlayerText,
+          closeMiniPlayerText: closeMiniPlayerText,
+          playText: playText,
+          pauseText: pauseText,
+          fullscreenText: fullscreenText,
+          exitFullscreenText: exitFullscreenText,
+          liveText: liveText,
+          goLiveText: goLiveText,
+          speed2xText: speed2xText,
+          backText: backText,
+          volumeText: volumeText,
+        );
 
-  /// French (Français - LTR) localization preset
+  /// Deprecated convenience constructor.
+  /// To localize into French, provide French translations in your app via [PlayerTextConfig.fromMap].
+  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.french({
-    this.languageCode = 'fr',
-    this.textDirection = TextDirection.ltr,
-    this.invalidYoutubeUrlText = 'URL YouTube non valide',
-    this.videoLoadFailedText = 'Échec du chargement de la vidéo',
-    this.videoUnavailableText = 'Vidéo non disponible',
-    this.videoNotCompatibleText = 'Format vidéo non compatible',
-    this.videoCannotBeLoadedSecurityPolicyText =
+    String? languageCode = 'fr',
+    TextDirection? textDirection = TextDirection.ltr,
+    String invalidYoutubeUrlText = 'URL YouTube non valide',
+    String videoLoadFailedText = 'Échec du chargement de la vidéo',
+    String videoUnavailableText = 'Vidéo non disponible',
+    String videoNotCompatibleText = 'Format vidéo non compatible',
+    String videoCannotBeLoadedSecurityPolicyText =
         'La vidéo ne peut pas être chargée en raison de la politique de sécurité',
-    this.playerSettingsText = 'Paramètres du lecteur',
-    this.autoPlayText = 'Lecture automatique',
-    this.loopVideoText = 'Répéter la vidéo',
-    this.forceHdQualityText = 'Forcer la qualité HD',
-    this.enableCaptionsText = 'Activer les sous-titres',
-    this.muteAudioText = 'Couper le son',
-    this.unmuteAudioText = 'Rétablir le son',
-    this.noQualitiesAvailableText = 'Aucune qualité disponible',
-    this.noSubtitlesAvailableText = 'Aucun sous-titre disponible',
-    this.qualityText = 'Qualité (Résolution)',
-    this.subtitlesText = 'Sous-titres',
-    this.playbackSpeedText = 'Vitesse de lecture',
-    this.normalSpeedText = 'Normal',
-    this.autoText = 'Automatique',
-    this.offText = 'Désactivé',
-    this.skipBackwardText = 'Reculer de 10s',
-    this.skipForwardText = 'Avancer de 10s',
-    this.miniPlayerText = 'Mini-lecteur',
-    this.restorePlayerText = 'Restaurer le lecteur',
-    this.expandPlayerText = 'Agrandir le lecteur',
-    this.closeMiniPlayerText = 'Fermer le mini-lecteur',
-    this.playText = 'Lire',
-    this.pauseText = 'Pause',
-    this.fullscreenText = 'Plein écran',
-    this.exitFullscreenText = 'Quitter le plein écran',
-    this.liveText = 'EN DIRECT',
-    this.goLiveText = 'PASSER AU DIRECT',
-    this.speed2xText = '2x',
-    this.backText = 'Retour',
-    this.volumeText = 'Volume',
-  });
+    String playerSettingsText = 'Paramètres du lecteur',
+    String autoPlayText = 'Lecture automatique',
+    String loopVideoText = 'Répéter la vidéo',
+    String forceHdQualityText = 'Forcer la qualité HD',
+    String enableCaptionsText = 'Activer les sous-titres',
+    String muteAudioText = 'Couper le son',
+    String unmuteAudioText = 'Rétablir le son',
+    String noQualitiesAvailableText = 'Aucune qualité disponible',
+    String noSubtitlesAvailableText = 'Aucun sous-titre disponible',
+    String qualityText = 'Qualité (Résolution)',
+    String subtitlesText = 'Sous-titres',
+    String playbackSpeedText = 'Vitesse de lecture',
+    String normalSpeedText = 'Normal',
+    String autoText = 'Automatique',
+    String offText = 'Désactivé',
+    String skipBackwardText = 'Reculer de 10s',
+    String skipForwardText = 'Avancer de 10s',
+    String miniPlayerText = 'Mini-lecteur',
+    String restorePlayerText = 'Restaurer le lecteur',
+    String expandPlayerText = 'Agrandir le lecteur',
+    String closeMiniPlayerText = 'Fermer le mini-lecteur',
+    String playText = 'Lire',
+    String pauseText = 'Pause',
+    String fullscreenText = 'Plein écran',
+    String exitFullscreenText = 'Quitter le plein écran',
+    String liveText = 'EN DIRECT',
+    String goLiveText = 'PASSER AU DIRECT',
+    String speed2xText = '2x',
+    String backText = 'Retour',
+    String volumeText = 'Volume',
+  }) : this(
+          languageCode: languageCode,
+          textDirection: textDirection,
+          invalidYoutubeUrlText: invalidYoutubeUrlText,
+          videoLoadFailedText: videoLoadFailedText,
+          videoUnavailableText: videoUnavailableText,
+          videoNotCompatibleText: videoNotCompatibleText,
+          videoCannotBeLoadedSecurityPolicyText:
+              videoCannotBeLoadedSecurityPolicyText,
+          playerSettingsText: playerSettingsText,
+          autoPlayText: autoPlayText,
+          loopVideoText: loopVideoText,
+          forceHdQualityText: forceHdQualityText,
+          enableCaptionsText: enableCaptionsText,
+          muteAudioText: muteAudioText,
+          unmuteAudioText: unmuteAudioText,
+          noQualitiesAvailableText: noQualitiesAvailableText,
+          noSubtitlesAvailableText: noSubtitlesAvailableText,
+          qualityText: qualityText,
+          subtitlesText: subtitlesText,
+          playbackSpeedText: playbackSpeedText,
+          normalSpeedText: normalSpeedText,
+          autoText: autoText,
+          offText: offText,
+          skipBackwardText: skipBackwardText,
+          skipForwardText: skipForwardText,
+          miniPlayerText: miniPlayerText,
+          restorePlayerText: restorePlayerText,
+          expandPlayerText: expandPlayerText,
+          closeMiniPlayerText: closeMiniPlayerText,
+          playText: playText,
+          pauseText: pauseText,
+          fullscreenText: fullscreenText,
+          exitFullscreenText: exitFullscreenText,
+          liveText: liveText,
+          goLiveText: goLiveText,
+          speed2xText: speed2xText,
+          backText: backText,
+          volumeText: volumeText,
+        );
 
-  /// German (Deutsch - LTR) localization preset
+  /// Deprecated convenience constructor.
+  /// To localize into German, provide German translations in your app via [PlayerTextConfig.fromMap].
+  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.german({
-    this.languageCode = 'de',
-    this.textDirection = TextDirection.ltr,
-    this.invalidYoutubeUrlText = 'Ungültige YouTube-URL',
-    this.videoLoadFailedText = 'Fehler beim Laden des Videos',
-    this.videoUnavailableText = 'Video nicht verfügbar',
-    this.videoNotCompatibleText = 'Videoformat nicht kompatibel',
-    this.videoCannotBeLoadedSecurityPolicyText =
+    String? languageCode = 'de',
+    TextDirection? textDirection = TextDirection.ltr,
+    String invalidYoutubeUrlText = 'Ungültige YouTube-URL',
+    String videoLoadFailedText = 'Fehler beim Laden des Videos',
+    String videoUnavailableText = 'Video nicht verfügbar',
+    String videoNotCompatibleText = 'Videoformat nicht kompatibel',
+    String videoCannotBeLoadedSecurityPolicyText =
         'Video kann aufgrund von Sicherheitsrichtlinien nicht geladen werden',
-    this.playerSettingsText = 'Player-Einstellungen',
-    this.autoPlayText = 'Automatische Wiedergabe',
-    this.loopVideoText = 'Video wiederholen',
-    this.forceHdQualityText = 'HD-Qualität erzwingen',
-    this.enableCaptionsText = 'Untertitel aktivieren',
-    this.muteAudioText = 'Stummschalten',
-    this.unmuteAudioText = 'Stummschaltung aufheben',
-    this.noQualitiesAvailableText = 'Keine Qualitäten verfügbar',
-    this.noSubtitlesAvailableText = 'Keine Untertitel verfügbar',
-    this.qualityText = 'Qualität (Auflösung)',
-    this.subtitlesText = 'Untertitel',
-    this.playbackSpeedText = 'Wiedergabegeschwindigkeit',
-    this.normalSpeedText = 'Normal',
-    this.autoText = 'Automatisch',
-    this.offText = 'Aus',
-    this.skipBackwardText = '10s zurück',
-    this.skipForwardText = '10s vor',
-    this.miniPlayerText = 'Miniplayer',
-    this.restorePlayerText = 'Player wiederherstellen',
-    this.expandPlayerText = 'Player vergrößern',
-    this.closeMiniPlayerText = 'Miniplayer schließen',
-    this.playText = 'Wiedergabe',
-    this.pauseText = 'Pause',
-    this.fullscreenText = 'Vollbild',
-    this.exitFullscreenText = 'Vollbild beenden',
-    this.liveText = 'LIVE',
-    this.goLiveText = 'ZUM LIVE-STREAM',
-    this.speed2xText = '2x',
-    this.backText = 'Zurück',
-    this.volumeText = 'Lautstärke',
-  });
+    String playerSettingsText = 'Player-Einstellungen',
+    String autoPlayText = 'Automatische Wiedergabe',
+    String loopVideoText = 'Video wiederholen',
+    String forceHdQualityText = 'HD-Qualität erzwingen',
+    String enableCaptionsText = 'Untertitel aktivieren',
+    String muteAudioText = 'Stummschalten',
+    String unmuteAudioText = 'Stummschaltung aufheben',
+    String noQualitiesAvailableText = 'Keine Qualitäten verfügbar',
+    String noSubtitlesAvailableText = 'Keine Untertitel verfügbar',
+    String qualityText = 'Qualität (Auflösung)',
+    String subtitlesText = 'Untertitel',
+    String playbackSpeedText = 'Wiedergabegeschwindigkeit',
+    String normalSpeedText = 'Normal',
+    String autoText = 'Automatisch',
+    String offText = 'Aus',
+    String skipBackwardText = '10s zurück',
+    String skipForwardText = '10s vor',
+    String miniPlayerText = 'Miniplayer',
+    String restorePlayerText = 'Player wiederherstellen',
+    String expandPlayerText = 'Player vergrößern',
+    String closeMiniPlayerText = 'Miniplayer schließen',
+    String playText = 'Wiedergabe',
+    String pauseText = 'Pause',
+    String fullscreenText = 'Vollbild',
+    String exitFullscreenText = 'Vollbild beenden',
+    String liveText = 'LIVE',
+    String goLiveText = 'ZUM LIVE-STREAM',
+    String speed2xText = '2x',
+    String backText = 'Zurück',
+    String volumeText = 'Lautstärke',
+  }) : this(
+          languageCode: languageCode,
+          textDirection: textDirection,
+          invalidYoutubeUrlText: invalidYoutubeUrlText,
+          videoLoadFailedText: videoLoadFailedText,
+          videoUnavailableText: videoUnavailableText,
+          videoNotCompatibleText: videoNotCompatibleText,
+          videoCannotBeLoadedSecurityPolicyText:
+              videoCannotBeLoadedSecurityPolicyText,
+          playerSettingsText: playerSettingsText,
+          autoPlayText: autoPlayText,
+          loopVideoText: loopVideoText,
+          forceHdQualityText: forceHdQualityText,
+          enableCaptionsText: enableCaptionsText,
+          muteAudioText: muteAudioText,
+          unmuteAudioText: unmuteAudioText,
+          noQualitiesAvailableText: noQualitiesAvailableText,
+          noSubtitlesAvailableText: noSubtitlesAvailableText,
+          qualityText: qualityText,
+          subtitlesText: subtitlesText,
+          playbackSpeedText: playbackSpeedText,
+          normalSpeedText: normalSpeedText,
+          autoText: autoText,
+          offText: offText,
+          skipBackwardText: skipBackwardText,
+          skipForwardText: skipForwardText,
+          miniPlayerText: miniPlayerText,
+          restorePlayerText: restorePlayerText,
+          expandPlayerText: expandPlayerText,
+          closeMiniPlayerText: closeMiniPlayerText,
+          playText: playText,
+          pauseText: pauseText,
+          fullscreenText: fullscreenText,
+          exitFullscreenText: exitFullscreenText,
+          liveText: liveText,
+          goLiveText: goLiveText,
+          speed2xText: speed2xText,
+          backText: backText,
+          volumeText: volumeText,
+        );
 
-  /// Turkish (Türkçe - LTR) localization preset
+  /// Deprecated convenience constructor.
+  /// To localize into Turkish, provide Turkish translations in your app via [PlayerTextConfig.fromMap].
+  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.turkish({
-    this.languageCode = 'tr',
-    this.textDirection = TextDirection.ltr,
-    this.invalidYoutubeUrlText = 'Geçersiz YouTube URL\'si',
-    this.videoLoadFailedText = 'Video yüklenemedi',
-    this.videoUnavailableText = 'Video kullanılamıyor',
-    this.videoNotCompatibleText = 'Video formatı uyumlu değil',
-    this.videoCannotBeLoadedSecurityPolicyText =
+    String? languageCode = 'tr',
+    TextDirection? textDirection = TextDirection.ltr,
+    String invalidYoutubeUrlText = 'Geçersiz YouTube URL\'si',
+    String videoLoadFailedText = 'Video yüklenemedi',
+    String videoUnavailableText = 'Video kullanılamıyor',
+    String videoNotCompatibleText = 'Video formatı uyumlu değil',
+    String videoCannotBeLoadedSecurityPolicyText =
         'Güvenlik politikası nedeniyle video yüklenemiyor',
-    this.playerSettingsText = 'Oynatıcı Ayarları',
-    this.autoPlayText = 'Otomatik Oynat',
-    this.loopVideoText = 'Videoyu Döngüye Al',
-    this.forceHdQualityText = 'HD Kaliteye Zorla',
-    this.enableCaptionsText = 'Altyazıları Aç',
-    this.muteAudioText = 'Sesi Kapat',
-    this.unmuteAudioText = 'Sesi Aç',
-    this.noQualitiesAvailableText = 'Kullanılabilir kalite yok',
-    this.noSubtitlesAvailableText = 'Kullanılabilir altyazı yok',
-    this.qualityText = 'Kalite (Çözünürlük)',
-    this.subtitlesText = 'Altyazılar',
-    this.playbackSpeedText = 'Oynatma Hızı',
-    this.normalSpeedText = 'Normal',
-    this.autoText = 'Otomatik',
-    this.offText = 'Kapalı',
-    this.skipBackwardText = '10 sn geri sar',
-    this.skipForwardText = '10 sn ileri sar',
-    this.miniPlayerText = 'Mini Oynatıcı',
-    this.restorePlayerText = 'Oynatıcıyı Geri Yükle',
-    this.expandPlayerText = 'Oynatıcıyı Genişlet',
-    this.closeMiniPlayerText = 'Mini Oynatıcıyı Kapat',
-    this.playText = 'Oynat',
-    this.pauseText = 'Duraklat',
-    this.fullscreenText = 'Tam Ekran',
-    this.exitFullscreenText = 'Tam Ekrandan Çık',
-    this.liveText = 'CANLI',
-    this.goLiveText = 'CANLI YAYINA GEÇ',
-    this.speed2xText = '2x',
-    this.backText = 'Geri',
-    this.volumeText = 'Ses Seviyesi',
-  });
+    String playerSettingsText = 'Oynatıcı Ayarları',
+    String autoPlayText = 'Otomatik Oynat',
+    String loopVideoText = 'Videoyu Döngüye Al',
+    String forceHdQualityText = 'HD Kaliteye Zorla',
+    String enableCaptionsText = 'Altyazıları Aç',
+    String muteAudioText = 'Sesi Kapat',
+    String unmuteAudioText = 'Sesi Aç',
+    String noQualitiesAvailableText = 'Kullanılabilir kalite yok',
+    String noSubtitlesAvailableText = 'Kullanılabilir altyazı yok',
+    String qualityText = 'Kalite (Çözünürlük)',
+    String subtitlesText = 'Altyazılar',
+    String playbackSpeedText = 'Oynatma Hızı',
+    String normalSpeedText = 'Normal',
+    String autoText = 'Otomatik',
+    String offText = 'Kapalı',
+    String skipBackwardText = '10 sn geri sar',
+    String skipForwardText = '10 sn ileri sar',
+    String miniPlayerText = 'Mini Oynatıcı',
+    String restorePlayerText = 'Oynatıcıyı Geri Yükle',
+    String expandPlayerText = 'Oynatıcıyı Genişlet',
+    String closeMiniPlayerText = 'Mini Oynatıcıyı Kapat',
+    String playText = 'Oynat',
+    String pauseText = 'Duraklat',
+    String fullscreenText = 'Tam Ekran',
+    String exitFullscreenText = 'Tam Ekrandan Çık',
+    String liveText = 'CANLI',
+    String goLiveText = 'CANLI YAYINA GEÇ',
+    String speed2xText = '2x',
+    String backText = 'Geri',
+    String volumeText = 'Ses Seviyesi',
+  }) : this(
+          languageCode: languageCode,
+          textDirection: textDirection,
+          invalidYoutubeUrlText: invalidYoutubeUrlText,
+          videoLoadFailedText: videoLoadFailedText,
+          videoUnavailableText: videoUnavailableText,
+          videoNotCompatibleText: videoNotCompatibleText,
+          videoCannotBeLoadedSecurityPolicyText:
+              videoCannotBeLoadedSecurityPolicyText,
+          playerSettingsText: playerSettingsText,
+          autoPlayText: autoPlayText,
+          loopVideoText: loopVideoText,
+          forceHdQualityText: forceHdQualityText,
+          enableCaptionsText: enableCaptionsText,
+          muteAudioText: muteAudioText,
+          unmuteAudioText: unmuteAudioText,
+          noQualitiesAvailableText: noQualitiesAvailableText,
+          noSubtitlesAvailableText: noSubtitlesAvailableText,
+          qualityText: qualityText,
+          subtitlesText: subtitlesText,
+          playbackSpeedText: playbackSpeedText,
+          normalSpeedText: normalSpeedText,
+          autoText: autoText,
+          offText: offText,
+          skipBackwardText: skipBackwardText,
+          skipForwardText: skipForwardText,
+          miniPlayerText: miniPlayerText,
+          restorePlayerText: restorePlayerText,
+          expandPlayerText: expandPlayerText,
+          closeMiniPlayerText: closeMiniPlayerText,
+          playText: playText,
+          pauseText: pauseText,
+          fullscreenText: fullscreenText,
+          exitFullscreenText: exitFullscreenText,
+          liveText: liveText,
+          goLiveText: goLiveText,
+          speed2xText: speed2xText,
+          backText: backText,
+          volumeText: volumeText,
+        );
 
-  /// Factory creating language configuration dynamically from ISO language code.
+  /// Factory setting language code and resolving default text direction.
+  /// Texts remain English by default unless customized.
   factory PlayerTextConfig.fromLanguageCode(String? code) {
     if (code == null) return const PlayerTextConfig.english();
     final clean = code.trim().toLowerCase();
-    switch (clean) {
-      case 'ar':
-        return const PlayerTextConfig.arabic();
-      case 'es':
-        return const PlayerTextConfig.spanish();
-      case 'fr':
-        return const PlayerTextConfig.french();
-      case 'de':
-        return const PlayerTextConfig.german();
-      case 'tr':
-        return const PlayerTextConfig.turkish();
-      default:
-        if (_rtlLanguageCodes.contains(clean)) {
-          return PlayerTextConfig.arabic(languageCode: clean);
-        }
-        return PlayerTextConfig.english(languageCode: clean);
-    }
+    final isRtl = _rtlLanguageCodes.contains(clean);
+    return PlayerTextConfig.english(
+      languageCode: clean,
+      textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+    );
   }
 
   /// Factory creating configuration dynamically matching a Flutter [Locale].
   factory PlayerTextConfig.forLocale(Locale locale) {
     return PlayerTextConfig.fromLanguageCode(locale.languageCode);
+  }
+
+  /// Factory creating configuration from a key-value Map (e.g. from JSON or localization files).
+  ///
+  /// Any keys not provided in [map] will automatically fallback to default English texts.
+  factory PlayerTextConfig.fromMap(
+    Map<String, String> map, {
+    String? languageCode,
+    TextDirection? textDirection,
+  }) {
+    const def = PlayerTextConfig();
+    final cleanLang = languageCode?.trim().toLowerCase();
+    final resolvedDirection = textDirection ??
+        (cleanLang != null
+            ? (_rtlLanguageCodes.contains(cleanLang)
+                ? TextDirection.rtl
+                : TextDirection.ltr)
+            : null);
+
+    return PlayerTextConfig(
+      languageCode: cleanLang,
+      textDirection: resolvedDirection,
+      invalidYoutubeUrlText:
+          map['invalid_youtube_url'] ?? def.invalidYoutubeUrlText,
+      videoLoadFailedText: map['video_load_failed'] ?? def.videoLoadFailedText,
+      videoUnavailableText:
+          map['video_unavailable'] ?? def.videoUnavailableText,
+      videoNotCompatibleText:
+          map['video_not_compatible'] ?? def.videoNotCompatibleText,
+      videoCannotBeLoadedSecurityPolicyText: map['video_security_policy_error'] ??
+          def.videoCannotBeLoadedSecurityPolicyText,
+      playerSettingsText: map['player_settings'] ?? def.playerSettingsText,
+      autoPlayText: map['auto_play'] ?? def.autoPlayText,
+      loopVideoText: map['loop_video'] ?? def.loopVideoText,
+      forceHdQualityText: map['force_hd_quality'] ?? def.forceHdQualityText,
+      enableCaptionsText: map['enable_captions'] ?? def.enableCaptionsText,
+      muteAudioText: map['mute_audio'] ?? def.muteAudioText,
+      unmuteAudioText: map['unmute_audio'] ?? def.unmuteAudioText,
+      noQualitiesAvailableText:
+          map['no_qualities_available'] ?? def.noQualitiesAvailableText,
+      noSubtitlesAvailableText:
+          map['no_subtitles_available'] ?? def.noSubtitlesAvailableText,
+      qualityText: map['quality'] ?? def.qualityText,
+      subtitlesText: map['subtitles'] ?? def.subtitlesText,
+      playbackSpeedText: map['playback_speed'] ?? def.playbackSpeedText,
+      normalSpeedText: map['normal_speed'] ?? def.normalSpeedText,
+      autoText: map['auto'] ?? def.autoText,
+      offText: map['off'] ?? def.offText,
+      skipBackwardText: map['skip_backward'] ?? def.skipBackwardText,
+      skipForwardText: map['skip_forward'] ?? def.skipForwardText,
+      miniPlayerText: map['mini_player'] ?? def.miniPlayerText,
+      restorePlayerText: map['restore_player'] ?? def.restorePlayerText,
+      expandPlayerText: map['expand_player'] ?? def.expandPlayerText,
+      closeMiniPlayerText:
+          map['close_mini_player'] ?? def.closeMiniPlayerText,
+      playText: map['play'] ?? def.playText,
+      pauseText: map['pause'] ?? def.pauseText,
+      fullscreenText: map['fullscreen'] ?? def.fullscreenText,
+      exitFullscreenText: map['exit_fullscreen'] ?? def.exitFullscreenText,
+      liveText: map['live'] ?? def.liveText,
+      goLiveText: map['go_live'] ?? def.goLiveText,
+      speed2xText: map['speed_2x'] ?? def.speed2xText,
+      backText: map['back'] ?? def.backText,
+      volumeText: map['volume'] ?? def.volumeText,
+    );
+  }
+
+  /// Converts this configuration to a standard key-value map.
+  Map<String, String> toMap() {
+    return {
+      'invalid_youtube_url': invalidYoutubeUrlText,
+      'video_load_failed': videoLoadFailedText,
+      'video_unavailable': videoUnavailableText,
+      'video_not_compatible': videoNotCompatibleText,
+      'video_security_policy_error': videoCannotBeLoadedSecurityPolicyText,
+      'player_settings': playerSettingsText,
+      'auto_play': autoPlayText,
+      'loop_video': loopVideoText,
+      'force_hd_quality': forceHdQualityText,
+      'enable_captions': enableCaptionsText,
+      'mute_audio': muteAudioText,
+      'unmute_audio': unmuteAudioText,
+      'no_qualities_available': noQualitiesAvailableText,
+      'no_subtitles_available': noSubtitlesAvailableText,
+      'quality': qualityText,
+      'subtitles': subtitlesText,
+      'playback_speed': playbackSpeedText,
+      'normal_speed': normalSpeedText,
+      'auto': autoText,
+      'off': offText,
+      'skip_backward': skipBackwardText,
+      'skip_forward': skipForwardText,
+      'mini_player': miniPlayerText,
+      'restore_player': restorePlayerText,
+      'expand_player': expandPlayerText,
+      'close_mini_player': closeMiniPlayerText,
+      'play': playText,
+      'pause': pauseText,
+      'fullscreen': fullscreenText,
+      'exit_fullscreen': exitFullscreenText,
+      'live': liveText,
+      'go_live': goLiveText,
+      'speed_2x': speed2xText,
+      'back': backText,
+      'volume': volumeText,
+    };
   }
 
   /// Map of standard translation keys to default English texts.
@@ -479,18 +822,6 @@ class PlayerTextConfig {
 
   /// Factory creating dynamic localization configuration using a custom translator callback
   /// (e.g. `tr(key)` from `easy_localization`, `slang`, `intl`, etc.).
-  ///
-  /// Any language can be dynamically created.
-  /// Text direction automatically resolves to RTL for Arabic ('ar') and RTL scripts,
-  /// and to LTR (same direction as English) for all other languages.
-  ///
-  /// Example:
-  /// ```dart
-  /// PlayerTextConfig.tr(
-  ///   (key) => tr(key),
-  ///   languageCode: context.locale.languageCode,
-  /// )
-  /// ```
   factory PlayerTextConfig.tr(
     String Function(String key) tr, {
     String? languageCode,
@@ -657,26 +988,19 @@ class PlayerTextConfig {
   bool get isRtl {
     if (textDirection == TextDirection.rtl) return true;
     if (textDirection == TextDirection.ltr) return false;
+    if (RegExp(r'[\u0590-\u08FF]').hasMatch(
+      '$playerSettingsText$qualityText$subtitlesText$playText$miniPlayerText',
+    )) {
+      return true;
+    }
     if (languageCode != null && languageCode!.trim().isNotEmpty) {
       final clean = languageCode!.trim().toLowerCase();
       return _rtlLanguageCodes.contains(clean);
     }
-    const arabicConfig = PlayerTextConfig.arabic();
-    if (qualityText == arabicConfig.qualityText ||
-        playerSettingsText == arabicConfig.playerSettingsText ||
-        subtitlesText == arabicConfig.subtitlesText ||
-        playText == arabicConfig.playText) {
-      return true;
-    }
-    return RegExp(r'[\u0590-\u08FF]').hasMatch(
-      '$playerSettingsText$qualityText$subtitlesText$playText$miniPlayerText',
-    );
+    return false;
   }
 
   /// Resolves the effective text direction from explicit config, language code, ambient context, or text content.
-  ///
-  /// Only Arabic ('ar') and related RTL scripts resolve to RTL.
-  /// All other languages resolve to LTR (same direction as English).
   TextDirection resolveTextDirection(
     BuildContext context, {
     TextDirection? ambientDirection,
@@ -691,13 +1015,6 @@ class PlayerTextConfig {
       return _rtlLanguageCodes.contains(clean)
           ? TextDirection.rtl
           : TextDirection.ltr;
-    }
-    const arabicConfig = PlayerTextConfig.arabic();
-    if (qualityText == arabicConfig.qualityText ||
-        playerSettingsText == arabicConfig.playerSettingsText ||
-        subtitlesText == arabicConfig.subtitlesText ||
-        playText == arabicConfig.playText) {
-      return TextDirection.rtl;
     }
     // Check if any configured text contains Arabic/Hebrew RTL characters
     if (RegExp(r'[\u0590-\u08FF]').hasMatch(
@@ -741,7 +1058,7 @@ class PlayerTextConfig {
   /// Whether this configuration uses the default untouched constructor values.
   bool get isDefaultUnmodified {
     const def = PlayerTextConfig();
-    return languageCode == null &&
+    return (languageCode == null || languageCode == 'en') &&
         textDirection == null &&
         invalidYoutubeUrlText == def.invalidYoutubeUrlText &&
         videoLoadFailedText == def.videoLoadFailedText &&

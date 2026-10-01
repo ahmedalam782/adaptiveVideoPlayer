@@ -25,21 +25,30 @@
             "name": "example",
             "cwd": "example",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": [
+                "--android-skip-build-dependency-validation"
+            ]
         },
         {
             "name": "example (profile mode)",
             "cwd": "example",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "args": [
+                "--android-skip-build-dependency-validation"
+            ]
         },
         {
             "name": "example (release mode)",
             "cwd": "example",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args": [
+                "--android-skip-build-dependency-validation"
+            ]
         }
     ]
 }

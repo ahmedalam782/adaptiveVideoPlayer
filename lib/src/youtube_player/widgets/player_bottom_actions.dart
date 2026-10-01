@@ -22,13 +22,16 @@ class FullscreenButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final button = GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(6),
         child: Icon(
-          isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
+          isFullscreen
+              ? Icons.fullscreen_exit_rounded
+              : Icons.fullscreen_rounded,
           color: iconColor,
-          size: 24,
+          size: 28,
         ),
       ),
     );
@@ -58,13 +61,14 @@ class MuteButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final button = GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: Icon(
-          isMuted ? Icons.volume_off : Icons.volume_up,
+          isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
           color: iconColor,
-          size: 28,
+          size: 26,
         ),
       ),
     );
@@ -92,10 +96,11 @@ class SettingsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final button = GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Icon(Icons.settings, color: iconColor, size: 24),
+        padding: const EdgeInsets.all(6),
+        child: Icon(Icons.settings_rounded, color: iconColor, size: 26),
       ),
     );
 
@@ -138,7 +143,7 @@ class ProgressBar extends StatefulWidget {
     required this.controller,
     this.playedColor = Colors.red,
     this.handleColor = Colors.redAccent,
-    this.backgroundColor = Colors.white12,
+    this.backgroundColor = Colors.white24,
   });
 
   @override
@@ -169,9 +174,9 @@ class _ProgressBarState extends State<ProgressBar> {
               activeTrackColor: widget.playedColor,
               inactiveTrackColor: widget.backgroundColor,
               thumbColor: widget.handleColor,
-              trackHeight: 4.0,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+              trackHeight: 4.5,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7.5),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 15.0),
             ),
             child: Slider(
               value: sliderValue,

@@ -407,7 +407,7 @@ AdaptiveVideoPlayer(
 | `settingsBackgroundColor` | `Color` | `#1D1D1D` | Settings sheet background |
 
 #### PlayerTextConfig
-Includes built-in presets `PlayerTextConfig.english()` and `PlayerTextConfig.arabic()`:
+Defaults strictly to English (`PlayerTextConfig()`), allowing host applications to supply any language and text direction via `PlayerTextConfig.fromMap()` or custom translations (see `example/lib/languages/` for modular language file examples):
 
 | Property | Type | Default | Description |
 |---|---|---|---|

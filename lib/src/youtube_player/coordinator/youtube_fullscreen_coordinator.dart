@@ -80,54 +80,29 @@ class YouTubeFullscreenCoordinator {
         return;
       }
 
-      bool settingsChanged = false;
       if (state.autoPlay != result.autoPlay) {
         cubit.setAutoPlay(result.autoPlay);
-        settingsChanged = true;
       }
       if (state.loop != result.loop) {
         cubit.setLoop(result.loop);
-        settingsChanged = true;
       }
       if (state.forceHD != result.forceHD) {
         cubit.setForceHD(result.forceHD);
-        settingsChanged = true;
       }
       if (state.enableCaption != result.enableCaption) {
         cubit.setEnableCaption(result.enableCaption);
-        settingsChanged = true;
       }
 
-      if (settingsChanged) {
-        await onReloadPlayer(targetPosition: result.position);
-        if (isControllerSafe()) {
-          if (result.isMuted != state.isMuted) {
-            cubit.setMuted(result.isMuted);
-          }
-          PlayerUtils.setMute(controller, result.isMuted);
-          if (result.wasPlaying) {
-            PlayerUtils.play(controller);
-          }
-        }
-      } else {
-        if (isControllerSafe()) {
-          PlayerUtils.pause(controller);
-          await Future.delayed(const Duration(milliseconds: 300));
-          if (isControllerSafe()) {
-            PlayerUtils.seekTo(controller, result.position);
-            await Future.delayed(const Duration(milliseconds: 500));
-            if (result.wasPlaying && isControllerSafe()) {
-              PlayerUtils.play(controller);
-            }
-          }
-        }
+      if (result.isMuted != state.isMuted) {
+        cubit.setMuted(result.isMuted);
       }
 
+      await onReloadPlayer(targetPosition: result.position);
       if (isControllerSafe()) {
-        if (result.isMuted != state.isMuted) {
-          cubit.setMuted(result.isMuted);
-        }
         PlayerUtils.setMute(controller, result.isMuted);
+        if (result.wasPlaying) {
+          PlayerUtils.play(controller);
+        }
       }
     } catch (e) {
       log('Error syncing after fullscreen: $e');

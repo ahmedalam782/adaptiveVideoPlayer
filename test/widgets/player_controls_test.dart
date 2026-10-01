@@ -18,7 +18,7 @@ void main() {
       );
 
       expect(find.byIcon(Icons.forward_10), findsOneWidget);
-      await tester.tap(find.byType(GestureDetector));
+      await tester.tap(find.byType(InkWell));
       expect(tapped, true);
     });
 
@@ -56,13 +56,13 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.forward_10), findsOneWidget);
-      expect(find.byIcon(Icons.replay_10), findsOneWidget);
+      expect(find.byIcon(Icons.forward_10_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.replay_10_rounded), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.forward_10));
+      await tester.tap(find.byIcon(Icons.forward_10_rounded));
       expect(forwarded, true);
 
-      await tester.tap(find.byIcon(Icons.replay_10));
+      await tester.tap(find.byIcon(Icons.replay_10_rounded));
       expect(backwarded, true);
     });
   });

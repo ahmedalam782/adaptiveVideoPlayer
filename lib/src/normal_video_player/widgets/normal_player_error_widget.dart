@@ -7,12 +7,14 @@ class NormalPlayerErrorWidget extends StatelessWidget {
   final String errorMessage;
   final PlayerStyleConfig? styling;
   final Widget Function(BuildContext context, String errorMessage)? customBuilder;
+  final VoidCallback? onRetry;
 
   const NormalPlayerErrorWidget({
     super.key,
     required this.errorMessage,
     this.styling,
     this.customBuilder,
+    this.onRetry,
   });
 
   @override
@@ -53,6 +55,43 @@ class NormalPlayerErrorWidget extends StatelessWidget {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (onRetry != null) ...[
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: onRetry,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.refresh_rounded,
+                            size: 16,
+                            color: styling?.iconColor ?? Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Retry',
+                            style: TextStyle(
+                              color: styling?.textColor ?? Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

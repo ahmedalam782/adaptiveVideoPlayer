@@ -313,7 +313,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
         fit: widget.isFullScreen ? StackFit.expand : StackFit.loose,
         alignment: Alignment.center,
         children: [
-          widget.isFullScreen ? Center(child: videoContent) : videoContent,
+          Center(child: videoContent),
 
           // Buffering/Loading Indicator Overlay
           AdaptiveBufferingIndicator(
@@ -395,33 +395,36 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
                 child: AnimatedOpacity(
                   opacity: _controlsVisible ? 1 : 0,
                   duration: const Duration(milliseconds: 250),
-                  child: widget.controlsBuilder != null
-                      ? widget.controlsBuilder!(
-                          context, widget.controller, widget.isFullScreen)
-                      : AdaptiveControlsLayer(
-                          controller: widget.controller,
-                          isFullScreen: widget.isFullScreen,
-                          styling: widget.styling,
-                          messages: widget.messages,
-                          visibility: widget.visibility,
-                          playback: widget.playback,
-                          onAnalyticsEvent: widget.onAnalyticsEvent,
-                          qualities: widget.qualities,
-                          currentQuality: widget.currentQuality,
-                          onQualitySelected: widget.onQualitySelected,
-                          subtitles: widget.subtitles,
-                          currentSubtitleTrack: widget.currentSubtitleTrack,
-                          onSubtitleSelected: widget.onSubtitleSelected,
-                          parsedSubtitles: widget.parsedSubtitles,
-                          chapters: widget.chapters,
-                          controlsBuilder: widget.controlsBuilder,
-                          subtitleBuilder: widget.subtitleBuilder,
-                          isLive: widget.isLive,
-                          viewerCount: widget.viewerCount,
-                          onEnterFullscreen: widget.onEnterFullscreen,
-                          onExitFullscreen: widget.onExitFullscreen,
-                          onMiniPlayerPressed: widget.onMiniPlayerPressed,
-                        ),
+                  child: IgnorePointer(
+                    ignoring: !_controlsVisible,
+                    child: widget.controlsBuilder != null
+                        ? widget.controlsBuilder!(
+                            context, widget.controller, widget.isFullScreen)
+                        : AdaptiveControlsLayer(
+                            controller: widget.controller,
+                            isFullScreen: widget.isFullScreen,
+                            styling: widget.styling,
+                            messages: widget.messages,
+                            visibility: widget.visibility,
+                            playback: widget.playback,
+                            onAnalyticsEvent: widget.onAnalyticsEvent,
+                            qualities: widget.qualities,
+                            currentQuality: widget.currentQuality,
+                            onQualitySelected: widget.onQualitySelected,
+                            subtitles: widget.subtitles,
+                            currentSubtitleTrack: widget.currentSubtitleTrack,
+                            onSubtitleSelected: widget.onSubtitleSelected,
+                            parsedSubtitles: widget.parsedSubtitles,
+                            chapters: widget.chapters,
+                            controlsBuilder: widget.controlsBuilder,
+                            subtitleBuilder: widget.subtitleBuilder,
+                            isLive: widget.isLive,
+                            viewerCount: widget.viewerCount,
+                            onEnterFullscreen: widget.onEnterFullscreen,
+                            onExitFullscreen: widget.onExitFullscreen,
+                            onMiniPlayerPressed: widget.onMiniPlayerPressed,
+                          ),
+                  ),
                 ),
               ),
             ),

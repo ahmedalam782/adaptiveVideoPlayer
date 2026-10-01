@@ -71,10 +71,17 @@ class YouTubeDesktopFullscreenManager {
             },
             child: Focus(
               autofocus: true,
-              child: Scaffold(
-                backgroundColor: Colors.black,
-                body: SizedBox.expand(
-                  child: desktopPlayerBuilder(),
+              child: PopScope(
+                canPop: false,
+                onPopInvokedWithResult: (didPop, result) {
+                  if (didPop) return;
+                  closeFullscreen();
+                },
+                child: Scaffold(
+                  backgroundColor: Colors.black,
+                  body: SizedBox.expand(
+                    child: desktopPlayerBuilder(),
+                  ),
                 ),
               ),
             ),
@@ -421,31 +428,34 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
         TextDirection.ltr;
     final isRtl = effectiveDirection == TextDirection.rtl;
     final isOsPipWindow = isDesktopPipMode();
-
-    if (isOsPipWindow) {
-      return Directionality(
-        textDirection: effectiveDirection,
-        child: Scaffold(
-          backgroundColor: Colors.black,
-          body: SizedBox.expand(
-            child: _buildContent(true),
-          ),
-        ),
-      );
-    }
+    final pipContent = isOsPipWindow
+        ? Scaffold(
+            backgroundColor: Colors.black,
+            body: SizedBox.expand(
+              child: _buildContent(true),
+            ),
+          )
+        : Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned(
+                left: isRtl ? (16 + _offset.dx) : null,
+                right: isRtl ? null : (16 - _offset.dx),
+                bottom: 24 - _offset.dy,
+                child: _buildContent(false),
+              ),
+            ],
+          );
 
     return Directionality(
       textDirection: effectiveDirection,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            left: isRtl ? (16 + _offset.dx) : null,
-            right: isRtl ? null : (16 - _offset.dx),
-            bottom: 24 - _offset.dy,
-            child: _buildContent(false),
-          ),
-        ],
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          widget.onExpand();
+        },
+        child: pipContent,
       ),
     );
   }

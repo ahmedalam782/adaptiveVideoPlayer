@@ -45,9 +45,10 @@ class _RemainingDurationState extends State<RemainingDuration> {
           child: Text(
             '- ${durationFormatter(remainingMs)}',
             style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
+              letterSpacing: 0.2,
             ),
           ),
         );

@@ -488,18 +488,22 @@ class PlayerUtils {
 
     await Future.delayed(const Duration(milliseconds: 300));
 
-    final currentTimeSec = await controller.currentTime;
-    final currentPos = Duration(seconds: currentTimeSec.round());
-    final difference = (currentPos.inSeconds - targetPosition.inSeconds).abs();
+    try {
+      final currentTimeSec = await controller.currentTime;
+      final currentPos = Duration(seconds: currentTimeSec.round());
+      final difference = (currentPos.inSeconds - targetPosition.inSeconds).abs();
 
-    debugPrint(
-      'Position verification - current: ${currentPos.inSeconds}s, target: ${targetPosition.inSeconds}s, diff: $difference',
-    );
+      debugPrint(
+        'Position verification - current: ${currentPos.inSeconds}s, target: ${targetPosition.inSeconds}s, diff: $difference',
+      );
 
-    if (difference > tolerance) {
-      debugPrint('Position off by $difference seconds, correcting');
-      seekTo(controller, targetPosition);
-      return true;
+      if (difference > tolerance) {
+        debugPrint('Position off by $difference seconds, correcting');
+        seekTo(controller, targetPosition);
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Verify position error: $e');
     }
 
     return false;

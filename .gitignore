@@ -51,10 +51,8 @@ app.*.map.json
 /macos/
 /windows/
 
-# Agent Assistant Skills & Context
-.antigravity/
-.gemini/
-CLAUDE.md
-GEMINI.md
-.github/copilot-instructions.md
-.cursorrules
+# Local user recordings & build artifacts
+*.mp4
+example/android/build/
+**/build/
+.agents/

@@ -81,6 +81,10 @@ class VideoConfig {
   /// Optional explicit video source type (e.g. VideoSourceType.network)
   final VideoSourceType? sourceType;
 
+  /// Optional aspect ratio override for the video player (e.g. 16/9, 9/16).
+  /// If null, automatically uses the video's natural aspect ratio.
+  final double? aspectRatio;
+
   /// Complete player configuration using YouTube models
   final YouTubePlayerConfig playerConfig;
 
@@ -105,6 +109,7 @@ class VideoConfig {
     this.onAnalyticsEvent,
     this.extension,
     this.sourceType,
+    this.aspectRatio,
     this.playerConfig = const YouTubePlayerConfig(),
   });
 

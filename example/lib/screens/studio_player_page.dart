@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:adaptive_video_player/adaptive_video_player.dart';
 
 import '../models/demo_showcase_item.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import '../widgets/language_picker_sheet.dart';
 
 /// Cinematic Player Page with Real-time Event Log Inspector
 class StudioPlayerPage extends StatefulWidget {
   final DemoShowcaseItem demo;
   final VoidCallback? onToggleLanguage;
+  final String? currentLanguageCode;
+  final ValueChanged<String>? onSelectLanguage;
 
   const StudioPlayerPage({
     super.key,
     required this.demo,
     this.onToggleLanguage,
+    this.currentLanguageCode,
+    this.onSelectLanguage,
   });
 
   @override
@@ -21,7 +27,18 @@ class StudioPlayerPage extends StatefulWidget {
 class _StudioPlayerPageState extends State<StudioPlayerPage> {
   final List<String> _eventLogs = [];
   final ScrollController _logScrollController = ScrollController();
-  bool? _localRtlOverride;
+  final GlobalKey _playerKey = GlobalKey(debugLabel: 'StudioPlayerKey');
+
+  @override
+  void initState() {
+    super.initState();
+    NativePipService.setPipEnabled(true);
+    NativePipService.isInPip.addListener(_onPipStateChanged);
+  }
+
+  void _onPipStateChanged() {
+    if (mounted) setState(() {});
+  }
 
   void _recordEvent(String event, Map<String, dynamic> data) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -36,6 +53,8 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
 
   @override
   void dispose() {
+    NativePipService.isInPip.removeListener(_onPipStateChanged);
+    NativePipService.setPipEnabled(false);
     _logScrollController.dispose();
     super.dispose();
   }
@@ -56,37 +75,25 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
           isRtl ? 'بث مباشر HLS (.m3u8)' : 'Mux HLS Stream (.m3u8)',
         _ => q.title,
       };
-      return VideoQuality(
-        title: translatedTitle,
-        url: q.url,
-        isLive: q.isLive,
-      );
+      return VideoQuality(title: translatedTitle, url: q.url, isLive: q.isLive);
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final demo = widget.demo;
-    final ambientIsRtl = Directionality.of(context) == TextDirection.rtl ||
-        Localizations.maybeLocaleOf(context)?.languageCode == 'ar' ||
-        demo.config.messages.resolveTextDirection(context) == TextDirection.rtl;
-    final isRtl = _localRtlOverride ?? ambientIsRtl;
+    final activeCode = context.locale.languageCode;
+    final selectedLang = LanguagePickerSheet.getLanguage(activeCode);
+    final isRtl = selectedLang.isRtl;
 
     final basePlayerConfig = demo.config.playerConfig;
-    final effectiveTextConfig = _localRtlOverride != null
-        ? (_localRtlOverride!
-            ? const PlayerTextConfig.arabic()
-            : (basePlayerConfig.text.isRtl
-                ? const PlayerTextConfig.english()
-                : basePlayerConfig.text.copyWith(
-                    textDirection: TextDirection.ltr,
-                    languageCode: basePlayerConfig.text.languageCode == 'ar'
-                        ? 'en'
-                        : basePlayerConfig.text.languageCode,
-                  )))
-        : (isRtl && basePlayerConfig.text.isDefaultUnmodified
-            ? const PlayerTextConfig.arabic()
-            : basePlayerConfig.text);
+    final effectiveTextConfig = basePlayerConfig.text.isDefaultUnmodified
+        ? PlayerTextConfig.tr(
+            (key) => context.tr(key),
+            languageCode: activeCode,
+            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+          )
+        : basePlayerConfig.text;
 
     final effectivePlayerConfig = YouTubePlayerConfig(
       style: basePlayerConfig.style,
@@ -99,9 +106,12 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
       liveBadgeBuilder: basePlayerConfig.liveBadgeBuilder,
     );
 
-    final localizedQualities =
-        _localizeDemoQualities(demo.config.qualities, isRtl);
-    final localizedInitialQuality = demo.config.initialQuality != null &&
+    final localizedQualities = _localizeDemoQualities(
+      demo.config.qualities,
+      isRtl,
+    );
+    final localizedInitialQuality =
+        demo.config.initialQuality != null &&
             localizedQualities != null &&
             localizedQualities.isNotEmpty
         ? localizedQualities.firstWhere(
@@ -137,6 +147,18 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
       },
     );
 
+    final playerWidget = KeyedSubtree(
+      key: _playerKey,
+      child: AdaptiveVideoPlayer(config: configWithAnalytics),
+    );
+
+    if (NativePipService.isInPip.value) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: SizedBox.expand(child: playerWidget)),
+      );
+    }
+
     return Directionality(
       textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
@@ -154,27 +176,48 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
             ),
           ),
           actions: [
-            IconButton(
-              tooltip: isRtl
-                  ? 'Switch to English (LTR)'
-                  : 'التبديل إلى العربية (RTL)',
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.08),
-              ),
-              icon: Text(
-                isRtl ? 'EN' : 'عربي',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12,
-                  color: Colors.cyanAccent,
+            InkWell(
+              onTap: () {
+                LanguagePickerSheet.show(
+                  context,
+                  currentLanguageCode: context.locale.languageCode,
+                  onLanguageSelected: (lang) {
+                    context.setLocale(Locale(lang.code));
+                    widget.onSelectLanguage?.call(lang.code);
+                  },
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.translate_rounded,
+                      size: 15,
+                      color: Colors.cyanAccent,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      selectedLang.code.toUpperCase(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                        color: Colors.cyanAccent,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              onPressed: () {
-                setState(() {
-                  _localRtlOverride = !isRtl;
-                });
-                widget.onToggleLanguage?.call();
-              },
             ),
             const SizedBox(width: 12),
           ],
@@ -182,205 +225,226 @@ class _StudioPlayerPageState extends State<StudioPlayerPage> {
         body: SafeArea(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Ambient Glow & Video Frame
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: demo.accentColor.withValues(alpha: 0.25),
-                          blurRadius: 36,
-                          spreadRadius: -4,
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        color: Colors.black,
-                        child: AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child:
-                              AdaptiveVideoPlayer(config: configWithAnalytics),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: 16),
-
-              // Video Meta Details
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: demo.accentColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: demo.accentColor.withValues(alpha: 0.4),
+                    // Ambient Glow & Video Frame
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: demo.accentColor.withValues(alpha: 0.25),
+                              blurRadius: 36,
+                              spreadRadius: -4,
                             ),
-                          ),
-                          child: Text(
-                            demo.category.toUpperCase(),
-                            style: TextStyle(
-                              color: demo.accentColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            color: Colors.black,
+                            width: double.infinity,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight:
+                                    MediaQuery.sizeOf(context).height * 0.70,
+                              ),
+                              child: playerWidget,
                             ),
                           ),
                         ),
-                        const Spacer(),
-                        if (demo.config.viewerCount != null) ...[
-                          const Icon(
-                            Icons.visibility_rounded,
-                            size: 16,
-                            color: Colors.redAccent,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            demo.config.viewerCount!,
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      demo.title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      demo.subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.6),
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-              // Live Analytics & Events Log
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF101420),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    // Video Meta Details
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.terminal_rounded,
-                            size: 18,
-                            color: Color(0xFF10B981),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: demo.accentColor.withValues(
+                                    alpha: 0.15,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: demo.accentColor.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  demo.category.toUpperCase(),
+                                  style: TextStyle(
+                                    color: demo.accentColor,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              if (demo.config.viewerCount != null) ...[
+                                const Icon(
+                                  Icons.visibility_rounded,
+                                  size: 16,
+                                  color: Colors.redAccent,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  demo.config.viewerCount!,
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Live Analytics Stream',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                          const SizedBox(height: 10),
+                          Text(
+                            demo.title,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
                               color: Colors.white,
                             ),
                           ),
-                          const Spacer(),
+                          const SizedBox(height: 6),
                           Text(
-                            '${_eventLogs.length} events',
+                            demo.subtitle,
                             style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 13,
+                              color: Colors.white.withValues(alpha: 0.6),
+                              height: 1.4,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      Container(
-                        height: 140,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(10),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Live Analytics & Events Log
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF090D15),
-                          borderRadius: BorderRadius.circular(10),
+                          color: const Color(0xFF101420),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.08),
+                          ),
                         ),
-                        child: _eventLogs.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'Interact with player (play, pause, seek, settings)\nto view live analytics stream here.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white.withValues(alpha: 0.35),
-                                    height: 1.4,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.terminal_rounded,
+                                  size: 18,
+                                  color: Color(0xFF10B981),
+                                ),
+                                const SizedBox(width: 8),
+                                const Expanded(
+                                  child: Text(
+                                    'Live Analytics Stream',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-                              )
-                            : ListView.builder(
-                                controller: _logScrollController,
-                                itemCount: _eventLogs.length,
-                                itemBuilder: (context, i) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 2,
-                                    ),
-                                    child: Text(
-                                      _eventLogs[i],
-                                      style: const TextStyle(
-                                        fontFamily: 'monospace',
-                                        fontSize: 11,
-                                        color: Color(0xFF34D399),
-                                      ),
-                                    ),
-                                  );
-                                },
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${_eventLogs.length} events',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              height: 140,
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF090D15),
+                                borderRadius: BorderRadius.circular(10),
                               ),
+                              child: _eventLogs.isEmpty
+                                  ? Center(
+                                      child: Text(
+                                        'Interact with player (play, pause, seek, settings)\nto view live analytics stream here.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.35,
+                                          ),
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      controller: _logScrollController,
+                                      itemCount: _eventLogs.length,
+                                      itemBuilder: (context, i) {
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 2,
+                                          ),
+                                          child: Text(
+                                            _eventLogs[i],
+                                            style: const TextStyle(
+                                              fontFamily: 'monospace',
+                                              fontSize: 11,
+                                              color: Color(0xFF34D399),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+
+                    const SizedBox(height: 32),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 }

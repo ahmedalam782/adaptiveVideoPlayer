@@ -33,7 +33,11 @@ class AdaptiveVideoSurface extends StatelessWidget {
     return ValueListenableBuilder<VideoPlayerValue>(
       valueListenable: controller,
       builder: (context, value, _) {
-        final aspectRatio = (value.isInitialized && value.aspectRatio > 0)
+        final aspectRatio = (value.isInitialized &&
+                value.aspectRatio > 0 &&
+                !value.size.isEmpty &&
+                value.size.width > 0 &&
+                value.size.height > 0)
             ? value.aspectRatio
             : 16 / 9;
         return AspectRatio(

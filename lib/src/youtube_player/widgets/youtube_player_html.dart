@@ -6,6 +6,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
     <style>
         html,
         body {
@@ -42,6 +43,27 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // Ensure YouTube iframe has proper referrer policy and media permissions to prevent Error 153
+        var playerObserver = new MutationObserver(function() {
+            var iframe = document.querySelector('#player iframe');
+            if (iframe) {
+                if (!iframe.getAttribute('referrerpolicy')) {
+                    iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+                }
+                var currentAllow = iframe.getAttribute('allow') || '';
+                if (currentAllow.indexOf('encrypted-media') === -1) {
+                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen');
+                }
+            }
+        });
+        if (document.body) {
+            playerObserver.observe(document.body, { childList: true, subtree: true });
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                playerObserver.observe(document.body, { childList: true, subtree: true });
+            });
+        }
 
         var player;
         // These will be set from Dart via evaluateJavascript
@@ -135,6 +157,10 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         }
 
         function createPlayer() {
+            var origin = (window.location && window.location.origin && window.location.origin !== 'null' && window.location.origin !== '')
+                ? window.location.origin
+                : 'https://www.youtube.com';
+
             var playerVars = {
                 'autoplay': autoplayFlag,
                 'mute': muteFlag,
@@ -145,7 +171,10 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 'showinfo': 0,
                 'modestbranding': 1,
                 'hl': langFlag,
-                'vq': 'medium'
+                'vq': 'medium',
+                'enablejsapi': 1,
+                'origin': origin,
+                'widget_referrer': origin
             };
             if (startAtFlag > 0) {
                 playerVars['start'] = startAtFlag;
@@ -155,6 +184,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 height: '100%',
                 width: '100%',
                 videoId: videoId,
+                host: 'https://www.youtube.com',
                 playerVars: playerVars,
                 events: {
                     'onReady': onPlayerReady,
@@ -208,6 +238,15 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
         document.addEventListener('mozfullscreenchange', handleFullscreenChange);
         document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+        // Notify Flutter on touch or click activity so controls overlay can reveal/auto-hide smoothly
+        function notifyTouchActivity() {
+            if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('YouTubePlayerHandler', { 'event': 'onTouchActivity' });
+            }
+        }
+        document.addEventListener('touchstart', notifyTouchActivity, { passive: true });
+        document.addEventListener('click', notifyTouchActivity, { passive: true });
 
         // Keyboard handler inside WebView to bridge Esc, Seek, Play/Pause, and Fullscreen to Flutter
         window.addEventListener('keydown', function(e) {

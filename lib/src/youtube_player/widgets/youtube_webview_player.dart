@@ -25,6 +25,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
   final VoidCallback? onSeekForward;
   final VoidCallback? onSeekBackward;
   final VoidCallback? onToggleFullscreen;
+  final VoidCallback? onTouchActivity;
   final ValueChanged<int>? onPositionUpdate;
   final ValueChanged<bool>? onPlayingStateChanged;
 
@@ -41,6 +42,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
     this.onSeekForward,
     this.onSeekBackward,
     this.onToggleFullscreen,
+    this.onTouchActivity,
     this.onPositionUpdate,
     this.onPlayingStateChanged,
   });
@@ -119,6 +121,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       _localServer!.listen((HttpRequest request) {
         request.response
           ..headers.contentType = ContentType.html
+          ..headers.add('Access-Control-Allow-Origin', '*')
+          ..headers.add('Referrer-Policy', 'no-referrer-when-downgrade')
           ..write(htmlContent)
           ..close();
       });
@@ -152,6 +156,9 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       key: _inAppWebViewKey,
       initialUrlRequest: URLRequest(
         url: WebUri(_serverUrl!),
+        headers: {
+          'Referer': 'https://www.youtube.com/',
+        },
       ),
       initialSettings: InAppWebViewSettings(
         javaScriptEnabled: true,
@@ -160,7 +167,11 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         allowsPictureInPictureMediaPlayback: false,
         isElementFullscreenEnabled: true,
         iframeAllowFullscreen: true,
-        iframeAllow: "camera; microphone; playing; fullscreen",
+        iframeAllow:
+            "camera; microphone; playing; fullscreen; autoplay; encrypted-media; gyroscope; accelerometer; clipboard-write",
+        userAgent: (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
+            ? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+            : null,
         supportMultipleWindows:
             true, // Need this TRUE for onCreateWindow to fire on target="_blank"
         useShouldOverrideUrlLoading: true,
@@ -229,6 +240,19 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
                 });
               }
               window.addEventListener('load', updatePlayerStyles);
+
+              try {
+                function onUserTouchActivity() {
+                  try {
+                    if (window.flutter_inappwebview) {
+                      window.flutter_inappwebview.callHandler('YouTubePlayerHandler', { 'event': 'onTouchActivity' });
+                    }
+                  } catch(e) {}
+                }
+                window.addEventListener('touchstart', onUserTouchActivity, { passive: true, capture: true });
+                window.addEventListener('pointerdown', onUserTouchActivity, { passive: true, capture: true });
+                window.addEventListener('click', onUserTouchActivity, { passive: true, capture: true });
+              } catch(e) {}
             })();
           """,
           injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
@@ -250,76 +274,41 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       },
       onCreateWindow: (controller, createWindowAction) async {
         final uri = createWindowAction.request.url;
-        if (uri != null) {
-          if (widget.config.playback.allowExternalLinks) {
-            // Launch the URL in the external browser natively
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            } else {
-              log("Could not launch $uri");
-            }
+        if (uri != null && widget.config.playback.allowExternalLinks) {
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
           } else {
-            log("External links are disabled by config. Ignored $uri");
+            log("Could not launch $uri");
           }
         }
-
-        // CRITICAL FIX: We MUST return TRUE here to indicate that we handled the click.
-        // If we return FALSE, flutter_inappwebview_windows will forcefully load this popup
-        // directly into the current WebView frame, destroying the player!
-
-        // HOWEVER: Returning true on Windows sometimes completely freezes the main frame.
-        // So we forcefully inject a script to resume playability, or reload if necessary.
-        await controller.evaluateJavascript(
-            source:
-                "if (player && typeof player.playVideo === 'function') { player.pauseVideo(); }");
-
-        // Force the main frame to stay alive manually
-        if (_serverUrl != null) {
-          await controller.loadUrl(
-              urlRequest: URLRequest(url: WebUri(_serverUrl!)));
-        }
-
         return true;
       },
       shouldOverrideUrlLoading: (controller, navigationAction) async {
         final uri = navigationAction.request.url;
         if (uri == null) return NavigationActionPolicy.ALLOW;
 
+        // Sub-frames (YouTube iframe, media streams, CDNs) must always be allowed
+        if (!navigationAction.isForMainFrame) {
+          return NavigationActionPolicy.ALLOW;
+        }
+
         final isLocal = uri.host == '127.0.0.1' || uri.host == 'localhost';
-        final isYouTubeEmbed =
-            uri.host.contains('youtube.com') && uri.path.contains('/embed');
-
-        if (!isLocal && !isYouTubeEmbed) {
-          if (widget.config.playback.allowExternalLinks) {
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            } else {
-              log("Could not launch $uri");
-            }
-          } else {
-            log("External links are disabled by config. Ignored $uri");
-          }
-          return NavigationActionPolicy.CANCEL;
+        if (isLocal) {
+          return NavigationActionPolicy.ALLOW;
         }
 
-        return NavigationActionPolicy.ALLOW;
+        // Top-level main frame navigation to external links
+        if (widget.config.playback.allowExternalLinks) {
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } else {
+            log("Could not launch $uri");
+          }
+        }
+        return NavigationActionPolicy.CANCEL;
       },
-      onLoadStart: (controller, url) async {
-        if (url == null) return;
-        final isLocal = url.host == '127.0.0.1' || url.host == 'localhost';
-        final isYouTubeEmbed =
-            url.host.contains('youtube.com') && url.path.contains('/embed');
-
-        if (!isLocal && !isYouTubeEmbed) {
-          await controller.stopLoading();
-          if (widget.config.playback.allowExternalLinks) {
-            if (await canLaunchUrl(url)) {
-              await launchUrl(url, mode: LaunchMode.externalApplication);
-            }
-          } else {
-            log("External links are disabled by config. Ignored $url");
-          }
-        }
+      onLoadStart: (controller, url) {
+        log("YouTube WebView onLoadStart: $url");
       },
       onWebViewCreated: (controller) {
         _webViewController = controller;
@@ -368,6 +357,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
               widget.onSeekBackward?.call();
             } else if (event == 'onToggleFullscreen') {
               widget.onToggleFullscreen?.call();
+            } else if (event == 'onTouchActivity') {
+              widget.onTouchActivity?.call();
             }
           },
         );

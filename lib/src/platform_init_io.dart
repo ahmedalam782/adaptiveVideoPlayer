@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
+import 'core/services/native_pip_service.dart';
 import 'normal_video_player/utils/fullscreen_utils_export.dart';
 
 /// Initializes platform-specific video player backends on IO platforms (Linux/Windows/macOS/iOS/Android).
@@ -27,6 +28,7 @@ class AdaptiveVideoPlayerPlatform {
     _initialized = true;
 
     WidgetsFlutterBinding.ensureInitialized();
+    NativePipService.initialize();
 
     VideoPlayerMediaKit.ensureInitialized(
       android: false, // Natively supported by video_player

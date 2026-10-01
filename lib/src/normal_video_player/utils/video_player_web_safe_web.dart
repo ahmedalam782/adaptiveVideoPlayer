@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart'
     as platform_interface;
+import 'hls_web_helper.dart';
 
 export 'package:video_player_platform_interface/video_player_platform_interface.dart'
     show VideoFormat, DataSourceType, DurationRange, VideoPlayerOptions;
@@ -286,6 +287,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _playerId = (await platform_interface.VideoPlayerPlatform.instance
             .createWithOptions(creationOptions)) ??
         -1;
+
+    setupHlsForWeb(dataSource, _playerId);
 
     final initializingCompleter = Completer<void>();
 

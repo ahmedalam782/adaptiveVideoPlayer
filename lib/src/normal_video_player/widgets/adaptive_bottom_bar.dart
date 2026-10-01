@@ -55,8 +55,12 @@ class AdaptiveBottomBar extends StatelessWidget {
   });
 
   String _formatDuration(Duration d) {
+    final hours = d.inHours;
     final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    if (hours > 0) {
+      return '$hours:$minutes:$seconds';
+    }
     return '$minutes:$seconds';
   }
 
@@ -122,6 +126,11 @@ class AdaptiveBottomBar extends StatelessWidget {
           onAnalyticsEvent?.call('video_paused',
               {'position': controller.value.position.inSeconds});
         } else {
+          final pos = controller.value.position;
+          final dur = controller.value.duration;
+          if (pos >= dur && dur > Duration.zero) {
+            controller.seekTo(Duration.zero);
+          }
           controller.play();
           onAnalyticsEvent?.call('video_played',
               {'position': controller.value.position.inSeconds});
@@ -324,8 +333,7 @@ class AdaptiveBottomBar extends StatelessWidget {
 
                 final showVolume = effectiveVisibility.showVolumeButton;
                 final showTime = effectiveVisibility.showTimeDisplay && !isLive;
-                final showFullscreen =
-                    effectiveVisibility.showFullscreenButton;
+                final showFullscreen = effectiveVisibility.showFullscreenButton;
                 final showSettings = effectiveVisibility.showSettingsButton;
                 final showMiniPlayer =
                     effectiveVisibility.showMiniPlayerButton &&

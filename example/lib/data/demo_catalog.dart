@@ -15,11 +15,33 @@ List<DemoShowcaseItem> getDemoShowcaseItems() {
       accentColor: const Color(0xFF6366F1),
       config: VideoConfig(
         videoUrl:
-            'https://www.mp3quran.net/uploads/videos/group1_pbuh/maher.mp4',
-        subtitles: const [
-          SubtitleTrack(
+            'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
+        subtitles: [
+          SubtitleTrack.fromAsset(
+            id: 'ar_avengers',
+            title: 'العربية (Avengers SRT Asset)',
+            assetPath: 'assets/subtitles/avengers_endgame_ar.srt',
+          ),
+          SubtitleTrack.fromApi(
+            id: 'api_dynamic',
+            title: 'ترجمة سحابية (Remote API Fetcher)',
+            apiCall: () async {
+              // Simulate API latency (e.g. calling your REST API / Cloud CDN)
+              await Future.delayed(const Duration(milliseconds: 400));
+              return '''
+1
+00:00:01,000 --> 00:00:04,500
+تم جلب ملف الترجمة هذا ديناميكياً من الـ API!
+
+2
+00:00:05,000 --> 00:00:09,000
+مشغل الفيديو يدعم الترجمة من الـ API و SRT و VTT.
+''';
+            },
+          ),
+          const SubtitleTrack(
             id: 'en',
-            title: 'English CC',
+            title: 'English CC (Inline)',
             content: '''
 1
 00:00:01,000 --> 00:00:04,000
@@ -30,23 +52,11 @@ Adaptive Video Player in action.
 Real-time subtitle overlays synced perfectly.
             ''',
           ),
-          SubtitleTrack(
-            id: 'ar',
-            title: 'عربي (Arabic)',
-            content: '''
-1
-00:00:01,000 --> 00:00:04,000
-مشغل الفيديو التكيفي فائق الأداء.
-
-2
-00:00:04,500 --> 00:00:08,000
-دعم ترجمة مدمجة ثنائية اللغة وتوافق كامل.
-            ''',
-          ),
         ],
-        initialSubtitle: const SubtitleTrack(
-          id: 'en',
-          title: 'English CC',
+        initialSubtitle: SubtitleTrack.fromAsset(
+          id: 'ar_avengers',
+          title: 'العربية (Avengers SRT Asset)',
+          assetPath: 'assets/subtitles/avengers_endgame_ar.srt',
         ),
         qualities: const [
           VideoQuality(
@@ -66,6 +76,18 @@ Real-time subtitle overlays synced perfectly.
           title: 'Auto (HLS)',
           url: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
         ),
+      ),
+    ),
+    const DemoShowcaseItem(
+      title: 'Netflix-Style HLS Adaptive Streaming',
+      subtitle:
+          'Plays single master.m3u8 playlist with automatic 1080p ↔ 720p ↔ 480p bandwidth switching',
+      category: 'HLS Master (ABR)',
+      tags: ['HLS Master', 'Adaptive Bitrate', 'Netflix-Style', 'Zero Buffering'],
+      icon: Icons.auto_awesome_motion_rounded,
+      accentColor: Color(0xFFE50914),
+      config: VideoConfig(
+        videoUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
       ),
     ),
     const DemoShowcaseItem(
@@ -141,7 +163,7 @@ Real-time subtitle overlays synced perfectly.
         videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
       ),
     ),
-    const DemoShowcaseItem(
+    DemoShowcaseItem(
       title: 'واجهة عربية ودعم RTL كامل',
       subtitle: 'ترجمة فورية باللغة العربية مع إعدادات المشغل المعربة بالكامل',
       category: 'Arabic / RTL',
@@ -150,9 +172,6 @@ Real-time subtitle overlays synced perfectly.
       accentColor: Color(0xFF0EA5E9),
       config: VideoConfig(
         videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
-        playerConfig: YouTubePlayerConfig(
-          text: PlayerTextConfig.arabic(),
-        ),
         subtitles: [
           SubtitleTrack(
             id: 'ar',
@@ -171,66 +190,6 @@ Real-time subtitle overlays synced perfectly.
         initialSubtitle: SubtitleTrack(
           id: 'ar',
           title: 'عربي (Arabic)',
-        ),
-      ),
-    ),
-    const DemoShowcaseItem(
-      title: 'Reproductor en Español',
-      subtitle:
-          'Interfaz completamente traducida al español con controles localizados',
-      category: 'Languages',
-      tags: ['Español', 'Spanish', 'LTR', 'Localization'],
-      icon: Icons.translate_rounded,
-      accentColor: Color(0xFFF97316),
-      config: VideoConfig(
-        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
-        playerConfig: YouTubePlayerConfig(
-          text: PlayerTextConfig.spanish(),
-        ),
-      ),
-    ),
-    const DemoShowcaseItem(
-      title: 'Lecteur Vidéo en Français',
-      subtitle:
-          'Interface entièrement traduite en français avec commandes localisées',
-      category: 'Languages',
-      tags: ['Français', 'French', 'LTR', 'Localization'],
-      icon: Icons.translate_rounded,
-      accentColor: Color(0xFF8B5CF6),
-      config: VideoConfig(
-        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
-        playerConfig: YouTubePlayerConfig(
-          text: PlayerTextConfig.french(),
-        ),
-      ),
-    ),
-    const DemoShowcaseItem(
-      title: 'Videoplayer auf Deutsch',
-      subtitle:
-          'Vollständig ins Deutsche übersetzte Oberfläche mit lokalisierten Steuerungen',
-      category: 'Languages',
-      tags: ['Deutsch', 'German', 'LTR', 'Localization'],
-      icon: Icons.translate_rounded,
-      accentColor: Color(0xFFEAB308),
-      config: VideoConfig(
-        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
-        playerConfig: YouTubePlayerConfig(
-          text: PlayerTextConfig.german(),
-        ),
-      ),
-    ),
-    const DemoShowcaseItem(
-      title: 'Türkçe Video Oynatıcı',
-      subtitle:
-          'Tamamen Türkçeye çevrilmiş arayüz ve yerelleştirilmiş kontroller',
-      category: 'Languages',
-      tags: ['Türkçe', 'Turkish', 'LTR', 'Localization'],
-      icon: Icons.translate_rounded,
-      accentColor: Color(0xFFE11D48),
-      config: VideoConfig(
-        videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
-        playerConfig: YouTubePlayerConfig(
-          text: PlayerTextConfig.turkish(),
         ),
       ),
     ),

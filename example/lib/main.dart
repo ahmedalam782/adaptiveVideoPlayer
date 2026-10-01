@@ -1,12 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:adaptive_video_player/adaptive_video_player.dart';
 
 import 'screens/showcase_screen.dart';
+import 'widgets/language_picker_sheet.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
   AdaptiveVideoPlayerPlatform.ensureInitialized();
-  runApp(const MyApp());
+
+  runApp(
+    EasyLocalization(
+      supportedLocales:
+          supportedLanguages.map((lang) => Locale(lang.code)).toList(),
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -18,7 +30,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.dark;
-  Locale _locale = const Locale('en');
 
   void _toggleTheme() {
     setState(() {
@@ -27,33 +38,18 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _toggleLanguage() {
-    setState(() {
-      _locale = _locale.languageCode == 'en'
-          ? const Locale('ar')
-          : const Locale('en');
-    });
-  }
-
-  bool get _isRtl => _locale.languageCode == 'ar';
-
   @override
   Widget build(BuildContext context) {
     const primarySeed = Color(0xFF6366F1); // Indigo
+    final currentLang =
+        LanguagePickerSheet.getLanguage(context.locale.languageCode);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Adaptive Video Player Studio',
-      locale: _locale,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ar'),
-      ],
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       themeMode: _themeMode,
       theme: ThemeData(
         useMaterial3: true,
@@ -79,15 +75,16 @@ class _MyAppState extends State<MyApp> {
       ),
       builder: (context, child) {
         return Directionality(
-          textDirection: _isRtl ? TextDirection.rtl : TextDirection.ltr,
+          textDirection:
+              currentLang.isRtl ? TextDirection.rtl : TextDirection.ltr,
           child: child ?? const SizedBox(),
         );
       },
       home: ShowcaseScreen(
         isDark: _themeMode == ThemeMode.dark,
         onToggleTheme: _toggleTheme,
-        isRtl: _isRtl,
-        onToggleLanguage: _toggleLanguage,
+        currentLanguageCode: context.locale.languageCode,
+        onSelectLanguage: (code) => context.setLocale(Locale(code)),
       ),
     );
   }
