@@ -16,7 +16,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
   final VoidCallback? onSeekBackward;
   final VoidCallback? onToggleFullscreen;
   final VoidCallback? onTouchActivity;
-  final ValueChanged<int>? onPositionUpdate;
+  final void Function(int position, int duration)? onPositionUpdate;
   final ValueChanged<bool>? onPlayingStateChanged;
 
   const YouTubeWebViewPlayer({

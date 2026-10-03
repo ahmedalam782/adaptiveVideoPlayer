@@ -7,6 +7,7 @@ import 'player_visibility_config.dart';
 
 export 'fullscreen_result.dart';
 export 'player_bottom_actions_config.dart';
+export 'player_icon_config.dart';
 export 'player_playback_config.dart';
 export 'player_style_config.dart';
 export 'player_text_config.dart';

@@ -10,6 +10,7 @@ class FullscreenButton extends StatelessWidget {
   final Color iconColor;
   final bool isFullscreen;
   final String? tooltip;
+  final PlayerIconConfig? icons;
 
   const FullscreenButton({
     super.key,
@@ -17,6 +18,7 @@ class FullscreenButton extends StatelessWidget {
     required this.iconColor,
     this.isFullscreen = false,
     this.tooltip,
+    this.icons,
   });
 
   @override
@@ -26,12 +28,14 @@ class FullscreenButton extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(6),
-        child: Icon(
-          isFullscreen
+        child: PlayerIcon.resolve(
+          context,
+          icon: isFullscreen ? icons?.exitFullscreenIcon : icons?.fullscreenIcon,
+          fallbackIcon: isFullscreen
               ? Icons.fullscreen_exit_rounded
               : Icons.fullscreen_rounded,
-          color: iconColor,
-          size: 28,
+          defaultColor: iconColor,
+          defaultSize: 28,
         ),
       ),
     );
@@ -49,6 +53,7 @@ class MuteButton extends StatelessWidget {
   final Color iconColor;
   final bool isMuted;
   final String? tooltip;
+  final PlayerIconConfig? icons;
 
   const MuteButton({
     super.key,
@@ -56,6 +61,7 @@ class MuteButton extends StatelessWidget {
     required this.iconColor,
     required this.isMuted,
     this.tooltip,
+    this.icons,
   });
 
   @override
@@ -65,10 +71,13 @@ class MuteButton extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Icon(
-          isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-          color: iconColor,
-          size: 26,
+        child: PlayerIcon.resolve(
+          context,
+          icon: isMuted ? icons?.volumeMuteIcon : icons?.volumeHighIcon,
+          fallbackIcon:
+              isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+          defaultColor: iconColor,
+          defaultSize: 26,
         ),
       ),
     );
@@ -85,12 +94,14 @@ class SettingsButton extends StatelessWidget {
   final VoidCallback onTap;
   final Color iconColor;
   final String? tooltip;
+  final PlayerIconConfig? icons;
 
   const SettingsButton({
     super.key,
     required this.onTap,
     required this.iconColor,
     this.tooltip,
+    this.icons,
   });
 
   @override
@@ -100,7 +111,13 @@ class SettingsButton extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(6),
-        child: Icon(Icons.settings_rounded, color: iconColor, size: 26),
+        child: PlayerIcon.resolve(
+          context,
+          icon: icons?.settingsIcon,
+          fallbackIcon: Icons.settings_rounded,
+          defaultColor: iconColor,
+          defaultSize: 26,
+        ),
       ),
     );
 
@@ -137,6 +154,9 @@ class ProgressBar extends StatefulWidget {
   final Color playedColor;
   final Color handleColor;
   final Color backgroundColor;
+  final double thumbRadius;
+  final double trackHeight;
+  final SliderComponentShape? thumbShape;
 
   const ProgressBar({
     super.key,
@@ -144,6 +164,9 @@ class ProgressBar extends StatefulWidget {
     this.playedColor = Colors.red,
     this.handleColor = Colors.redAccent,
     this.backgroundColor = Colors.white24,
+    this.thumbRadius = 7.5,
+    this.trackHeight = 4.5,
+    this.thumbShape,
   });
 
   @override
@@ -174,9 +197,12 @@ class _ProgressBarState extends State<ProgressBar> {
               activeTrackColor: widget.playedColor,
               inactiveTrackColor: widget.backgroundColor,
               thumbColor: widget.handleColor,
-              trackHeight: 4.5,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7.5),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 15.0),
+              trackHeight: widget.trackHeight,
+              thumbShape: widget.thumbShape ??
+                  RoundSliderThumbShape(enabledThumbRadius: widget.thumbRadius),
+              overlayShape: RoundSliderOverlayShape(
+                overlayRadius: widget.thumbRadius * 1.8,
+              ),
             ),
             child: Slider(
               value: sliderValue,
@@ -228,6 +254,7 @@ class PlayerBottomActionsBuilder {
           onTap: onMuteTap,
           iconColor: config.iconColor,
           isMuted: isMuted,
+          icons: config.icons,
           tooltip: isMuted
               ? (messages?.unmuteAudioText ?? 'Unmute')
               : (messages?.muteAudioText ?? 'Mute'),
@@ -239,12 +266,17 @@ class PlayerBottomActionsBuilder {
           textStyle: config.timeTextStyle,
           textColor: config.textColor,
         ),
-      if (!isLive && showTimeDisplay) RemainingDuration(controller: controller),
+      if (!isLive && showTimeDisplay)
+        TotalDuration(controller: controller),
       if (!isLive && showProgressBar)
         ProgressBar(
           controller: controller,
           playedColor: config.progressBarPlayedColor,
           handleColor: config.progressBarHandleColor,
+          backgroundColor: config.progressBarBackgroundColor ?? Colors.white24,
+          thumbRadius: config.progressBarThumbRadius,
+          trackHeight: config.progressBarTrackHeight,
+          thumbShape: config.progressBarThumbShape,
         )
       else
         const Spacer(),
@@ -253,6 +285,7 @@ class PlayerBottomActionsBuilder {
         SettingsButton(
           onTap: onSettingsTap,
           iconColor: config.iconColor,
+          icons: config.icons,
           tooltip: messages?.playerSettingsText ?? 'Player Settings',
         ),
       ],
@@ -267,10 +300,16 @@ class PlayerBottomActionsBuilder {
             onTap: onPipTap,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Icon(
-                Icons.picture_in_picture_alt_rounded,
-                color: config.iconColor,
-                size: 22,
+              child: Builder(
+                builder: (context) {
+                  return PlayerIcon.resolve(
+                    context,
+                    icon: config.icons.miniPlayerIcon,
+                    fallbackIcon: Icons.picture_in_picture_alt_rounded,
+                    defaultColor: config.iconColor,
+                    defaultSize: 22,
+                  );
+                },
               ),
             ),
           ),
@@ -282,6 +321,7 @@ class PlayerBottomActionsBuilder {
           onTap: onFullscreenTap,
           iconColor: config.iconColor,
           isFullscreen: isFullscreen,
+          icons: config.icons,
           tooltip: isFullscreen
               ? (messages?.exitFullscreenText ?? 'Exit Fullscreen')
               : (messages?.fullscreenText ?? 'Fullscreen'),

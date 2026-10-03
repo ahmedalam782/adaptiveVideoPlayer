@@ -39,10 +39,15 @@ class AdaptiveFullscreenButton extends StatelessWidget {
         },
         child: Padding(
           padding: const EdgeInsets.all(6.0),
-          child: Icon(
-            isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
-            color: styling?.iconColor ?? Colors.white,
-            size: 20,
+          child: PlayerIcon.resolve(
+            context,
+            icon: isFullScreen
+                ? styling?.icons.exitFullscreenIcon
+                : styling?.icons.fullscreenIcon,
+            fallbackIcon:
+                isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+            defaultColor: styling?.iconColor ?? Colors.white,
+            defaultSize: 20,
           ),
         ),
       ),

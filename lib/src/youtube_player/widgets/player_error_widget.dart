@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../models/player_icon_config.dart';
+
 /// Error display widget for YouTube player.
 class PlayerErrorWidget extends StatelessWidget {
   final String errorMessage;
@@ -7,6 +9,7 @@ class PlayerErrorWidget extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final TextStyle? errorTextStyle;
+  final PlayerIcon? errorIcon;
 
   const PlayerErrorWidget({
     super.key,
@@ -15,6 +18,7 @@ class PlayerErrorWidget extends StatelessWidget {
     required this.backgroundColor,
     required this.textColor,
     this.errorTextStyle,
+    this.errorIcon,
   });
 
   @override
@@ -32,7 +36,13 @@ class PlayerErrorWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline, color: errorIconColor, size: 48),
+                  PlayerIcon.resolve(
+                    context,
+                    icon: errorIcon,
+                    fallbackIcon: Icons.error_outline,
+                    defaultColor: errorIconColor,
+                    defaultSize: 48,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     errorMessage,

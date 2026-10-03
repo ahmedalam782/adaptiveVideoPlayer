@@ -23,6 +23,7 @@ class YouTubeMobilePlayerView extends StatelessWidget {
   final VoidCallback onRestartVideo;
   final YouTubeLiveBadgeBuilder? liveBadgeBuilder;
   final YouTubeReplayBuilder? replayBuilder;
+  final bool hideChrome;
 
   const YouTubeMobilePlayerView({
     super.key,
@@ -41,59 +42,73 @@ class YouTubeMobilePlayerView extends StatelessWidget {
     required this.onRestartVideo,
     this.liveBadgeBuilder,
     this.replayBuilder,
+    this.hideChrome = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return YoutubePlayer(
       controller: controller,
+      autoFullScreen: false,
+      enableFullScreenOnVerticalDrag: false,
       builder: (context, player, ctrl) {
-        return Stack(
-          children: [
-            player,
-            CustomYoutubeControls(
-              controller: ctrl,
-              config: config,
-              isLive: isLive,
-              isMuted: isMuted,
-              isFullscreen: false,
-              onFullscreenTap: onFullscreenTap,
-              onMuteTap: onMuteTap,
-              onSettingsTap: onSettingsTap,
-              onPipTap: onPipTap,
-              onSeekBackward: onSeekBackward,
-              onSeekForward: onSeekForward,
-              topActions: ((isLive || viewerCount != null) &&
-                      config.visibility.showLiveBadge)
-                  ? Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: (liveBadgeBuilder ?? config.liveBadgeBuilder)
-                              ?.call(
-                            context,
-                            isLive: isLive,
-                            viewerCount: viewerCount,
-                          ) ??
-                          YouTubeLiveBadge(
-                            isLive: isLive,
-                            viewerCount: viewerCount,
-                            liveText: config.text.liveText,
-                            badgeColor: config.style.progressBarPlayedColor,
-                            iconColor: config.style.iconColor,
-                            textColor: config.style.textColor,
-                          ),
-                    )
-                  : null,
-            ),
-            if (videoEnded)
-              (replayBuilder ?? config.replayBuilder)?.call(
-                    context,
-                    onRestartVideo,
-                  ) ??
-                  YouTubeReplayOverlay(
-                    onRestart: onRestartVideo,
-                    iconColor: config.style.iconColor,
-                  ),
-          ],
+        if (hideChrome) return player;
+        return YoutubeValueBuilder(
+          controller: ctrl,
+          buildWhen: (previous, next) =>
+              previous.fullScreenOption.enabled !=
+              next.fullScreenOption.enabled,
+          builder: (context, value) {
+            final isFullscreen = value.fullScreenOption.enabled;
+            return Stack(
+              children: [
+                player,
+                CustomYoutubeControls(
+                  controller: ctrl,
+                  config: config,
+                  isLive: isLive,
+                  isMuted: isMuted,
+                  isFullscreen: isFullscreen,
+                  onFullscreenTap: onFullscreenTap,
+                  onMuteTap: onMuteTap,
+                  onSettingsTap: onSettingsTap,
+                  onPipTap: onPipTap,
+                  onSeekBackward: onSeekBackward,
+                  onSeekForward: onSeekForward,
+                  topActions: ((isLive || viewerCount != null) &&
+                          config.visibility.showLiveBadge)
+                      ? Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: (liveBadgeBuilder ?? config.liveBadgeBuilder)
+                                  ?.call(
+                                context,
+                                isLive: isLive,
+                                viewerCount: viewerCount,
+                              ) ??
+                              YouTubeLiveBadge(
+                                isLive: isLive,
+                                viewerCount: viewerCount,
+                                liveText: config.text.liveText,
+                                badgeColor: config.style.progressBarPlayedColor,
+                                iconColor: config.style.iconColor,
+                                textColor: config.style.textColor,
+                              ),
+                        )
+                      : null,
+                ),
+                if (videoEnded)
+                  (replayBuilder ?? config.replayBuilder)?.call(
+                        context,
+                        onRestartVideo,
+                      ) ??
+                      YouTubeReplayOverlay(
+                        onRestart: onRestartVideo,
+                        iconColor: config.style.iconColor,
+                        replayIcon: config.style.icons.replayIcon,
+                      ),
+              ],
+            );
+          },
         );
       },
     );

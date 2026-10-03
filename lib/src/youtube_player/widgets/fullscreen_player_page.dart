@@ -69,7 +69,7 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
       loop: _state.loop,
       forceHD: _state.forceHD,
       enableCaption: _state.enableCaption,
-      showControls: true,
+      showControls: false,
       startAt: targetPosition.inSeconds,
     );
 
@@ -292,6 +292,9 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
             PlayerLoadingWidget(
               loadingIndicatorColor: widget.config.style.loadingIndicatorColor,
               backgroundColor: Colors.black,
+              strokeWidth: widget.config.style.loadingIndicatorStrokeWidth,
+              size: widget.config.style.loadingIndicatorSize,
+              builder: widget.config.style.loadingIndicatorBuilder,
             ),
       );
     }
@@ -396,6 +399,7 @@ class _FullScreenPlayerPageState extends State<FullScreenPlayerPage> {
                         onRestart: _restartVideo,
                         iconColor: widget.config.style.iconColor,
                         iconSize: 56,
+                        replayIcon: widget.config.style.icons.replayIcon,
                       ),
               ],
             ),

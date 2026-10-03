@@ -325,12 +325,14 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
           AdaptiveSeekFeedbackOverlay(
             seekDirection: _seekDirection,
             seekSeconds: _seekSeconds,
+            styling: widget.styling,
           ),
 
           // Sleek Volume HUD Feedback Overlay
           AdaptiveVolumeHudOverlay(
             volume: _feedbackVolume,
             isFullScreen: widget.isFullScreen,
+            styling: widget.styling,
           ),
 
           // YouTube-style Hold-to-2x Speed Pill Badge at top-center
@@ -382,25 +384,29 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
 
           if (widget.showControls)
             Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  _focusNode.requestFocus();
-                  _toggleControls();
-                },
-                onDoubleTapDown: _handleDoubleTap,
-                onLongPressStart: _handleLongPressStart,
-                onLongPressEnd: _handleLongPressEnd,
-                onLongPressCancel: _stopHold2xSpeed,
-                child: AnimatedOpacity(
-                  opacity: _controlsVisible ? 1 : 0,
-                  duration: const Duration(milliseconds: 250),
-                  child: IgnorePointer(
-                    ignoring: !_controlsVisible,
-                    child: widget.controlsBuilder != null
-                        ? widget.controlsBuilder!(
-                            context, widget.controller, widget.isFullScreen)
-                        : AdaptiveControlsLayer(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      _focusNode.requestFocus();
+                      _toggleControls();
+                    },
+                    onDoubleTapDown: _handleDoubleTap,
+                    onLongPressStart: _handleLongPressStart,
+                    onLongPressEnd: _handleLongPressEnd,
+                    onLongPressCancel: _stopHold2xSpeed,
+                  ),
+                  AnimatedOpacity(
+                    opacity: _controlsVisible ? 1 : 0,
+                    duration: const Duration(milliseconds: 250),
+                    child: IgnorePointer(
+                      ignoring: !_controlsVisible,
+                      child: widget.controlsBuilder != null
+                          ? widget.controlsBuilder!(
+                              context, widget.controller, widget.isFullScreen)
+                          : AdaptiveControlsLayer(
                             controller: widget.controller,
                             isFullScreen: widget.isFullScreen,
                             styling: widget.styling,
@@ -426,8 +432,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
                           ),
                   ),
                 ),
-              ),
+              ],
             ),
+          ),
         ],
       ),
     );

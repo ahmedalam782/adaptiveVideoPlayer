@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
@@ -34,13 +33,7 @@ class AdaptiveTopBar extends StatelessWidget {
     this.visibility,
   });
 
-  bool get _shouldShowBackButton {
-    if (!isFullScreen) return false;
-    if (showBackButton != null) return showBackButton!;
-    if (kIsWeb) return false;
-    return defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS;
-  }
+  bool get _shouldShowBackButton => showBackButton == true;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +48,6 @@ class AdaptiveTopBar extends StatelessWidget {
     return Directionality(
       textDirection: textDirection,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           if (_shouldShowBackButton)
             Tooltip(
@@ -89,59 +81,58 @@ class AdaptiveTopBar extends StatelessWidget {
                       ],
                     ),
                     alignment: Alignment.center,
-                    child: Icon(
-                      isRtl
+                    child: PlayerIcon.resolve(
+                      context,
+                      icon: styling?.icons.backIcon,
+                      fallbackIcon: isRtl
                           ? Icons.arrow_forward_rounded
                           : Icons.arrow_back_rounded,
-                      color: iconColor,
-                      size: 24,
+                      defaultColor: iconColor,
+                      defaultSize: 24,
                     ),
                   ),
                 ),
               ),
-            )
-          else
-            const SizedBox.shrink(),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (showLive)
-                AdaptiveLiveIndicator(
-                  isLive: isLive,
-                  qualities: qualities,
-                  onQualitySelected: onQualitySelected,
-                  onAnalyticsEvent: onAnalyticsEvent,
-                  messages: messages,
-                  styling: styling,
-                ),
-              if (viewerCount != null)
-                Container(
-                  margin: const EdgeInsetsDirectional.only(end: 8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
+            ),
+          if (_shouldShowBackButton) const SizedBox(width: 8),
+          if (showLive)
+            AdaptiveLiveIndicator(
+              isLive: isLive,
+              qualities: qualities,
+              onQualitySelected: onQualitySelected,
+              onAnalyticsEvent: onAnalyticsEvent,
+              messages: messages,
+              styling: styling,
+            ),
+          if (viewerCount != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PlayerIcon.resolve(
+                    context,
+                    icon: styling?.icons.viewerCountIcon,
+                    fallbackIcon: Icons.remove_red_eye_outlined,
+                    defaultColor: iconColor,
+                    defaultSize: 14,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.remove_red_eye_outlined,
-                          color: iconColor, size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        viewerCount!,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 4),
+                  Text(
+                    viewerCount!,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-            ],
-          ),
+                ],
+              ),
+            ),
         ],
       ),
     );

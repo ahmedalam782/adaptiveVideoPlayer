@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../../youtube_player/models/youtube_player_config.dart';
+
 /// Visual feedback overlay displayed when seeking via double tap or keyboard (+10s, +20s, +30s, etc.).
 class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
   final int seekDirection;
   final int seekSeconds;
+  final PlayerStyleConfig? styling;
 
   const AdaptiveSeekFeedbackOverlay({
     super.key,
     required this.seekDirection,
     this.seekSeconds = 10,
+    this.styling,
   });
 
   @override
@@ -45,10 +49,12 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
-                                Icons.chevron_left,
-                                color: Colors.white,
-                                size: 22,
+                              PlayerIcon.resolve(
+                                context,
+                                icon: styling?.icons.skipBackwardIcon,
+                                fallbackIcon: Icons.chevron_left,
+                                defaultColor: Colors.white,
+                                defaultSize: 22,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -101,10 +107,12 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              const Icon(
-                                Icons.chevron_right,
-                                color: Colors.white,
-                                size: 22,
+                              PlayerIcon.resolve(
+                                context,
+                                icon: styling?.icons.skipForwardIcon,
+                                fallbackIcon: Icons.chevron_right,
+                                defaultColor: Colors.white,
+                                defaultSize: 22,
                               ),
                             ],
                           ),

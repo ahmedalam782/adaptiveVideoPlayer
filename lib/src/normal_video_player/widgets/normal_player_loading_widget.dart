@@ -15,8 +15,24 @@ class NormalPlayerLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (customBuilder != null) {
-      return customBuilder!(context);
+    final builder = customBuilder ?? styling?.loadingIndicatorBuilder;
+    if (builder != null) {
+      return builder(context);
+    }
+
+    final indicatorSize = styling?.loadingIndicatorSize;
+    Widget indicator = CircularProgressIndicator(
+      color: styling?.loadingIndicatorColor ??
+          const Color.fromRGBO(255, 0, 0, 0.7),
+      strokeWidth: styling?.loadingIndicatorStrokeWidth ?? 4.0,
+      strokeCap: StrokeCap.round,
+    );
+    if (indicatorSize != null) {
+      indicator = SizedBox(
+        width: indicatorSize,
+        height: indicatorSize,
+        child: indicator,
+      );
     }
 
     return Container(
@@ -27,11 +43,7 @@ class NormalPlayerLoadingWidget extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Center(
-          child: CircularProgressIndicator(
-            color: styling?.loadingIndicatorColor ??
-                const Color.fromRGBO(255, 0, 0, 0.7),
-            strokeCap: StrokeCap.round,
-          ),
+          child: indicator,
         ),
       ),
     );

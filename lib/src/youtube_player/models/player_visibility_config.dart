@@ -60,6 +60,9 @@ class PlayerVisibilityConfig {
   /// Whether to show -10s and +10s seek buttons in bottom controls
   final bool showSkipButtons;
 
+  /// Whether to show dedicated stop button in bottom controls
+  final bool showStopButton;
+
   /// Duration to seek when skip buttons are tapped (default 10s)
   final Duration skipDuration;
 
@@ -90,6 +93,7 @@ class PlayerVisibilityConfig {
     this.showChapterTitle = true,
     this.showVolumeFeedback = true,
     this.showSkipButtons = true,
+    this.showStopButton = false,
     this.skipDuration = const Duration(seconds: 10),
     this.controlsHideTimeout = const Duration(seconds: 3),
     this.volumeFeedbackTimeout = const Duration(milliseconds: 1200),
@@ -117,6 +121,7 @@ class PlayerVisibilityConfig {
     bool? showChapterTitle,
     bool? showVolumeFeedback,
     bool? showSkipButtons,
+    bool? showStopButton,
     Duration? skipDuration,
     Duration? controlsHideTimeout,
     Duration? volumeFeedbackTimeout,
@@ -143,6 +148,7 @@ class PlayerVisibilityConfig {
       showChapterTitle: showChapterTitle ?? this.showChapterTitle,
       showVolumeFeedback: showVolumeFeedback ?? this.showVolumeFeedback,
       showSkipButtons: showSkipButtons ?? this.showSkipButtons,
+      showStopButton: showStopButton ?? this.showStopButton,
       skipDuration: skipDuration ?? this.skipDuration,
       controlsHideTimeout: controlsHideTimeout ?? this.controlsHideTimeout,
       volumeFeedbackTimeout:

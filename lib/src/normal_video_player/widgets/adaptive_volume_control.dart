@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../utils/video_player_web_safe.dart';
 
-/// Interactive volume button and hoverable / touch-expandable slider.
+/// Interactive volume button. The slider opens above the icon, not beside it.
 class AdaptiveVolumeControl extends StatefulWidget {
   final VideoPlayerController controller;
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
   final bool alwaysShowSlider;
+  final bool allowExpand;
 
   const AdaptiveVolumeControl({
     super.key,
@@ -16,6 +17,7 @@ class AdaptiveVolumeControl extends StatefulWidget {
     this.styling,
     this.messages,
     this.alwaysShowSlider = false,
+    this.allowExpand = true,
   });
 
   @override
@@ -27,11 +29,19 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
   bool _isDraggingVolume = false;
   bool _isTouchExpanded = false;
   Timer? _collapseTimer;
+  Timer? _hoverExitTimer;
   double _lastNonZeroVolume = 1.0;
+
+  final LayerLink _link = LayerLink();
+  OverlayEntry? _overlayEntry;
+  bool _desiredOverlay = false;
+  bool _overlaySyncScheduled = false;
 
   @override
   void dispose() {
     _collapseTimer?.cancel();
+    _hoverExitTimer?.cancel();
+    _removeOverlay();
     super.dispose();
   }
 
@@ -44,16 +54,31 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
     });
   }
 
+  void _onHoverEnter() {
+    _hoverExitTimer?.cancel();
+    if (!_isVolumeHovered) {
+      setState(() => _isVolumeHovered = true);
+    }
+  }
+
+  void _onHoverExit() {
+    _hoverExitTimer?.cancel();
+    _hoverExitTimer = Timer(const Duration(milliseconds: 180), () {
+      if (!mounted || _isDraggingVolume) return;
+      setState(() {
+        _isVolumeHovered = false;
+        _isTouchExpanded = false;
+      });
+    });
+  }
+
   void _handleVolumeTap(VideoPlayerValue value, bool isMuted, bool showSlider) {
-    // On mobile / touch screens (when slider is collapsed):
-    // First tap expands the volume slider so user can adjust it!
-    if (!showSlider) {
+    if (!showSlider && widget.allowExpand) {
       setState(() => _isTouchExpanded = true);
       _resetCollapseTimer();
       return;
     }
 
-    // When already showing slider, tap toggles mute/unmute
     if (isMuted) {
       final target = _lastNonZeroVolume > 0 ? _lastNonZeroVolume : 1.0;
       widget.controller.setVolume(target);
@@ -74,117 +99,181 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
     }
   }
 
+  void _requestOverlay(bool show) {
+    if (_desiredOverlay == show) return;
+    _desiredOverlay = show;
+    if (_overlaySyncScheduled) return;
+    _overlaySyncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _overlaySyncScheduled = false;
+      if (!mounted) return;
+      if (_desiredOverlay) {
+        _insertOverlay();
+      } else {
+        _removeOverlay();
+      }
+    });
+  }
+
+  void _insertOverlay() {
+    if (_overlayEntry != null) {
+      _overlayEntry!.markNeedsBuild();
+      return;
+    }
+    final overlay = Overlay.maybeOf(context);
+    if (overlay == null) return;
+    _overlayEntry = OverlayEntry(builder: _buildVolumePopup);
+    overlay.insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  Widget _buildVolumePopup(BuildContext context) {
+    final activeColor =
+        widget.styling?.progressBarPlayedColor ?? Colors.white;
+    final thumbColor = widget.styling?.progressBarHandleColor ?? activeColor;
+
+    return Positioned(
+      width: 36,
+      child: CompositedTransformFollower(
+        link: _link,
+        showWhenUnlinked: false,
+        targetAnchor: Alignment.topCenter,
+        followerAnchor: Alignment.bottomCenter,
+        offset: const Offset(0, -8),
+        child: MouseRegion(
+          onEnter: (_) => _onHoverEnter(),
+          onExit: (_) => _onHoverExit(),
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: 36,
+              height: 112,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xF21A1A1A),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: ValueListenableBuilder(
+                valueListenable: widget.controller,
+                builder: (context, VideoPlayerValue value, _) {
+                  return RotatedBox(
+                    quarterTurns: 3,
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight:
+                            widget.styling?.volumeSliderTrackHeight ?? 3.0,
+                        thumbShape: RoundSliderThumbShape(
+                          enabledThumbRadius:
+                              widget.styling?.volumeSliderThumbRadius ?? 5.5,
+                        ),
+                        overlayShape: const RoundSliderOverlayShape(
+                          overlayRadius: 10,
+                        ),
+                        activeTrackColor:
+                            widget.styling?.volumeSliderActiveColor ??
+                                activeColor,
+                        inactiveTrackColor:
+                            widget.styling?.volumeSliderInactiveColor ??
+                                Colors.white30,
+                        thumbColor: widget.styling?.volumeSliderThumbColor ??
+                            thumbColor,
+                      ),
+                      child: Slider(
+                        value: value.volume.clamp(0.0, 1.0),
+                        min: 0.0,
+                        max: 1.0,
+                        onChangeStart: (_) {
+                          _collapseTimer?.cancel();
+                          _hoverExitTimer?.cancel();
+                          setState(() => _isDraggingVolume = true);
+                        },
+                        onChanged: (newVolume) {
+                          if (newVolume > 0) {
+                            _lastNonZeroVolume = newVolume;
+                          }
+                          widget.controller.setVolume(newVolume);
+                        },
+                        onChangeEnd: (_) {
+                          setState(() => _isDraggingVolume = false);
+                          _resetCollapseTimer();
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
       valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, child) {
         final isMuted = value.volume == 0;
-        final showSlider = widget.alwaysShowSlider ||
-            _isVolumeHovered ||
-            _isDraggingVolume ||
-            _isTouchExpanded;
-        final textDirection = widget.messages?.resolveTextDirection(context) ??
-            Directionality.maybeOf(context) ??
-            TextDirection.ltr;
+        final showSlider = widget.allowExpand &&
+            (widget.alwaysShowSlider ||
+                _isVolumeHovered ||
+                _isDraggingVolume ||
+                _isTouchExpanded);
+        _requestOverlay(showSlider);
 
         final tooltip = isMuted
             ? (widget.messages?.unmuteAudioText ?? 'Unmute')
             : (widget.messages?.muteAudioText ?? 'Mute');
 
-        final activeColor =
-            widget.styling?.progressBarPlayedColor ?? Colors.white;
-        final thumbColor =
-            widget.styling?.progressBarHandleColor ?? Colors.white;
-
-        return Directionality(
-          textDirection: textDirection,
+        return CompositedTransformTarget(
+          link: _link,
           child: MouseRegion(
-            onEnter: (_) => setState(() => _isVolumeHovered = true),
-            onExit: (_) {
-              setState(() {
-                _isVolumeHovered = false;
-                _isTouchExpanded = false;
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              height: 38,
-              padding: EdgeInsetsDirectional.only(
-                start: 6.0,
-                end: showSlider ? 10.0 : 6.0,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Tooltip(
-                    message: tooltip,
-                    waitDuration: const Duration(milliseconds: 500),
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _handleVolumeTap(value, isMuted, showSlider),
-                      onLongPress: () => _handleVolumeLongPress(value, isMuted),
-                      child: SizedBox(
-                        width: 26,
-                        height: 26,
-                        child: Center(
-                          child: Icon(
-                            isMuted
-                                ? Icons.volume_off_rounded
-                                : value.volume < 0.5
-                                    ? Icons.volume_down_rounded
-                                    : Icons.volume_up_rounded,
-                            color: widget.styling?.iconColor ?? Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
+            onEnter: (_) => _onHoverEnter(),
+            onExit: (_) => _onHoverExit(),
+            child: Tooltip(
+              message: tooltip,
+              waitDuration: const Duration(milliseconds: 500),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _handleVolumeTap(value, isMuted, showSlider),
+                onLongPress: () => _handleVolumeLongPress(value, isMuted),
+                child: SizedBox(
+                  width: 38,
+                  height: 38,
+                  child: Center(
+                    child: Builder(
+                      builder: (context) {
+                        final PlayerIcon? customVolIcon;
+                        final IconData fallbackVolIcon;
+                        if (isMuted) {
+                          customVolIcon = widget.styling?.icons.volumeMuteIcon;
+                          fallbackVolIcon = Icons.volume_off_rounded;
+                        } else if (value.volume < 0.5) {
+                          customVolIcon = widget.styling?.icons.volumeLowIcon;
+                          fallbackVolIcon = Icons.volume_down_rounded;
+                        } else {
+                          customVolIcon = widget.styling?.icons.volumeHighIcon;
+                          fallbackVolIcon = Icons.volume_up_rounded;
+                        }
+
+                        return PlayerIcon.resolve(
+                          context,
+                          icon: customVolIcon,
+                          fallbackIcon: fallbackVolIcon,
+                          defaultColor:
+                              widget.styling?.iconColor ?? Colors.white,
+                          defaultSize: 20,
+                        );
+                      },
                     ),
                   ),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: showSlider ? 66 : 0,
-                    curve: Curves.easeInOut,
-                    child: ClipRect(
-                      child: showSlider
-                          ? SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 3.0,
-                                thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 5.5,
-                                ),
-                                overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 10.0,
-                                ),
-                                activeTrackColor: activeColor,
-                                inactiveTrackColor: Colors.white30,
-                                thumbColor: thumbColor,
-                              ),
-                              child: Slider(
-                                value: value.volume.clamp(0.0, 1.0),
-                                min: 0.0,
-                                max: 1.0,
-                                onChangeStart: (_) {
-                                  _collapseTimer?.cancel();
-                                  setState(() => _isDraggingVolume = true);
-                                },
-                                onChanged: (newVolume) {
-                                  if (newVolume > 0) {
-                                    _lastNonZeroVolume = newVolume;
-                                  }
-                                  widget.controller.setVolume(newVolume);
-                                },
-                                onChangeEnd: (_) {
-                                  setState(() => _isDraggingVolume = false);
-                                  _resetCollapseTimer();
-                                },
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

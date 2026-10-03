@@ -30,6 +30,15 @@ class AdaptiveBottomBar extends StatelessWidget {
   final bool showSkipButtons;
   final Duration skipDuration;
 
+  /// When false, the timestamp stays off this row so it can sit with the end icons.
+  final bool showTimestamp;
+
+  /// When false, picture-in-picture stays off this row.
+  final bool showMiniPlayerHere;
+
+  /// When false, fullscreen stays off this row.
+  final bool showFullscreenHere;
+
   const AdaptiveBottomBar({
     super.key,
     required this.controller,
@@ -52,6 +61,9 @@ class AdaptiveBottomBar extends StatelessWidget {
     this.onMiniPlayerPressed,
     this.showSkipButtons = true,
     this.skipDuration = const Duration(seconds: 10),
+    this.showTimestamp = true,
+    this.showMiniPlayerHere = true,
+    this.showFullscreenHere = true,
   });
 
   String _formatDuration(Duration d) {
@@ -81,11 +93,13 @@ class AdaptiveBottomBar extends StatelessWidget {
       styling?.controlsBackgroundColor ?? const Color(0x8C000000);
 
   Widget _buildCirclePillButton({
-    required IconData icon,
+    PlayerIcon? playerIcon,
+    IconData? icon,
     required String tooltip,
     required VoidCallback onTap,
     Color? color,
     double size = 20,
+    Offset offset = Offset.zero,
   }) {
     return Tooltip(
       message: tooltip,
@@ -101,10 +115,19 @@ class AdaptiveBottomBar extends StatelessWidget {
             width: 38,
             height: 38,
             child: Center(
-              child: Icon(
-                icon,
-                color: color ?? styling?.iconColor ?? Colors.white,
-                size: size,
+              child: Transform.translate(
+                offset: offset,
+                child: Builder(
+                  builder: (context) {
+                    return PlayerIcon.resolve(
+                      context,
+                      icon: playerIcon,
+                      fallbackIcon: icon ?? Icons.circle,
+                      defaultColor: color ?? styling?.iconColor ?? Colors.white,
+                      defaultSize: size,
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -115,6 +138,8 @@ class AdaptiveBottomBar extends StatelessWidget {
 
   Widget _buildPlayPauseButton(bool isPlaying) {
     return _buildCirclePillButton(
+      playerIcon:
+          isPlaying ? styling?.icons.pauseIcon : styling?.icons.playIcon,
       icon: isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
       tooltip: isPlaying
           ? (messages?.pauseText ?? 'Pause')
@@ -139,6 +164,20 @@ class AdaptiveBottomBar extends StatelessWidget {
     );
   }
 
+  Widget _buildStopButton() {
+    return _buildCirclePillButton(
+      playerIcon: styling?.icons.stopIcon,
+      icon: Icons.stop_rounded,
+      tooltip: 'Stop',
+      size: 20,
+      onTap: () {
+        controller.pause();
+        controller.seekTo(Duration.zero);
+        onAnalyticsEvent?.call('video_stopped', {'position': 0});
+      },
+    );
+  }
+
   Widget _buildDurationText(
     Duration position,
     Duration duration, {
@@ -158,37 +197,39 @@ class AdaptiveBottomBar extends StatelessWidget {
         activeChapter != null &&
         (visibility?.showChapterTitle ?? true);
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          _formatDuration(position),
-          style: style.copyWith(
-            color: textColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Text(
-          ' / ',
-          style: style.copyWith(
-            color: textColor.withValues(alpha: 0.7),
-          ),
-        ),
-        Text(
-          _formatDuration(duration),
-          style: style.copyWith(
-            color: textColor.withValues(alpha: 0.9),
-          ),
-        ),
-        if (canShowChapter) ...[
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           Text(
-            '  •  ',
+            _formatDuration(position),
             style: style.copyWith(
-              color: textColor.withValues(alpha: 0.6),
+              color: textColor,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          Flexible(
-            child: ConstrainedBox(
+          Text(
+            ' / ',
+            style: style.copyWith(
+              color: textColor.withValues(alpha: 0.7),
+            ),
+          ),
+          Text(
+            _formatDuration(duration),
+            style: style.copyWith(
+              color: textColor.withValues(alpha: 0.9),
+            ),
+          ),
+          if (canShowChapter) ...[
+            Text(
+              '  •  ',
+              style: style.copyWith(
+                color: textColor.withValues(alpha: 0.6),
+              ),
+            ),
+            ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 120),
               child: Text(
                 activeChapter.title,
@@ -200,9 +241,9 @@ class AdaptiveBottomBar extends StatelessWidget {
                 ),
               ),
             ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
@@ -238,10 +279,17 @@ class AdaptiveBottomBar extends StatelessWidget {
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                isLooping ? Icons.repeat_rounded : Icons.pause_rounded,
-                size: 9,
-                color: Colors.black87,
+              child: Builder(
+                builder: (context) {
+                  return PlayerIcon.resolve(
+                    context,
+                    icon: styling?.icons.loopIcon,
+                    fallbackIcon:
+                        isLooping ? Icons.repeat_rounded : Icons.pause_rounded,
+                    defaultColor: Colors.black87,
+                    defaultSize: 9,
+                  );
+                },
               ),
             ),
           ),
@@ -274,11 +322,17 @@ class AdaptiveBottomBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.subtitles_outlined,
-                color: (styling?.iconColor ?? Colors.white)
-                    .withValues(alpha: hasSubtitles ? 1.0 : 0.45),
-                size: 19,
+              Builder(
+                builder: (context) {
+                  return PlayerIcon.resolve(
+                    context,
+                    icon: styling?.icons.subtitlesIcon,
+                    fallbackIcon: Icons.subtitles_outlined,
+                    defaultColor: (styling?.iconColor ?? Colors.white)
+                        .withValues(alpha: hasSubtitles ? 1.0 : 0.45),
+                    defaultSize: 19,
+                  );
+                },
               ),
               const SizedBox(height: 2),
               AnimatedContainer(
@@ -312,12 +366,11 @@ class AdaptiveBottomBar extends StatelessWidget {
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 640;
           final isCompact = constraints.maxWidth < 460;
-
           return Padding(
             padding: EdgeInsets.fromLTRB(
-              isCompact ? 8.0 : 12.0,
+              isCompact ? 6.0 : 12.0,
               4.0,
-              isCompact ? 8.0 : 12.0,
+              isCompact ? 6.0 : 12.0,
               10.0,
             ),
             child: ValueListenableBuilder(
@@ -332,14 +385,17 @@ class AdaptiveBottomBar extends StatelessWidget {
                     !isCompact;
 
                 final showVolume = effectiveVisibility.showVolumeButton;
-                final showTime = effectiveVisibility.showTimeDisplay && !isLive;
-                final showFullscreen = effectiveVisibility.showFullscreenButton;
+                final showTime = showTimestamp &&
+                    effectiveVisibility.showTimeDisplay &&
+                    !isLive;
+                final showFullscreen = showFullscreenHere &&
+                    effectiveVisibility.showFullscreenButton;
                 final showSettings = effectiveVisibility.showSettingsButton;
-                final showMiniPlayer =
+                final showMiniPlayer = showMiniPlayerHere &&
                     effectiveVisibility.showMiniPlayerButton &&
-                        onMiniPlayerPressed != null &&
-                        !isFullScreen &&
-                        !isLive;
+                    onMiniPlayerPressed != null &&
+                    !isFullScreen &&
+                    !isLive;
                 final showLoop = effectiveVisibility.showLoopSetting;
                 final showSubtitlesQuick =
                     effectiveVisibility.showCaptionsSetting;
@@ -347,89 +403,103 @@ class AdaptiveBottomBar extends StatelessWidget {
                 return Row(
                   children: [
                     Expanded(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Flanking -10s, play/pause, and +10s buttons
-                          Row(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (canShowSkip)
-                                _buildCirclePillButton(
-                                  icon: Icons.replay_10_rounded,
-                                  tooltip: messages?.skipBackwardText ??
-                                      'Rewind 10s',
-                                  onTap: () => _seekRelative(-skipDuration),
-                                ),
-                              if (canShowSkip) const SizedBox(width: 6),
+                              // Flanking -10s, play/pause, and +10s buttons
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (canShowSkip)
+                                    _buildCirclePillButton(
+                                      playerIcon: styling?.icons.skipBackwardIcon,
+                                      icon: Icons.replay_10_rounded,
+                                      tooltip: messages?.skipBackwardText ??
+                                          'Rewind 10s',
+                                      onTap: () => _seekRelative(-skipDuration),
+                                    ),
+                                  if (canShowSkip) const SizedBox(width: 6),
 
-                              // Central Play/Pause circular pill button
-                              _buildPlayPauseButton(isPlaying),
+                                  // Central Play/Pause circular pill button
+                                  _buildPlayPauseButton(isPlaying),
 
-                              if (canShowSkip) const SizedBox(width: 6),
-                              // Flanking +10s circular pill button
-                              if (canShowSkip)
-                                _buildCirclePillButton(
-                                  icon: Icons.forward_10_rounded,
-                                  tooltip: messages?.skipForwardText ??
-                                      'Forward 10s',
-                                  onTap: () => _seekRelative(skipDuration),
-                                ),
-                            ],
-                          ),
+                                  if (effectiveVisibility.showStopButton) ...[
+                                    const SizedBox(width: 6),
+                                    _buildStopButton(),
+                                  ],
 
-                          if (showVolume) ...[
-                            SizedBox(width: isCompact ? 6 : 8),
-                            // YouTube-style Volume Pill
-                            Container(
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: _pillColor,
-                                borderRadius: BorderRadius.circular(24),
+                                  if (canShowSkip) const SizedBox(width: 6),
+                                  // Flanking +10s circular pill button
+                                  if (canShowSkip)
+                                    _buildCirclePillButton(
+                                      playerIcon: styling?.icons.skipForwardIcon,
+                                      icon: Icons.forward_10_rounded,
+                                      tooltip: messages?.skipForwardText ??
+                                          'Forward 10s',
+                                      onTap: () => _seekRelative(skipDuration),
+                                    ),
+                                ],
                               ),
-                              child: AdaptiveVolumeControl(
-                                controller: controller,
-                                styling: styling,
-                                messages: messages,
-                              ),
-                            ),
-                          ],
 
-                          if (showTime) ...[
-                            SizedBox(width: isCompact ? 6 : 8),
-                            // YouTube-style Time Display Pill (0:00 / 1:22 • Chapter)
-                            Flexible(
-                              child: Container(
-                                height: 38,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: isCompact ? 10.0 : 14.0,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _pillColor,
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Center(
-                                  widthFactor: 1.0,
-                                  child: _buildDurationText(
-                                    position,
-                                    duration,
-                                    isWide: !isCompact,
+                              if (showVolume) ...[
+                                SizedBox(width: isCompact ? 4 : 8),
+                                // YouTube-style Volume Pill
+                                Container(
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: _pillColor,
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: AdaptiveVolumeControl(
+                                    controller: controller,
+                                    styling: styling,
+                                    messages: messages,
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ],
+                              ],
+
+                              if (showTime) ...[
+                                SizedBox(width: isCompact ? 4 : 8),
+                                Container(
+                                  height: 38,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isCompact ? 8.0 : 14.0,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _pillColor,
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Center(
+                                    widthFactor: 1.0,
+                                    child: _buildDurationText(
+                                      position,
+                                      duration,
+                                      isWide: !isCompact,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-
-                    const SizedBox(width: 6),
+                    if ((isWide && (showLoop || showSubtitlesQuick)) ||
+                        showSettings ||
+                        showMiniPlayer ||
+                        showFullscreen) ...[
+                    SizedBox(width: isCompact ? 4 : 6),
 
                     // YouTube-style Right Action Pill (Loop/Autoplay, CC, Settings, MiniPlayer, Fullscreen)
                     Container(
                       height: 38,
                       padding: EdgeInsets.symmetric(
-                        horizontal: isCompact ? 6.0 : 8.0,
+                        horizontal: isCompact ? 4.0 : 8.0,
                       ),
                       decoration: BoxDecoration(
                         color: _pillColor,
@@ -463,7 +533,7 @@ class AdaptiveBottomBar extends StatelessWidget {
                               onPressed: onSettingsPressed,
                             ),
                           if (showMiniPlayer) ...[
-                            const SizedBox(width: 8),
+                            SizedBox(width: isCompact ? 4 : 8),
                             Tooltip(
                               message: messages?.miniPlayerText ?? 'Miniplayer',
                               waitDuration: const Duration(milliseconds: 500),
@@ -475,17 +545,25 @@ class AdaptiveBottomBar extends StatelessWidget {
                                     horizontal: 4.0,
                                     vertical: 4.0,
                                   ),
-                                  child: Icon(
-                                    Icons.picture_in_picture_alt_rounded,
-                                    color: styling?.iconColor ?? Colors.white,
-                                    size: 19,
+                                  child: Builder(
+                                    builder: (context) {
+                                      return PlayerIcon.resolve(
+                                        context,
+                                        icon: styling?.icons.miniPlayerIcon,
+                                        fallbackIcon:
+                                            Icons.picture_in_picture_alt_rounded,
+                                        defaultColor:
+                                            styling?.iconColor ?? Colors.white,
+                                        defaultSize: 19,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
                             ),
                           ],
                           if (showFullscreen) ...[
-                            const SizedBox(width: 8),
+                            SizedBox(width: isCompact ? 4 : 8),
                             AdaptiveFullscreenButton(
                               isFullScreen: isFullScreen,
                               styling: styling,
@@ -497,6 +575,7 @@ class AdaptiveBottomBar extends StatelessWidget {
                         ],
                       ),
                     ),
+                    ],
                   ],
                 );
               },

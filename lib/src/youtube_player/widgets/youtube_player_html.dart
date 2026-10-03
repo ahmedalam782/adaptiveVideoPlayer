@@ -6,7 +6,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="referrer" content="no-referrer-when-downgrade" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <style>
         html,
         body {
@@ -30,7 +30,11 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         video::-webkit-media-controls-picture-in-picture-button,
         video::-webkit-media-controls-fullscreen-button,
         video::-webkit-media-controls-enclosure,
-        .ytp-fullscreen-button {
+        .ytp-fullscreen-button,
+        .ytp-share-button,
+        .ytp-watch-later-button,
+        .ytp-copylink-button,
+        .ytp-overflow-button {
             display: none !important;
         }
     </style>
@@ -48,9 +52,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         var playerObserver = new MutationObserver(function() {
             var iframe = document.querySelector('#player iframe');
             if (iframe) {
-                if (!iframe.getAttribute('referrerpolicy')) {
-                    iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-                }
+                iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
                 var currentAllow = iframe.getAttribute('allow') || '';
                 if (currentAllow.indexOf('encrypted-media') === -1) {
                     iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen');
@@ -120,9 +122,14 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         function sendTimeUpdate() {
             if (player && typeof player.getCurrentTime === 'function' && window.flutter_inappwebview) {
                 var cur = Math.floor(player.getCurrentTime());
+                var dur = 0;
+                if (typeof player.getDuration === 'function') {
+                    dur = Math.floor(player.getDuration() || 0);
+                }
                 window.flutter_inappwebview.callHandler('YouTubePlayerHandler', {
                     'event': 'onTimeUpdate',
-                    'currentTime': cur
+                    'currentTime': cur,
+                    'duration': dur
                 });
             }
         }
@@ -159,7 +166,10 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         function createPlayer() {
             var origin = (window.location && window.location.origin && window.location.origin !== 'null' && window.location.origin !== '')
                 ? window.location.origin
-                : 'https://www.youtube.com';
+                : 'https://www.youtube-nocookie.com';
+            var pageUrl = (window.location && window.location.href && window.location.href.indexOf('http') === 0)
+                ? window.location.href
+                : origin + '/';
 
             var playerVars = {
                 'autoplay': autoplayFlag,
@@ -168,13 +178,11 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 'controls': 1,
                 'fs': 0,
                 'rel': 0,
-                'showinfo': 0,
                 'modestbranding': 1,
                 'hl': langFlag,
-                'vq': 'medium',
                 'enablejsapi': 1,
                 'origin': origin,
-                'widget_referrer': origin
+                'widget_referrer': pageUrl
             };
             if (startAtFlag > 0) {
                 playerVars['start'] = startAtFlag;
@@ -184,7 +192,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 height: '100%',
                 width: '100%',
                 videoId: videoId,
-                host: 'https://www.youtube.com',
+                host: 'https://www.youtube-nocookie.com',
                 playerVars: playerVars,
                 events: {
                     'onReady': onPlayerReady,

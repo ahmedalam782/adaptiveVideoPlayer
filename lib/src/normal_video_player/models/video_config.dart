@@ -115,6 +115,7 @@ class VideoConfig {
 
   // Convenience getters
   PlayerStyleConfig get styling => playerConfig.style;
+  PlayerIconConfig get icons => playerConfig.style.icons;
   PlayerTextConfig get messages => playerConfig.text;
   PlayerVisibilityConfig get visibility => playerConfig.visibility;
   PlayerPlaybackConfig get playback => playerConfig.playback;

@@ -155,10 +155,12 @@ class AdaptiveSettingsButton extends StatelessWidget {
         },
         child: Padding(
           padding: const EdgeInsets.all(6.0),
-          child: Icon(
-            Icons.settings,
-            color: styling?.iconColor ?? Colors.white,
-            size: 18,
+          child: PlayerIcon.resolve(
+            context,
+            icon: styling?.icons.settingsIcon,
+            fallbackIcon: Icons.settings,
+            defaultColor: styling?.iconColor ?? Colors.white,
+            defaultSize: 18,
           ),
         ),
       ),

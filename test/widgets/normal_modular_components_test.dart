@@ -589,10 +589,10 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.open_in_full_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.picture_in_picture_alt_rounded), findsOneWidget);
       expect(find.byIcon(Icons.close_rounded), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.open_in_full_rounded));
+      await tester.tap(find.byIcon(Icons.picture_in_picture_alt_rounded));
       expect(expanded, isTrue);
 
       await tester.tap(find.byIcon(Icons.close_rounded));

@@ -21,13 +21,24 @@ class AdaptiveBufferingIndicator extends StatelessWidget {
       builder: (context, VideoPlayerValue value, child) {
         if (value.isBuffering &&
             (value.isPlaying || value.position == Duration.zero)) {
-          return Center(
-            child: CircularProgressIndicator(
-              color: styling?.loadingIndicatorColor ??
-                  const Color.fromRGBO(255, 0, 0, 0.7),
-              strokeCap: StrokeCap.round,
-            ),
+          if (styling?.loadingIndicatorBuilder != null) {
+            return Center(child: styling!.loadingIndicatorBuilder!(context));
+          }
+          final indicatorSize = styling?.loadingIndicatorSize;
+          Widget indicator = CircularProgressIndicator(
+            color: styling?.loadingIndicatorColor ??
+                const Color.fromRGBO(255, 0, 0, 0.7),
+            strokeWidth: styling?.loadingIndicatorStrokeWidth ?? 4.0,
+            strokeCap: StrokeCap.round,
           );
+          if (indicatorSize != null) {
+            indicator = SizedBox(
+              width: indicatorSize,
+              height: indicatorSize,
+              child: indicator,
+            );
+          }
+          return Center(child: indicator);
         }
         return const SizedBox.shrink();
       },

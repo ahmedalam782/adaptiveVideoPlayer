@@ -17,6 +17,7 @@ import 'utils/subtitle_parser.dart';
 import 'utils/video_player_web_safe.dart';
 import 'views/normal_player_view.dart';
 import 'widgets/normal_fullscreen_overlay.dart';
+import 'widgets/pip_playback_chrome.dart';
 import 'widgets/normal_mini_player_overlay.dart';
 import 'widgets/normal_player_error_widget.dart';
 import 'widgets/normal_player_loading_widget.dart';
@@ -141,6 +142,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   OverlayEntry? _miniPlayerOverlayEntry;
   bool _transferredToBackgroundMini = false;
   bool? _lastReportedPipPlaying;
+  Duration? _heldPosition;
+  bool _heldPlaying = false;
+  int _holdGeneration = 0;
 
   bool get _isInMiniPlayer => _miniPlayerOverlayEntry != null;
   bool get _effectiveIsLive => _currentQuality?.isLive ?? widget.isLive;
@@ -165,6 +169,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   }
 
   void _onNativePipModeChanged() {
+    _holdPlayback();
     if (mounted) {
       setState(() {});
       if (NativePipService.isInPip.value && _videoPlayerController != null) {
@@ -173,6 +178,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
         NativePipService.updatePlaybackState(isPlaying: currentPlaying);
       }
     }
+    _resumeHeldPlayback();
   }
 
   void _onPipActionReceived() {
@@ -194,7 +200,6 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
     }
   }
 
-
   @override
   void didUpdateWidget(covariant NormalVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -204,8 +209,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
         widget.qualities!.isNotEmpty &&
         _currentQuality != null) {
       final oldList = oldWidget.qualities;
-      final oldIndex =
-          oldList != null ? oldList.indexOf(_currentQuality!) : -1;
+      final oldIndex = oldList != null ? oldList.indexOf(_currentQuality!) : -1;
       if (oldIndex >= 0 && oldIndex < widget.qualities!.length) {
         _currentQuality = widget.qualities![oldIndex];
       } else {
@@ -535,8 +539,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
             errorMsg.contains('MEDIA_ERR_SRC_NOT_SUPPORTED') ||
             errorMsg.contains('DEMUXER_ERROR') ||
             errorMsg.contains('not supported')) {
-          _errorMessage = widget.messages?.videoNotCompatibleText ??
-              'Video Not Compatible';
+          _errorMessage =
+              widget.messages?.videoNotCompatibleText ?? 'Video Not Compatible';
         } else {
           _errorMessage = widget.messages?.videoLoadFailedText ??
               (errorMsg.isNotEmpty ? errorMsg : 'Video Load Failed');
@@ -595,7 +599,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
   }
 
   void _handleOpenFullscreen() {
-    final wasPlaying = _videoPlayerController?.value.isPlaying ?? false;
+    _holdPlayback();
     _fullscreenCoordinator.openFullscreen(
       context: context,
       builder: (overlayContext) {
@@ -661,13 +665,13 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       },
     );
 
-    _ensurePlaybackContinues(wasPlaying);
+    _resumeHeldPlayback();
   }
 
   void _handleCloseFullscreen() {
-    final wasPlaying = _videoPlayerController?.value.isPlaying ?? false;
+    _holdPlayback();
     _fullscreenCoordinator.closeFullscreen();
-    _ensurePlaybackContinues(wasPlaying);
+    _resumeHeldPlayback();
   }
 
   void _handleOpenMiniPlayer() async {
@@ -751,7 +755,53 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       _ensurePlaybackContinues(wasPlaying);
     }
     if (mounted) setState(() {});
-    widget.onAnalyticsEvent?.call('mini_player_closed', {'paused': pauseOnClose});
+    widget.onAnalyticsEvent
+        ?.call('mini_player_closed', {'paused': pauseOnClose});
+  }
+
+  void _holdPlayback() {
+    final ctrl = _videoPlayerController;
+    if (ctrl == null || !ctrl.value.isInitialized) return;
+    _heldPosition = ctrl.value.position;
+    _heldPlaying = ctrl.value.isPlaying;
+  }
+
+  void _resumeHeldPlayback() {
+    final generation = ++_holdGeneration;
+    final held = _heldPosition;
+    final wasPlaying = _heldPlaying;
+    if (held == null && !wasPlaying) return;
+
+    Future<void> restore() async {
+      if (!mounted || generation != _holdGeneration) return;
+      final ctrl = _videoPlayerController ?? _activeBackgroundMiniController;
+      if (ctrl == null || !ctrl.value.isInitialized) return;
+      if (held != null &&
+          held > const Duration(milliseconds: 500) &&
+          (ctrl.value.position - held).abs() >
+              const Duration(milliseconds: 800)) {
+        await ctrl.seekTo(held);
+      }
+      if (!mounted || generation != _holdGeneration) return;
+      if (wasPlaying && !ctrl.value.isPlaying) {
+        await ctrl.play();
+      }
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => restore());
+    for (final delay in const [120, 350, 700, 1200]) {
+      Future.delayed(Duration(milliseconds: delay), restore);
+    }
+  }
+
+  void _pipSeek(int seconds) {
+    final ctrl = _videoPlayerController;
+    if (ctrl == null || !ctrl.value.isInitialized) return;
+    var target = ctrl.value.position + Duration(seconds: seconds);
+    if (target.isNegative) target = Duration.zero;
+    final duration = ctrl.value.duration;
+    if (duration > Duration.zero && target > duration) target = duration;
+    ctrl.seekTo(target);
   }
 
   void _ensurePlaybackContinues(bool wasPlaying) {
@@ -843,23 +893,48 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
 
     final Widget contentChild;
     if (inNativePip) {
-      contentChild = GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          final ctrl = _videoPlayerController;
-          if (ctrl != null) {
-            final isPlaying = ctrl.value.isPlaying;
-            if (isPlaying) {
-              ctrl.pause();
-            } else {
-              ctrl.play();
-            }
-            _lastReportedPipPlaying = !isPlaying;
-            NativePipService.updatePlaybackState(isPlaying: !isPlaying);
-            if (mounted) setState(() {});
-          }
+      contentChild = ValueListenableBuilder<VideoPlayerValue>(
+        valueListenable: _videoPlayerController!,
+        builder: (context, value, _) {
+          final durationMs = value.duration.inMilliseconds;
+          final progress = durationMs > 0
+              ? (value.position.inMilliseconds / durationMs).clamp(0.0, 1.0)
+              : 0.0;
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              playerView,
+              PipPlaybackChrome(
+                isPlaying: value.isPlaying,
+                progress: progress,
+                closeTooltip: effectiveMessages.closeMiniPlayerText,
+                expandTooltip: effectiveMessages.expandPlayerText,
+                playTooltip: effectiveMessages.playText,
+                pauseTooltip: effectiveMessages.pauseText,
+                onClose: () {
+                  _videoPlayerController?.pause();
+                  NativePipService.closePip();
+                },
+                onExpand: NativePipService.exitPip,
+                onPlayPause: () {
+                  final ctrl = _videoPlayerController;
+                  if (ctrl == null) return;
+                  if (ctrl.value.isPlaying) {
+                    ctrl.pause();
+                  } else {
+                    ctrl.play();
+                  }
+                  _lastReportedPipPlaying = !ctrl.value.isPlaying;
+                  NativePipService.updatePlaybackState(
+                    isPlaying: !ctrl.value.isPlaying,
+                  );
+                },
+                onSeekBackward: () => _pipSeek(-10),
+                onSeekForward: () => _pipSeek(10),
+              ),
+            ],
+          );
         },
-        child: playerView,
       );
     } else if (_fullscreenCoordinator.isInFullscreen) {
       contentChild = const SizedBox();

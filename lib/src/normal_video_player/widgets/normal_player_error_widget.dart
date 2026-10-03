@@ -37,11 +37,13 @@ class NormalPlayerErrorWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  color: styling?.errorIconColor ??
+                PlayerIcon.resolve(
+                  context,
+                  icon: styling?.icons.errorIcon,
+                  fallbackIcon: Icons.error_outline,
+                  defaultColor: styling?.errorIconColor ??
                       const Color.fromRGBO(255, 0, 0, 0.7),
-                  size: 48,
+                  defaultSize: 48,
                 ),
                 const SizedBox(height: 8),
                 Text(

@@ -1,16 +1,14 @@
 package com.example.example
 
-import android.app.PendingIntent
 import android.app.PictureInPictureParams
-import android.app.RemoteAction
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
-import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Rational
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -39,6 +37,18 @@ class MainActivity : FlutterActivity() {
                 "enterPip" -> {
                     val success = enterPipMode()
                     result.success(success)
+                }
+                "exitPip" -> {
+                    exitPipMode()
+                    result.success(true)
+                }
+                "closePip" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                        isInPictureInPictureMode
+                    ) {
+                        moveTaskToBack(true)
+                    }
+                    result.success(true)
                 }
                 "isPipSupported" -> {
                     result.success(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
@@ -83,30 +93,7 @@ class MainActivity : FlutterActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val builder = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(16, 9))
-
-            val iconRes = if (isPlaying) {
-                android.R.drawable.ic_media_pause
-            } else {
-                android.R.drawable.ic_media_play
-            }
-            val title = if (isPlaying) "Pause" else "Play"
-
-            val intent = Intent(ACTION_PIP_CONTROL).apply {
-                setPackage(packageName)
-            }
-            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            } else {
-                PendingIntent.FLAG_UPDATE_CURRENT
-            }
-            val pendingIntent = PendingIntent.getBroadcast(this, 101, intent, flags)
-            val action = RemoteAction(
-                Icon.createWithResource(this, iconRes),
-                title,
-                title,
-                pendingIntent
-            )
-            builder.setActions(listOf(action))
+                .setActions(emptyList())
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 builder.setAutoEnterEnabled(pipEnabled)
@@ -131,18 +118,29 @@ class MainActivity : FlutterActivity() {
         updatePipParams()
     }
 
-    private fun enterPipMode(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                val params = buildPipParams()
-                if (params != null) {
-                    return enterPictureInPictureMode(params)
-                }
-            } catch (e: Exception) {
-                return false
-            }
+    private fun exitPipMode() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !isInPictureInPictureMode) {
+            return
         }
-        return false
+        val intent = Intent(this, javaClass).apply {
+            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        startActivity(intent)
+    }
+
+    private fun enterPipMode(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        if (isInPictureInPictureMode) return true
+        if (!lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+            return false
+        }
+        return try {
+            val params = buildPipParams() ?: return false
+            setPictureInPictureParams(params)
+            enterPictureInPictureMode(params)
+        } catch (_: Exception) {
+            false
+        }
     }
 
     override fun onUserLeaveHint() {
@@ -158,6 +156,10 @@ class MainActivity : FlutterActivity() {
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         isPipMode = isInPictureInPictureMode
+        if (isInPictureInPictureMode) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+        }
         pipChannel?.invokeMethod("onPipModeChanged", isInPictureInPictureMode)
     }
 }

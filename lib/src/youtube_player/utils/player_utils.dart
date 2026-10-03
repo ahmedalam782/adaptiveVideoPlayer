@@ -442,7 +442,7 @@ class PlayerUtils {
   /// [loop] - Whether to loop the video
   /// [forceHD] - Whether to force HD quality
   /// [enableCaption] - Whether to enable captions
-  /// [showControls] - Whether to show player controls
+  /// [showControls] - Whether to show player controls (default: false, using our custom overlay)
   /// [startAt] - Position to start playback (in seconds)
   ///
   /// Returns a new YoutubePlayerController instance
@@ -453,7 +453,7 @@ class PlayerUtils {
     bool loop = false,
     bool forceHD = true,
     bool enableCaption = true,
-    bool showControls = true,
+    bool showControls = false,
     int startAt = 0,
   }) {
     return YoutubePlayerController.fromVideoId(

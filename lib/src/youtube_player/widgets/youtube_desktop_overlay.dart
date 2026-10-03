@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../normal_video_player/utils/fullscreen_utils_export.dart';
+import '../../normal_video_player/widgets/pip_playback_chrome.dart';
 import 'youtube_webview_player_export.dart';
 
 /// Fullscreen overlay and button manager for Desktop YouTube Player.
@@ -164,6 +165,11 @@ class YouTubeDesktopFullscreenManager {
     String Function()? getExpandTooltip,
     String Function()? getCloseTooltip,
     TextDirection? textDirection,
+    bool Function()? isPlaying,
+    double Function()? progress,
+    VoidCallback? onPlayPause,
+    VoidCallback? onSeekBackward,
+    VoidCallback? onSeekForward,
   }) async {
     if (_isInPip || _isTransitioning) return;
     final context = getContext();
@@ -187,6 +193,11 @@ class YouTubeDesktopFullscreenManager {
         getExpandTooltip: getExpandTooltip,
         getCloseTooltip: getCloseTooltip,
         textDirection: effectiveDirection,
+        isPlaying: isPlaying,
+        progress: progress,
+        onPlayPause: onPlayPause,
+        onSeekBackward: onSeekBackward,
+        onSeekForward: onSeekForward,
       ),
     );
 
@@ -289,6 +300,11 @@ class _YouTubeDesktopPipOverlay extends StatefulWidget {
   final String Function()? getExpandTooltip;
   final String Function()? getCloseTooltip;
   final TextDirection? textDirection;
+  final bool Function()? isPlaying;
+  final double Function()? progress;
+  final VoidCallback? onPlayPause;
+  final VoidCallback? onSeekBackward;
+  final VoidCallback? onSeekForward;
 
   const _YouTubeDesktopPipOverlay({
     required this.playerBuilder,
@@ -297,6 +313,11 @@ class _YouTubeDesktopPipOverlay extends StatefulWidget {
     this.getExpandTooltip,
     this.getCloseTooltip,
     this.textDirection,
+    this.isPlaying,
+    this.progress,
+    this.onPlayPause,
+    this.onSeekBackward,
+    this.onSeekForward,
   });
 
   @override
@@ -330,92 +351,31 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
           fit: StackFit.expand,
           children: [
             widget.playerBuilder(),
-            // Top bar with Drag Handle, Expand, and Close buttons
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 40,
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onPanUpdate: (details) {
-                  if (isOsPipWindow) {
-                    moveDesktopPipWindow(
-                      details.delta.dx.round(),
-                      details.delta.dy.round(),
-                    );
-                  } else {
-                    setState(() {
-                      _offset += details.delta;
-                    });
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.65),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildIconBtn(
-                        icon: Icons.open_in_full_rounded,
-                        tooltip:
-                            widget.getExpandTooltip?.call() ?? 'Expand player',
-                        onTap: widget.onExpand,
-                      ),
-                      const Icon(
-                        Icons.drag_indicator_rounded,
-                        color: Colors.white54,
-                        size: 16,
-                      ),
-                      _buildIconBtn(
-                        icon: Icons.close_rounded,
-                        tooltip:
-                            widget.getCloseTooltip?.call() ?? 'Close miniplayer',
-                        onTap: widget.onClose,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            PipPlaybackChrome(
+              isPlaying: widget.isPlaying?.call() ?? false,
+              progress: widget.progress?.call() ?? 0,
+              closeTooltip:
+                  widget.getCloseTooltip?.call() ?? 'Close miniplayer',
+              expandTooltip: widget.getExpandTooltip?.call() ?? 'Expand player',
+              onClose: widget.onClose,
+              onExpand: widget.onExpand,
+              onPlayPause: widget.onPlayPause ?? () {},
+              onSeekBackward: widget.onSeekBackward,
+              onSeekForward: widget.onSeekForward,
+              onDragUpdate: (details) {
+                if (isOsPipWindow) {
+                  moveDesktopPipWindow(
+                    details.delta.dx.round(),
+                    details.delta.dy.round(),
+                  );
+                } else {
+                  setState(() {
+                    _offset += details.delta;
+                  });
+                }
+              },
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIconBtn({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onTap,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          width: 28,
-          height: 28,
-          decoration: const BoxDecoration(
-            color: Color(0xAA000000),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 16,
-          ),
         ),
       ),
     );

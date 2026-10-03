@@ -56,6 +56,24 @@ class NativePipService {
     } catch (_) {}
   }
 
+  /// Leaves the system PiP window and brings the app back to the screen.
+  static Future<void> exitPip() async {
+    if (kIsWeb) return;
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    try {
+      await _channel.invokeMethod('exitPip');
+    } catch (_) {}
+  }
+
+  /// Dismisses the system PiP window.
+  static Future<void> closePip() async {
+    if (kIsWeb) return;
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    try {
+      await _channel.invokeMethod('closePip');
+    } catch (_) {}
+  }
+
   /// Requests the operating system to immediately enter Picture-in-Picture mode.
   static Future<bool> enterPip() async {
     if (kIsWeb) return false;

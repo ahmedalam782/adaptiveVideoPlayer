@@ -28,7 +28,9 @@ class AdaptiveSubtitleLayer extends StatelessWidget {
     return Positioned(
       left: 20,
       right: 20,
-      bottom: showControls && controlsVisible ? 80 : 20,
+      bottom: showControls && controlsVisible
+          ? (styling?.bottomBarLayout == BottomBarLayout.inline ? 76.0 : 96.0)
+          : 20.0,
       child: subtitleBuilder != null
           ? subtitleBuilder!(context, subtitleText)
           : Align(

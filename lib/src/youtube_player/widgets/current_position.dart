@@ -37,8 +37,9 @@ class _CurrentPositionState extends State<CurrentPosition> {
       initialData: const YoutubeVideoState(),
       builder: (context, snapshot) {
         final position = snapshot.data?.position ?? Duration.zero;
+        final safe = position.isNegative ? Duration.zero : position;
         return Text(
-          durationFormatter(position.inMilliseconds),
+          durationFormatter(safe.inMilliseconds),
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,

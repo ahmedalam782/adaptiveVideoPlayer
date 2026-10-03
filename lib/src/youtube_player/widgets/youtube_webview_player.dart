@@ -26,7 +26,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
   final VoidCallback? onSeekBackward;
   final VoidCallback? onToggleFullscreen;
   final VoidCallback? onTouchActivity;
-  final ValueChanged<int>? onPositionUpdate;
+  final void Function(int position, int duration)? onPositionUpdate;
   final ValueChanged<bool>? onPlayingStateChanged;
 
   const YouTubeWebViewPlayer({
@@ -56,11 +56,26 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   InAppWebViewController? _webViewController;
   HttpServer? _localServer;
   String? _serverUrl;
+
+  /// A real http://127.0.0.1 page. Injecting the HTML with a fake
+  /// https://www.youtube.com base URL makes YouTube return error 152-4.
+  bool get _usesLocalServer => true;
+
+  bool get _usesDesktopUserAgent =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
   int _currentPosition = 0;
+  int _duration = 0;
   String _currentLang = 'en';
   String _currentDir = 'ltr';
 
   int get currentPosition => _currentPosition;
+  int get duration => _duration;
+
+  int _secondsOf(dynamic value) {
+    if (value is num) return value.toInt();
+    if (value is String) return double.tryParse(value)?.toInt() ?? 0;
+    return 0;
+  }
 
   (String, String) _resolveLangAndDir(BuildContext context) {
     final ambientDir = Directionality.maybeOf(context);
@@ -90,7 +105,9 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   void initState() {
     super.initState();
     _currentPosition = widget.startAt;
-    _startLocalServer();
+    if (_usesLocalServer) {
+      _startLocalServer();
+    }
   }
 
   @override
@@ -122,7 +139,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         request.response
           ..headers.contentType = ContentType.html
           ..headers.add('Access-Control-Allow-Origin', '*')
-          ..headers.add('Referrer-Policy', 'no-referrer-when-downgrade')
+          ..headers.add('Referrer-Policy', 'strict-origin-when-cross-origin')
           ..write(htmlContent)
           ..close();
       });
@@ -146,7 +163,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    if (_serverUrl == null) {
+    if (_usesLocalServer && _serverUrl == null) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.red),
       );
@@ -156,7 +173,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       key: _inAppWebViewKey,
       initialUrlRequest: URLRequest(
         url: WebUri(_serverUrl!),
-        headers: {
+        headers: const {
           'Referer': 'https://www.youtube.com/',
         },
       ),
@@ -164,17 +181,21 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         javaScriptEnabled: true,
         mediaPlaybackRequiresUserGesture: false,
         allowsInlineMediaPlayback: true,
+        mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
+        thirdPartyCookiesEnabled: true,
+        domStorageEnabled: true,
         allowsPictureInPictureMediaPlayback: false,
-        isElementFullscreenEnabled: true,
-        iframeAllowFullscreen: true,
+        isElementFullscreenEnabled: false,
+        iframeAllowFullscreen: false,
         iframeAllow:
             "camera; microphone; playing; fullscreen; autoplay; encrypted-media; gyroscope; accelerometer; clipboard-write",
-        userAgent: (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
+        userAgent: _usesDesktopUserAgent
             ? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
             : null,
         supportMultipleWindows:
             true, // Need this TRUE for onCreateWindow to fire on target="_blank"
         useShouldOverrideUrlLoading: true,
+        useHybridComposition: true,
       ),
       initialUserScripts: UnmodifiableListView<UserScript>([
         UserScript(
@@ -215,7 +236,14 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
                   var styleId = 'yt-custom-injected-style';
                   var existing = document.getElementById(styleId);
-                  var css = '.ytp-fullscreen-button { display: none !important; }';
+                  var css = '.ytp-fullscreen-button, .ytp-share-button, .ytp-watch-later-button, .ytp-copylink-button, .ytp-overflow-button { display: none !important; }';
+                  var nodes = document.querySelectorAll('button, a');
+                  for (var b = 0; b < nodes.length; b++) {
+                    var label = ((nodes[b].getAttribute('aria-label') || '') + ' ' + (nodes[b].getAttribute('title') || '')).toLowerCase();
+                    if (label.indexOf('share') !== -1 || label.indexOf('copy link') !== -1 || label.indexOf('watch later') !== -1 || label.indexOf('full screen') !== -1 || label.indexOf('fullscreen') !== -1) {
+                      nodes[b].style.display = 'none';
+                    }
+                  }
                   if (isRtl) {
                     css += ' .ytp-progress-bar-container, .ytp-progress-bar { transform: scaleX(-1) !important; }';
                   }
@@ -292,8 +320,15 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
           return NavigationActionPolicy.ALLOW;
         }
 
-        final isLocal = uri.host == '127.0.0.1' || uri.host == 'localhost';
-        if (isLocal) {
+        final host = uri.host;
+        final isPlayerDocument = host == '127.0.0.1' ||
+            host == 'localhost' ||
+            host == 'www.youtube.com' ||
+            host == 'youtube.com' ||
+            host == 'www.youtube-nocookie.com' ||
+            uri.scheme == 'about' ||
+            uri.scheme == 'data';
+        if (isPlayerDocument) {
           return NavigationActionPolicy.ALLOW;
         }
 
@@ -325,11 +360,11 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
               log("YouTube player ready");
               widget.onReady?.call();
             } else if (event == 'onTimeUpdate') {
-              final cur = data['currentTime'];
-              if (cur is num) {
-                _currentPosition = cur.toInt();
-                widget.onPositionUpdate?.call(_currentPosition);
-              }
+              final cur = _secondsOf(data['currentTime']);
+              final dur = _secondsOf(data['duration']);
+              _currentPosition = cur;
+              if (dur > 0) _duration = dur;
+              widget.onPositionUpdate?.call(_currentPosition, _duration);
             } else if (event == 'onStateChange') {
               final state = data['data'];
               widget.onPlayingStateChanged?.call(state == 1);

@@ -64,6 +64,7 @@ class GradientSliderTrackShape extends SliderTrackShape
       colors: [Color(0xFFFF0033), Color(0xFFFF0033)],
     ),
     this.buffered = const [],
+    this.bufferedColor,
     this.duration = Duration.zero,
     this.hoverFraction,
     this.chapters,
@@ -71,6 +72,7 @@ class GradientSliderTrackShape extends SliderTrackShape
 
   final LinearGradient gradient;
   final List<DurationRange> buffered;
+  final Color? bufferedColor;
   final Duration duration;
   final double? hoverFraction;
   final List<VideoChapter>? chapters;
@@ -122,7 +124,7 @@ class GradientSliderTrackShape extends SliderTrackShape
     // 2. Draw buffered ranges (YouTube light grey bar)
     if (duration.inMilliseconds > 0 && buffered.isNotEmpty) {
       final Paint bufferPaint = Paint()
-        ..color = Colors.white.withValues(alpha: 0.45)
+        ..color = bufferedColor ?? Colors.white.withValues(alpha: 0.45)
         ..style = PaintingStyle.fill;
 
       for (final range in buffered) {

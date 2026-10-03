@@ -3,6 +3,7 @@ import '../../youtube_player/models/youtube_player_config.dart';
 import '../utils/fullscreen_utils_export.dart';
 import '../utils/video_player_web_safe.dart';
 import 'adaptive_video_surface.dart';
+import 'pip_playback_chrome.dart';
 
 /// Floating draggable Picture-in-Picture (Mini-Player) overlay for NormalVideoPlayer.
 class NormalMiniPlayerOverlay extends StatefulWidget {
@@ -31,10 +32,6 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
   bool _controlsVisible = true;
 
   Widget _buildMiniPlayerContent(bool isOsPipWindow) {
-    final playedColor =
-        widget.styling?.progressBarPlayedColor ?? const Color(0xFFFF0033);
-    final iconColor = widget.styling?.iconColor ?? Colors.white;
-
     final screenWidth = MediaQuery.maybeSizeOf(context)?.width ?? 360.0;
     final miniWidth = isOsPipWindow
         ? double.infinity
@@ -43,23 +40,20 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
             : 280.0);
     final miniHeight = isOsPipWindow ? double.infinity : (miniWidth * 9 / 16);
 
-    return GestureDetector(
-      onPanUpdate: (details) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerMove: (event) {
+        if (event.buttons == 0) return;
         if (isOsPipWindow) {
           moveDesktopPipWindow(
-            details.delta.dx.round(),
-            details.delta.dy.round(),
+            event.delta.dx.round(),
+            event.delta.dy.round(),
           );
         } else {
           setState(() {
-            _offset += details.delta;
+            _offset += event.delta;
           });
         }
-      },
-      onTap: () {
-        setState(() {
-          _controlsVisible = !_controlsVisible;
-        });
       },
       child: Material(
         color: Colors.transparent,
@@ -106,73 +100,27 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
                     ),
                   ),
                   if (_controlsVisible)
-                    Container(
-                      color: Colors.black.withValues(alpha: 0.38),
-                      child: Stack(
-                        children: [
-                          // Top bar: Expand & Close buttons
-                          Positioned(
-                            top: 6,
-                            left: 8,
-                            right: 8,
-                            child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildMiniIconButton(
-                                  icon: Icons.open_in_full_rounded,
-                                  tooltip: widget.messages?.expandPlayerText ??
-                                      'Expand player',
-                                  color: iconColor,
-                                  onTap: widget.onExpand,
-                                ),
-                                _buildMiniIconButton(
-                                  icon: Icons.close_rounded,
-                                  tooltip:
-                                      widget.messages?.closeMiniPlayerText ??
-                                          'Close miniplayer',
-                                  color: iconColor,
-                                  onTap: widget.onClose,
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Center Play/Pause button
-                          Center(
-                            child: _buildMiniIconButton(
-                              icon: value.isPlaying
-                                  ? Icons.pause_rounded
-                                  : Icons.play_arrow_rounded,
-                              tooltip: value.isPlaying
-                                  ? (widget.messages?.pauseText ?? 'Pause')
-                                  : (widget.messages?.playText ?? 'Play'),
-                              size: 26,
-                              buttonSize: 42,
-                              color: iconColor,
-                              onTap: () {
-                                if (value.isPlaying) {
-                                  widget.controller.pause();
-                                } else {
-                                  widget.controller.play();
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
+                    PipPlaybackChrome(
+                      isPlaying: value.isPlaying,
+                      progress: progress,
+                      closeTooltip: widget.messages?.closeMiniPlayerText ??
+                          'Close miniplayer',
+                      expandTooltip:
+                          widget.messages?.expandPlayerText ?? 'Expand player',
+                      playTooltip: widget.messages?.playText ?? 'Play',
+                      pauseTooltip: widget.messages?.pauseText ?? 'Pause',
+                      onClose: widget.onClose,
+                      onExpand: widget.onExpand,
+                      onPlayPause: () {
+                        if (value.isPlaying) {
+                          widget.controller.pause();
+                        } else {
+                          widget.controller.play();
+                        }
+                      },
+                      onSeekBackward: () => _seekBy(-10),
+                      onSeekForward: () => _seekBy(10),
                     ),
-                  // Bottom played progress bar
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 3,
-                      backgroundColor: Colors.white24,
-                      valueColor: AlwaysStoppedAnimation<Color>(playedColor),
-                    ),
-                  ),
                 ],
               );
             },
@@ -218,34 +166,13 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
     );
   }
 
-  Widget _buildMiniIconButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback onTap,
-    Color? color,
-    double size = 18,
-    double buttonSize = 30,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          width: buttonSize,
-          height: buttonSize,
-          decoration: const BoxDecoration(
-            color: Color(0x99000000),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            color: color ?? Colors.white,
-            size: size,
-          ),
-        ),
-      ),
-    );
+  void _seekBy(int seconds) {
+    final value = widget.controller.value;
+    var target = value.position + Duration(seconds: seconds);
+    if (target.isNegative) target = Duration.zero;
+    if (value.duration > Duration.zero && target > value.duration) {
+      target = value.duration;
+    }
+    widget.controller.seekTo(target);
   }
 }

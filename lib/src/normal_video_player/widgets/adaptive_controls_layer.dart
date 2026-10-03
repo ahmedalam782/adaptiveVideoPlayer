@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
@@ -8,6 +7,7 @@ import '../utils/subtitle_parser.dart';
 import '../utils/video_player_web_safe.dart';
 import 'adaptive_bottom_bar.dart';
 import 'adaptive_center_play_pause.dart';
+import 'adaptive_inline_bottom_bar.dart';
 import 'adaptive_player_settings_sheet.dart';
 import 'adaptive_progress_bar.dart';
 import 'adaptive_top_bar.dart';
@@ -80,13 +80,12 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
   bool _showSettingsMenu = false;
   Offset _settingsMenuOffset = Offset.zero;
 
-  bool get _hasTopBarContent {
-    final showBack = widget.isFullScreen &&
-        !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS);
-    return showBack || widget.isLive || widget.viewerCount != null;
-  }
+  bool get _hasTopBarContent =>
+      widget.isLive || (widget.viewerCount?.isNotEmpty ?? false);
+
+  bool get _showCenterPlayPause =>
+      (widget.visibility?.showCenterPlayPause ?? true) &&
+      widget.styling?.bottomBarLayout != BottomBarLayout.inline;
 
   void _updateSettingsOffset(Offset delta, BoxConstraints constraints) {
     final dialogWidth = widget.isFullScreen ? 330.0 : 300.0;
@@ -110,111 +109,25 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Stack(
-      children: [
-        // Top Bar with YouTube-style subtle dark gradient (only if content present)
-        if (_hasTopBarContent)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.only(
-                top: 16,
-                left: 20,
-                right: 20,
-                bottom: 24,
-              ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xCC000000),
-                    Color(0x66000000),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                top: widget.isFullScreen,
-                left: widget.isFullScreen,
-                right: widget.isFullScreen,
-                child: AdaptiveTopBar(
-                  isFullScreen: widget.isFullScreen,
-                  onExitFullscreen: widget.onExitFullscreen,
-                  isLive: widget.isLive,
-                  viewerCount: widget.viewerCount,
-                  qualities: widget.qualities,
-                  onQualitySelected: widget.onQualitySelected,
-                  onAnalyticsEvent: widget.onAnalyticsEvent,
-                  messages: widget.messages,
-                  styling: widget.styling,
-                  visibility: widget.visibility,
-                ),
-              ),
+        final bottomControls = Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                Color(0xB3000000),
+                Color(0x4D000000),
+                Colors.transparent,
+              ],
             ),
           ),
-
-        // Center Play/Pause Indicator (centered in video frame)
-        if (widget.visibility?.showCenterPlayPause ?? true)
-          Positioned.fill(
-            child: Center(
-              child: AdaptiveCenterPlayPause(
-                controller: widget.controller,
-                styling: widget.styling,
-                onAnalyticsEvent: widget.onAnalyticsEvent,
-                isFullScreen: widget.isFullScreen,
-              ),
-            ),
-          ),
-
-        // Bottom Controls Layer with YouTube capsule/pill design
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  Color(0xB3000000),
-                  Color(0x4D000000),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-            child: SafeArea(
-              top: false,
-              bottom: widget.isFullScreen,
-              left: widget.isFullScreen,
-              right: widget.isFullScreen,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (!widget.isLive &&
-                      (widget.visibility?.showProgressBar ?? true))
-                    AdaptiveProgressBar(
-                      controller: widget.controller,
-                      dragPosition: _dragPosition,
-                      onDragChanged: (val) =>
-                          setState(() => _dragPosition = val),
-                      onDragEnd: (val) {
-                        widget.controller
-                            .seekTo(Duration(milliseconds: val.toInt()));
-                        setState(() => _dragPosition = null);
-                      },
-                      styling: widget.styling,
-                      chapters: widget.chapters,
-                      playback: widget.playback,
-                      messages: widget.messages,
-                      onAnalyticsEvent: widget.onAnalyticsEvent,
-                    ),
-                  AdaptiveBottomBar(
+          child: SafeArea(
+            top: false,
+            bottom: widget.isFullScreen,
+            left: widget.isFullScreen,
+            right: widget.isFullScreen,
+            child: widget.styling?.bottomBarLayout == BottomBarLayout.inline
+                ? AdaptiveInlineBottomBar(
                     controller: widget.controller,
                     isFullScreen: widget.isFullScreen,
                     isLive: widget.isLive,
@@ -236,12 +149,139 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                         widget.visibility?.showSkipButtons ?? true,
                     skipDuration: widget.visibility?.skipDuration ??
                         const Duration(seconds: 10),
-                    onSettingsPressed: () =>
-                        setState(() => _showSettingsMenu = !_showSettingsMenu),
+                    onSettingsPressed: () => setState(
+                        () => _showSettingsMenu = !_showSettingsMenu),
+                    dragPosition: _dragPosition,
+                    onDragChanged: (val) =>
+                        setState(() => _dragPosition = val),
+                    onDragEnd: (val) {
+                      widget.controller
+                          .seekTo(Duration(milliseconds: val.toInt()));
+                      setState(() => _dragPosition = null);
+                    },
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (!widget.isLive &&
+                          (widget.visibility?.showProgressBar ?? true))
+                        AdaptiveProgressBar(
+                          controller: widget.controller,
+                          dragPosition: _dragPosition,
+                          onDragChanged: (val) =>
+                              setState(() => _dragPosition = val),
+                          onDragEnd: (val) {
+                            widget.controller
+                                .seekTo(Duration(milliseconds: val.toInt()));
+                            setState(() => _dragPosition = null);
+                          },
+                          styling: widget.styling,
+                          chapters: widget.chapters,
+                          playback: widget.playback,
+                          messages: widget.messages,
+                          onAnalyticsEvent: widget.onAnalyticsEvent,
+                        ),
+                      AdaptiveBottomBar(
+                        controller: widget.controller,
+                        isFullScreen: widget.isFullScreen,
+                        isLive: widget.isLive,
+                        styling: widget.styling,
+                        messages: widget.messages,
+                        visibility: widget.visibility,
+                        qualities: widget.qualities,
+                        currentQuality: widget.currentQuality,
+                        onQualitySelected: widget.onQualitySelected,
+                        subtitles: widget.subtitles,
+                        currentSubtitleTrack: widget.currentSubtitleTrack,
+                        onSubtitleSelected: widget.onSubtitleSelected,
+                        chapters: widget.chapters,
+                        onAnalyticsEvent: widget.onAnalyticsEvent,
+                        onEnterFullscreen: widget.onEnterFullscreen,
+                        onExitFullscreen: widget.onExitFullscreen,
+                        onMiniPlayerPressed: widget.onMiniPlayerPressed,
+                        showSkipButtons:
+                            widget.visibility?.showSkipButtons ?? true,
+                        skipDuration: widget.visibility?.skipDuration ??
+                            const Duration(seconds: 10),
+                        onSettingsPressed: () => setState(
+                            () => _showSettingsMenu = !_showSettingsMenu),
+                      ),
+                    ],
                   ),
+          ),
+        );
+
+        return Stack(
+          children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            ignoring: !_hasTopBarContent,
+            child: Container(
+            padding: const EdgeInsets.only(
+              top: 16,
+              left: 20,
+              right: 20,
+              bottom: 24,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  widget.styling?.topBarColor ?? const Color(0xCC000000),
+                  (widget.styling?.topBarColor ?? const Color(0xCC000000))
+                      .withValues(alpha: 0.4),
+                  Colors.transparent,
                 ],
               ),
             ),
+            child: _hasTopBarContent
+                ? SafeArea(
+                    bottom: false,
+                    top: widget.isFullScreen,
+                    left: widget.isFullScreen,
+                    right: widget.isFullScreen,
+                    child: AdaptiveTopBar(
+                      isFullScreen: widget.isFullScreen,
+                      onExitFullscreen: widget.onExitFullscreen,
+                      isLive: widget.isLive,
+                      viewerCount: widget.viewerCount,
+                      qualities: widget.qualities,
+                      onQualitySelected: widget.onQualitySelected,
+                      onAnalyticsEvent: widget.onAnalyticsEvent,
+                      messages: widget.messages,
+                      styling: widget.styling,
+                      visibility: widget.visibility,
+                    ),
+                  )
+                : const SizedBox(height: 28),
+            ),
+          ),
+        ),
+
+        Positioned.fill(
+          child: Column(
+            children: [
+              if (_showCenterPlayPause)
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: AdaptiveCenterPlayPause(
+                      controller: widget.controller,
+                      styling: widget.styling,
+                      onAnalyticsEvent: widget.onAnalyticsEvent,
+                      isFullScreen: widget.isFullScreen,
+                    ),
+                  ),
+                )
+              else
+                const Spacer(),
+              bottomControls,
+            ],
           ),
         ),
 
@@ -362,3 +402,4 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
     );
   }
 }
+

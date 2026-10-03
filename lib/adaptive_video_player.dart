@@ -37,8 +37,10 @@ export 'src/core/services/native_pip_service.dart';
 export 'src/normal_video_player/adaptive_controls.dart'
     show AdaptiveControlsBuilder, SubtitleBuilder;
 export 'src/normal_video_player/models/video_config.dart';
+export 'src/normal_video_player/widgets/adaptive_inline_bottom_bar.dart';
 export 'src/platform_init.dart';
 export 'src/youtube_player/cubit/youtube_player_cubit.dart';
+export 'src/youtube_player/models/player_icon_config.dart';
 export 'src/youtube_player/models/youtube_player_config.dart';
 export 'src/youtube_player/utils/player_utils.dart';
 export 'src/youtube_player/widgets/fullscreen_player_page.dart';

@@ -1,19 +1,40 @@
 import 'package:flutter/material.dart';
 
+import '../../youtube_player/models/youtube_player_config.dart';
+
 /// Volume HUD feedback overlay positioned at the top of the video player.
 class AdaptiveVolumeHudOverlay extends StatelessWidget {
   final double? volume;
   final bool isFullScreen;
+  final PlayerStyleConfig? styling;
 
   const AdaptiveVolumeHudOverlay({
     super.key,
     required this.volume,
     required this.isFullScreen,
+    this.styling,
   });
 
   @override
   Widget build(BuildContext context) {
     if (volume == null) return const SizedBox.shrink();
+
+    final PlayerIcon? volIcon;
+    final IconData fallbackIcon;
+    if (volume == 0) {
+      volIcon = styling?.icons.volumeMuteIcon;
+      fallbackIcon = Icons.volume_off_rounded;
+    } else if (volume! < 0.5) {
+      volIcon = styling?.icons.volumeLowIcon;
+      fallbackIcon = Icons.volume_down_rounded;
+    } else {
+      volIcon = styling?.icons.volumeHighIcon;
+      fallbackIcon = Icons.volume_up_rounded;
+    }
+
+    final activeColor = styling?.volumeSliderActiveColor ??
+        styling?.progressBarPlayedColor ??
+        Colors.white;
 
     return Positioned(
       top: isFullScreen ? 28 : 16,
@@ -38,14 +59,12 @@ class AdaptiveVolumeHudOverlay extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  volume == 0
-                      ? Icons.volume_off_rounded
-                      : volume! < 0.5
-                          ? Icons.volume_down_rounded
-                          : Icons.volume_up_rounded,
-                  color: Colors.white,
-                  size: 20,
+                PlayerIcon.resolve(
+                  context,
+                  icon: volIcon,
+                  fallbackIcon: fallbackIcon,
+                  defaultColor: styling?.iconColor ?? Colors.white,
+                  defaultSize: 20,
                 ),
                 const SizedBox(width: 10),
                 SizedBox(
@@ -54,9 +73,9 @@ class AdaptiveVolumeHudOverlay extends StatelessWidget {
                     borderRadius: BorderRadius.circular(3),
                     child: LinearProgressIndicator(
                       value: volume,
-                      backgroundColor: Colors.white24,
-                      valueColor:
-                          const AlwaysStoppedAnimation<Color>(Colors.white),
+                      backgroundColor: styling?.volumeSliderInactiveColor ??
+                          Colors.white24,
+                      valueColor: AlwaysStoppedAnimation<Color>(activeColor),
                       minHeight: 5,
                     ),
                   ),

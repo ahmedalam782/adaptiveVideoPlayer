@@ -377,16 +377,36 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                           ),
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            trackHeight: isInteracting ? 5.5 : 3.5,
-                            thumbShape: RoundSliderThumbShape(
-                              enabledThumbRadius: isInteracting ? 7.5 : 6.0,
-                              pressedElevation: 4.0,
-                            ),
-                            overlayShape: const RoundSliderOverlayShape(
-                              overlayRadius: 12.0,
+                            trackHeight: isInteracting
+                                ? (widget.styling?.progressBarHoverTrackHeight ??
+                                    5.5)
+                                : (widget.styling?.progressBarTrackHeight ??
+                                    3.5),
+                            thumbShape: widget.styling?.progressBarThumbShape ??
+                                ((widget.styling?.showProgressBarThumb ?? true)
+                                    ? RoundSliderThumbShape(
+                                        enabledThumbRadius: isInteracting
+                                            ? (widget.styling
+                                                    ?.progressBarHoverThumbRadius ??
+                                                7.5)
+                                            : (widget.styling
+                                                    ?.progressBarThumbRadius ??
+                                                6.0),
+                                        pressedElevation: 4.0,
+                                      )
+                                    : const RoundSliderThumbShape(
+                                        enabledThumbRadius: 0.0,
+                                        elevation: 0.0,
+                                        pressedElevation: 0.0,
+                                      )),
+                            overlayShape: RoundSliderOverlayShape(
+                              overlayRadius:
+                                  widget.styling?.progressBarOverlayRadius ??
+                                      12.0,
                             ),
                             activeTrackColor: playedColor,
-                            inactiveTrackColor:
+                            inactiveTrackColor: widget
+                                    .styling?.progressBarBackgroundColor ??
                                 Colors.white.withValues(alpha: 0.22),
                             thumbColor: handleColor,
                             trackShape: GradientSliderTrackShape(
@@ -394,6 +414,8 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                                 colors: [playedColor, handleColor],
                               ),
                               buffered: value.buffered,
+                              bufferedColor:
+                                  widget.styling?.progressBarBufferedColor,
                               duration: value.duration,
                               hoverFraction:
                                   _isHovered ? _hoverFraction : null,

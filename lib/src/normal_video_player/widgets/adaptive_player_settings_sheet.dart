@@ -156,9 +156,12 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
             ListTile(
               dense: true,
               visualDensity: VisualDensity.compact,
-              leading: Icon(
-                Icons.hd,
-                color: styling?.iconColor ?? Colors.white,
+              leading: PlayerIcon.resolve(
+                context,
+                icon: styling?.icons.qualityIcon,
+                fallbackIcon: Icons.hd,
+                defaultColor: styling?.iconColor ?? Colors.white,
+                defaultSize: 20,
               ),
               title: Text(
                 messages?.qualityText ?? 'Quality (Resolution)',
@@ -217,9 +220,12 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
             ListTile(
               dense: true,
               visualDensity: VisualDensity.compact,
-              leading: Icon(
-                Icons.closed_caption,
-                color: styling?.iconColor ?? Colors.white,
+              leading: PlayerIcon.resolve(
+                context,
+                icon: styling?.icons.subtitlesIcon,
+                fallbackIcon: Icons.closed_caption,
+                defaultColor: styling?.iconColor ?? Colors.white,
+                defaultSize: 20,
               ),
               title: Text(
                 messages?.subtitlesText ?? 'Subtitles',
@@ -347,9 +353,12 @@ class AdaptiveSettingsQualitiesMenu extends StatelessWidget {
                         const TextStyle(color: Colors.white),
                   ),
                   trailing: isSelected
-                      ? Icon(
-                          Icons.check,
-                          color: styling?.iconColor ?? Colors.white,
+                      ? PlayerIcon.resolve(
+                          context,
+                          icon: styling?.icons.checkIcon,
+                          fallbackIcon: Icons.check,
+                          defaultColor: styling?.iconColor ?? Colors.white,
+                          defaultSize: 18,
                         )
                       : null,
                   onTap: () {
@@ -404,9 +413,12 @@ class AdaptiveSettingsSubtitlesMenu extends StatelessWidget {
             dense: true,
             visualDensity: VisualDensity.compact,
             leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: styling?.iconColor ?? Colors.white,
+              icon: PlayerIcon.resolve(
+                context,
+                icon: styling?.icons.backIcon,
+                fallbackIcon: Icons.arrow_back,
+                defaultColor: styling?.iconColor ?? Colors.white,
+                defaultSize: 20,
               ),
               onPressed: onBack,
             ),
@@ -437,9 +449,12 @@ class AdaptiveSettingsSubtitlesMenu extends StatelessWidget {
                           const TextStyle(color: Colors.white),
                     ),
                     trailing: isSelected
-                        ? Icon(
-                            Icons.check,
-                            color: styling?.iconColor ?? Colors.white,
+                        ? PlayerIcon.resolve(
+                            context,
+                            icon: styling?.icons.checkIcon,
+                            fallbackIcon: Icons.check,
+                            defaultColor: styling?.iconColor ?? Colors.white,
+                            defaultSize: 18,
                           )
                         : null,
                     onTap: () {
