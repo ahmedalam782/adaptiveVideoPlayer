@@ -28,6 +28,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
   final VoidCallback? onTouchActivity;
   final void Function(int position, int duration)? onPositionUpdate;
   final ValueChanged<bool>? onPlayingStateChanged;
+  final ValueChanged<bool>? onControlsVisibilityChanged;
 
   const YouTubeWebViewPlayer({
     super.key,
@@ -45,6 +46,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
     this.onTouchActivity,
     this.onPositionUpdate,
     this.onPlayingStateChanged,
+    this.onControlsVisibilityChanged,
   });
 
   @override
@@ -236,14 +238,80 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
                   var styleId = 'yt-custom-injected-style';
                   var existing = document.getElementById(styleId);
-                  var css = '.ytp-fullscreen-button, .ytp-share-button, .ytp-watch-later-button, .ytp-copylink-button, .ytp-overflow-button { display: none !important; }';
-                  var nodes = document.querySelectorAll('button, a');
+                  var css = '.ytp-fullscreen-button, .ytp-share-button, .ytp-watch-later-button, .ytp-copylink-button, .ytp-copy-link-button, .ytp-button-copylink, .ytp-overflow-button, .ytp-share-panel-link, .ytp-share-icon, .ytp-share-panel, [class*="copylink" i], [class*="copy-link" i], [class*="ytp-share" i], [class*="share-button" i], [data-tooltip-target-id*="copy" i], [data-tooltip-target-id*="share" i], [data-tooltip-target-id*="link" i], [data-title-no-tooltip*="copy" i], [data-title-no-tooltip*="share" i], [data-title-no-tooltip*="link" i], [data-title-no-tooltip*="نسخ" i], [data-title-no-tooltip*="رابط" i], [data-title-no-tooltip*="مشاركة" i], button[aria-label*="copy" i], button[aria-label*="link" i], button[aria-label*="share" i], button[aria-label*="نسخ" i], button[aria-label*="رابط" i], button[aria-label*="مشاركة" i], button[title*="copy" i], button[title*="link" i], button[title*="share" i], button[title*="نسخ" i], button[title*="رابط" i], button[title*="مشاركة" i], a[aria-label*="copy" i], a[aria-label*="link" i], a[aria-label*="share" i], a[aria-label*="نسخ" i], a[aria-label*="رابط" i], a[aria-label*="مشاركة" i], a[title*="copy" i], a[title*="link" i], a[title*="share" i], a[title*="نسخ" i], a[title*="رابط" i], a[title*="مشاركة" i] { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; width: 0 !important; height: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; margin: 0 !important; }';
+
+                  var nodes = document.querySelectorAll('button, a, div[role="button"], [role="button"], .ytp-button');
                   for (var b = 0; b < nodes.length; b++) {
-                    var label = ((nodes[b].getAttribute('aria-label') || '') + ' ' + (nodes[b].getAttribute('title') || '')).toLowerCase();
-                    if (label.indexOf('share') !== -1 || label.indexOf('copy link') !== -1 || label.indexOf('watch later') !== -1 || label.indexOf('full screen') !== -1 || label.indexOf('fullscreen') !== -1) {
-                      nodes[b].style.display = 'none';
+                    var n = nodes[b];
+                    var rawHtml = '';
+                    try { rawHtml = (n.outerHTML || '').toLowerCase(); } catch(_) {}
+                    var label = ((n.getAttribute('aria-label') || '') + ' ' + (n.getAttribute('title') || '') + ' ' + (n.getAttribute('data-tooltip-target-id') || '') + ' ' + (n.getAttribute('data-title-no-tooltip') || '') + ' ' + (typeof n.className === 'string' ? n.className : '')).toLowerCase();
+                    var shouldHide = (
+                      label.indexOf('share') !== -1 ||
+                      label.indexOf('copy') !== -1 ||
+                      label.indexOf('link') !== -1 ||
+                      label.indexOf('نسخ') !== -1 ||
+                      label.indexOf('رابط') !== -1 ||
+                      label.indexOf('مشاركة') !== -1 ||
+                      label.indexOf('watch later') !== -1 ||
+                      label.indexOf('full screen') !== -1 ||
+                      label.indexOf('fullscreen') !== -1 ||
+                      rawHtml.indexOf('copylink') !== -1 ||
+                      rawHtml.indexOf('copy-link') !== -1 ||
+                      rawHtml.indexOf('share-button') !== -1 ||
+                      rawHtml.indexOf('aria-label="copy') !== -1 ||
+                      rawHtml.indexOf('title="copy') !== -1 ||
+                      rawHtml.indexOf('نسخ') !== -1 ||
+                      rawHtml.indexOf('رابط') !== -1
+                    );
+
+                    if (!shouldHide) {
+                      var svgs = n.querySelectorAll('svg, path, title, use');
+                      for (var s = 0; s < svgs.length; s++) {
+                        var sTxt = ((svgs[s].getAttribute('aria-label') || '') + ' ' + (svgs[s].getAttribute('title') || '') + ' ' + (svgs[s].textContent || '')).toLowerCase();
+                        if (
+                          sTxt.indexOf('share') !== -1 ||
+                          sTxt.indexOf('copy') !== -1 ||
+                          sTxt.indexOf('link') !== -1 ||
+                          sTxt.indexOf('نسخ') !== -1 ||
+                          sTxt.indexOf('رابط') !== -1 ||
+                          sTxt.indexOf('مشاركة') !== -1
+                        ) {
+                          shouldHide = true;
+                          break;
+                        }
+                      }
+                    }
+
+                    if (shouldHide) {
+                      n.style.setProperty('display', 'none', 'important');
+                      n.style.setProperty('opacity', '0', 'important');
+                      n.style.setProperty('visibility', 'hidden', 'important');
+                      n.style.setProperty('pointer-events', 'none', 'important');
+                      n.style.setProperty('width', '0', 'important');
+                      n.style.setProperty('height', '0', 'important');
                     }
                   }
+
+                  // In new embed layout, non-essential button in .ytp-left-controls is the copy link button
+                  var leftControls = document.querySelectorAll('.ytp-left-controls button, .ytp-left-controls a, .ytp-left-controls [role="button"], .ytp-left-controls .ytp-button');
+                  for (var l = 0; l < leftControls.length; l++) {
+                    var item = leftControls[l];
+                    var isEssential = item.classList.contains('ytp-play-button') ||
+                                      item.classList.contains('ytp-mute-button') ||
+                                      item.classList.contains('ytp-volume-area') ||
+                                      item.classList.contains('ytp-time-display') ||
+                                      item.classList.contains('ytp-live-badge');
+                    if (!isEssential) {
+                      item.style.setProperty('display', 'none', 'important');
+                      item.style.setProperty('opacity', '0', 'important');
+                      item.style.setProperty('visibility', 'hidden', 'important');
+                      item.style.setProperty('pointer-events', 'none', 'important');
+                      item.style.setProperty('width', '0', 'important');
+                      item.style.setProperty('height', '0', 'important');
+                    }
+                  }
+
                   if (isRtl) {
                     css += ' .ytp-progress-bar-container, .ytp-progress-bar { transform: scaleX(-1) !important; }';
                   }
@@ -262,24 +330,74 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
               if (window.MutationObserver) {
                 new MutationObserver(updatePlayerStyles).observe(document.documentElement || document.body, {
                   childList: true,
-                  subtree: true,
-                  attributes: true,
-                  attributeFilter: ['dir', 'lang']
+                  subtree: true
                 });
               }
               window.addEventListener('load', updatePlayerStyles);
+              setInterval(updatePlayerStyles, 600);
 
               try {
-                function onUserTouchActivity() {
+                var lastActivityTime = 0;
+                function sendToFlutter(payload) {
                   try {
                     if (window.flutter_inappwebview) {
-                      window.flutter_inappwebview.callHandler('YouTubePlayerHandler', { 'event': 'onTouchActivity' });
+                      window.flutter_inappwebview.callHandler('YouTubePlayerHandler', payload);
                     }
                   } catch(e) {}
+                  try {
+                    if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({ type: 'YouTubePlayerHandler', ...payload }, '*');
+                    }
+                  } catch(e) {}
+                }
+                function onUserTouchActivity() {
+                  sendToFlutter({ 'event': 'onTouchActivity' });
+                }
+                function onUserMoveActivity() {
+                  var now = Date.now();
+                  if (now - lastActivityTime > 200) {
+                    lastActivityTime = now;
+                    onUserTouchActivity();
+                    checkControlsVisibility();
+                  }
                 }
                 window.addEventListener('touchstart', onUserTouchActivity, { passive: true, capture: true });
                 window.addEventListener('pointerdown', onUserTouchActivity, { passive: true, capture: true });
                 window.addEventListener('click', onUserTouchActivity, { passive: true, capture: true });
+                window.addEventListener('mousemove', onUserMoveActivity, { passive: true, capture: true });
+                window.addEventListener('pointermove', onUserMoveActivity, { passive: true, capture: true });
+
+                var lastVisibility = null;
+                function checkControlsVisibility() {
+                  try {
+                    var player = document.querySelector('.html5-video-player') || document.getElementById('movie_player');
+                    if (player) {
+                      var isVisible = !player.classList.contains('ytp-autohide');
+                      if (lastVisibility !== isVisible) {
+                        lastVisibility = isVisible;
+                        sendToFlutter({
+                          'event': 'onControlsVisibilityChanged',
+                          'visible': isVisible
+                        });
+                      }
+                    }
+                  } catch(e) {}
+                }
+
+                if (window.MutationObserver) {
+                  var obs = new MutationObserver(checkControlsVisibility);
+                  function attachPlayerObserver() {
+                    var player = document.querySelector('.html5-video-player') || document.getElementById('movie_player');
+                    if (player) {
+                      obs.observe(player, { attributes: true, attributeFilter: ['class'] });
+                      checkControlsVisibility();
+                    } else {
+                      setTimeout(attachPlayerObserver, 300);
+                    }
+                  }
+                  attachPlayerObserver();
+                  setInterval(checkControlsVisibility, 150);
+                }
               } catch(e) {}
             })();
           """,
@@ -394,6 +512,9 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
               widget.onToggleFullscreen?.call();
             } else if (event == 'onTouchActivity') {
               widget.onTouchActivity?.call();
+            } else if (event == 'onControlsVisibilityChanged') {
+              final visible = data['visible'] as bool? ?? true;
+              widget.onControlsVisibilityChanged?.call(visible);
             }
           },
         );
@@ -438,7 +559,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     try {
       final result = await _webViewController?.evaluateJavascript(
         source:
-            "player && typeof player.getCurrentTime === 'function' ? Math.floor(player.getCurrentTime()) : 0;",
+            "player && typeof player.getCurrentTime === 'function' ? Math.round(player.getCurrentTime()) : 0;",
       );
       if (result is num) {
         _currentPosition = result.toInt();

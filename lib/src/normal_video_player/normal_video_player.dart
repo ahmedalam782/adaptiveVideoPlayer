@@ -776,10 +776,12 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer> {
       if (!mounted || generation != _holdGeneration) return;
       final ctrl = _videoPlayerController ?? _activeBackgroundMiniController;
       if (ctrl == null || !ctrl.value.isInitialized) return;
+      // Only restore held position if the controller lost its position and reset backwards
+      // (e.g. dropped to 0 on orientation change).
+      // If position has continued forward (ctrl.value.position >= held - 800ms), NEVER seek backwards!
       if (held != null &&
           held > const Duration(milliseconds: 500) &&
-          (ctrl.value.position - held).abs() >
-              const Duration(milliseconds: 800)) {
+          ctrl.value.position < held - const Duration(milliseconds: 800)) {
         await ctrl.seekTo(held);
       }
       if (!mounted || generation != _holdGeneration) return;

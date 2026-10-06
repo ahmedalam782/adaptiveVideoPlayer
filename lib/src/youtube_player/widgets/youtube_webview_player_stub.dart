@@ -18,6 +18,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
   final VoidCallback? onTouchActivity;
   final void Function(int position, int duration)? onPositionUpdate;
   final ValueChanged<bool>? onPlayingStateChanged;
+  final ValueChanged<bool>? onControlsVisibilityChanged;
 
   const YouTubeWebViewPlayer({
     super.key,
@@ -35,6 +36,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
     this.onTouchActivity,
     this.onPositionUpdate,
     this.onPlayingStateChanged,
+    this.onControlsVisibilityChanged,
   });
 
   @override

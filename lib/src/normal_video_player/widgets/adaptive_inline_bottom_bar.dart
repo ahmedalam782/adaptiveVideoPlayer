@@ -111,6 +111,9 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
           final showVolume = effectiveVisibility.showVolumeButton;
           final showTime = effectiveVisibility.showTimeDisplay && !isLive;
           final showFullscreen = effectiveVisibility.showFullscreenButton;
+          final showMiniPlayer = effectiveVisibility.showMiniPlayerButton &&
+              onMiniPlayerPressed != null &&
+              !isFullScreen;
           final showSettings = effectiveVisibility.showSettingsButton &&
               constraints.maxWidth > 300;
           final showProgressBar = effectiveVisibility.showProgressBar && !isLive;
@@ -234,7 +237,7 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                         ),
                       ],
 
-                      // Optional Skip Backward
+                      // Optional Skip Backward & Skip Forward
                       if (canShowSkip) ...[
                         const SizedBox(width: 2),
                         Tooltip(
@@ -255,16 +258,33 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 2),
+                        Tooltip(
+                          message: messages?.skipForwardText ?? 'Forward 10s',
+                          waitDuration: const Duration(milliseconds: 500),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _seekRelative(skipDuration),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: PlayerIcon.resolve(
+                                context,
+                                icon: styling?.icons.skipForwardIcon,
+                                fallbackIcon: Icons.forward_10_rounded,
+                                defaultColor: iconColor,
+                                defaultSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
 
                       SizedBox(width: isCompact ? 3.0 : 6.0),
 
                       // 2. Duration text: "00:00 / 04:32"
                       if (showTime) ...[
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -308,7 +328,6 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                               ],
                             ),
                           ),
-                        ),
                         SizedBox(width: isCompact ? 4.0 : 8.0),
                       ],
 
@@ -362,29 +381,6 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                       else
                         const Spacer(),
 
-                      // Optional Skip Forward
-                      if (canShowSkip) ...[
-                        const SizedBox(width: 4),
-                        Tooltip(
-                          message: messages?.skipForwardText ?? 'Forward 10s',
-                          waitDuration: const Duration(milliseconds: 500),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _seekRelative(skipDuration),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                              child: PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.skipForwardIcon,
-                                fallbackIcon: Icons.forward_10_rounded,
-                                defaultColor: iconColor,
-                                defaultSize: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-
                       // 4. Volume Control
                       if (showVolume) ...[
                         SizedBox(width: isCompact ? 3.0 : 6.0),
@@ -411,6 +407,33 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                           onSubtitleSelected: onSubtitleSelected,
                           onAnalyticsEvent: onAnalyticsEvent,
                           onPressed: onSettingsPressed,
+                        ),
+                      ],
+
+                      // Optional MiniPlayer Button
+                      if (showMiniPlayer) ...[
+                        SizedBox(width: isCompact ? 2.0 : 4.0),
+                        Tooltip(
+                          message: messages?.miniPlayerText ?? 'Miniplayer',
+                          waitDuration: const Duration(milliseconds: 500),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onMiniPlayerPressed,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isCompact ? 2.0 : 4.0,
+                                vertical: 4.0,
+                              ),
+                              child: PlayerIcon.resolve(
+                                context,
+                                icon: styling?.icons.miniPlayerIcon,
+                                fallbackIcon:
+                                    Icons.picture_in_picture_alt_rounded,
+                                defaultColor: iconColor,
+                                defaultSize: isCompact ? 18 : 20,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
 

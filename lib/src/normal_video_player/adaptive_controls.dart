@@ -300,20 +300,28 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    final videoFit = widget.styling?.videoFit ?? BoxFit.contain;
+    final isCover = videoFit == BoxFit.cover || videoFit == BoxFit.fill;
+
     final videoContent = AdaptiveVideoSurface(
       controller: widget.controller,
       subtitleBuilder: widget.subtitleBuilder,
+      fit: videoFit,
     );
 
     final playerContent = Container(
       color: Colors.black,
-      width: widget.isFullScreen ? double.infinity : null,
-      height: widget.isFullScreen ? double.infinity : null,
+      width: (widget.isFullScreen || isCover) ? double.infinity : null,
+      height: (widget.isFullScreen || isCover) ? double.infinity : null,
       child: Stack(
-        fit: widget.isFullScreen ? StackFit.expand : StackFit.loose,
+        fit: (widget.isFullScreen || isCover) ? StackFit.expand : StackFit.loose,
         alignment: Alignment.center,
         children: [
-          Center(child: videoContent),
+          Center(
+            child: isCover
+                ? SizedBox.expand(child: videoContent)
+                : videoContent,
+          ),
 
           // Buffering/Loading Indicator Overlay
           AdaptiveBufferingIndicator(

@@ -239,22 +239,22 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
                     duration: const Duration(milliseconds: 300),
                     child: IgnorePointer(
                       ignoring: !_isVisible,
-                      child: widget.config.style.bottomBarLayout ==
-                              BottomBarLayout.inline
-                          ? _buildInlineBottomBar(context, value)
-                          : Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [Colors.transparent, Colors.black87],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
+                      child: SafeArea(
+                        top: false,
+                        bottom: widget.isFullscreen,
+                        left: widget.isFullscreen,
+                        right: widget.isFullscreen,
+                        child: widget.config.style.bottomBarLayout ==
+                                BottomBarLayout.inline
+                            ? _buildInlineBottomBar(context, value)
+                            : Container(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [Colors.transparent, Colors.black87],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
                                 ),
-                              ),
-                              child: SafeArea(
-                                top: false,
-                                bottom: widget.isFullscreen,
-                                left: widget.isFullscreen,
-                                right: widget.isFullscreen,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment:
@@ -493,33 +493,30 @@ class _CustomYoutubeControlsState extends State<CustomYoutubeControls> {
 
                 // 2. Timestamp (00:00 / 04:32)
                 if (showTime) ...[
-                  Flexible(
-                    fit: FlexFit.loose,
-                    child: StreamBuilder<YoutubeVideoState>(
-                      stream: widget.controller.videoStateStream,
-                      initialData: const YoutubeVideoState(),
-                      builder: (context, snapshot) {
-                        final pos = snapshot.data?.position ?? Duration.zero;
-                        final dur = widget.controller.metadata.duration;
-                        return FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            isUltraCompact
-                                ? _formatDuration(pos)
-                                : '${_formatDuration(pos)} / ${_formatDuration(dur)}',
-                            style: style.timeTextStyle ??
-                                TextStyle(
-                                  color: textColor.withValues(alpha: 0.85),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
-                                ),
-                          ),
-                        );
-                      },
-                    ),
+                  StreamBuilder<YoutubeVideoState>(
+                    stream: widget.controller.videoStateStream,
+                    initialData: const YoutubeVideoState(),
+                    builder: (context, snapshot) {
+                      final pos = snapshot.data?.position ?? Duration.zero;
+                      final dur = widget.controller.metadata.duration;
+                      return FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          isUltraCompact
+                              ? _formatDuration(pos)
+                              : '${_formatDuration(pos)} / ${_formatDuration(dur)}',
+                          style: style.timeTextStyle ??
+                              TextStyle(
+                                color: textColor.withValues(alpha: 0.85),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                        ),
+                      );
+                    },
                   ),
                   SizedBox(width: isCompact ? 4 : 6),
                 ],

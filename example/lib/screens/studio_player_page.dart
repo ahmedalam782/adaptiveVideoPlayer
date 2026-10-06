@@ -27,7 +27,8 @@ class StudioStage extends StatefulWidget {
 
 class _StudioStageState extends State<StudioStage> {
   final List<String> _eventLogs = [];
-  BottomBarLayout _layout = BottomBarLayout.youtubePills;
+  BottomBarLayout _layout = BottomBarLayout.inline;
+  BoxFit _videoFit = BoxFit.contain;
   PlayerVisibilityConfig _visibility = const PlayerVisibilityConfig();
   bool _autoPlay = false;
   bool _loop = false;
@@ -113,10 +114,11 @@ class _StudioStageState extends State<StudioStage> {
       chapters: source.chapters,
       viewerCount: viewerCount,
       extension: source.extension,
-      aspectRatio: source.aspectRatio ?? (16 / 9),
+      aspectRatio: _videoFit == BoxFit.cover ? (16 / 9) : source.aspectRatio,
       playerConfig: YouTubePlayerConfig(
         style: PlayerStyleConfig(
           bottomBarLayout: _layout,
+          videoFit: _videoFit,
           backgroundColor: _background,
           topBarColor: _topColor,
           centerButtonColor: _centerButton,
@@ -147,7 +149,7 @@ class _StudioStageState extends State<StudioStage> {
     final source = widget.source;
     final lang = LanguagePickerSheet.getLanguage(widget.currentLanguageCode);
     final config = _buildConfig(lang.isRtl);
-    final identity = '${source.id}|$_autoPlay|$_loop|$_mute';
+    final identity = '${source.id}|$_autoPlay|$_loop|$_mute|$_videoFit';
     if (identity != _playerIdentity) {
       _playerIdentity = identity;
       _playerKey = GlobalKey();
@@ -316,6 +318,29 @@ class _StudioStageState extends State<StudioStage> {
                       isDark: widget.isDark,
                       onTap: () => setState(() => _iconPack = pack),
                     ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _SectionLabel('Video display', widget.isDark),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _Choice(
+                    label: 'Fill screen (No black bars)',
+                    selected: _videoFit == BoxFit.cover,
+                    accent: source.accentColor,
+                    isDark: widget.isDark,
+                    onTap: () => setState(() => _videoFit = BoxFit.cover),
+                  ),
+                  _Choice(
+                    label: 'Fit natural ratio',
+                    selected: _videoFit == BoxFit.contain,
+                    accent: source.accentColor,
+                    isDark: widget.isDark,
+                    onTap: () => setState(() => _videoFit = BoxFit.contain),
+                  ),
                 ],
               ),
               const SizedBox(height: 14),

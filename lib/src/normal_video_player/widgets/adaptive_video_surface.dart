@@ -8,6 +8,7 @@ import '../utils/video_player_web_safe.dart';
 class AdaptiveVideoSurface extends StatelessWidget {
   final VideoPlayerController controller;
   final SubtitleBuilder? subtitleBuilder;
+  final BoxFit fit;
 
   static final Expando<GlobalKey> _controllerKeys =
       Expando<GlobalKey>('AdaptiveVideoSurfaceKey');
@@ -26,6 +27,7 @@ class AdaptiveVideoSurface extends StatelessWidget {
     super.key,
     required this.controller,
     this.subtitleBuilder,
+    this.fit = BoxFit.contain,
   });
 
   @override
@@ -40,25 +42,58 @@ class AdaptiveVideoSurface extends StatelessWidget {
                 value.size.height > 0)
             ? value.aspectRatio
             : 16 / 9;
+
+        Widget videoWidget = VideoPlayer(
+          controller,
+          key: keyForController(controller),
+        );
+
+        if (fit == BoxFit.cover) {
+          final width = value.size.width > 0 ? value.size.width : 1600.0;
+          final height = value.size.height > 0 ? value.size.height : 900.0;
+          videoWidget = SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              clipBehavior: Clip.hardEdge,
+              child: SizedBox(
+                width: width,
+                height: height,
+                child: videoWidget,
+              ),
+            ),
+          );
+        } else if (fit == BoxFit.fill) {
+          videoWidget = SizedBox.expand(child: videoWidget);
+        } else {
+          videoWidget = AspectRatio(
+            aspectRatio: aspectRatio,
+            child: videoWidget,
+          );
+        }
+
+        final stackContent = Stack(
+          fit: (fit == BoxFit.cover || fit == BoxFit.fill)
+              ? StackFit.expand
+              : StackFit.loose,
+          alignment: Alignment.bottomCenter,
+          children: [
+            videoWidget,
+
+            // Built-in Subtitle/ClosedCaption overlay Layer
+            if (subtitleBuilder != null)
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: subtitleBuilder!(context, value.caption.text),
+              ),
+          ],
+        );
+
+        if (fit == BoxFit.cover || fit == BoxFit.fill) {
+          return SizedBox.expand(child: stackContent);
+        }
         return AspectRatio(
           aspectRatio: aspectRatio,
-          child: Stack(
-            fit: StackFit.expand,
-            alignment: Alignment.bottomCenter,
-            children: [
-              VideoPlayer(
-                controller,
-                key: keyForController(controller),
-              ),
-
-              // Built-in Subtitle/ClosedCaption overlay Layer
-              if (subtitleBuilder != null)
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: subtitleBuilder!(context, value.caption.text),
-                ),
-            ],
-          ),
+          child: stackContent,
         );
       },
     );

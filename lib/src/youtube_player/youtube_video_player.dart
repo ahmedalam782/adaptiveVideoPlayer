@@ -141,7 +141,9 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
         final seconds = await controller.currentTime;
         if (!mounted || generation != _holdGeneration) return;
         final live = Duration(milliseconds: (seconds * 1000).round());
-        if ((live - held).abs() > const Duration(seconds: 2)) {
+        // Only restore if the player reset backwards (e.g. dropped to 0 on orientation change).
+        // If live playback is progressing forward, NEVER seek backwards!
+        if (live < held - const Duration(milliseconds: 1500)) {
           PlayerUtils.seekTo(controller, held);
           if (wasPlaying) PlayerUtils.play(controller);
         }
@@ -951,6 +953,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
                         videoId: _videoId!,
                         config: effectiveConfig,
                         fullscreenManager: _desktopFullscreenManager,
+                        aspectRatio: widget.aspectRatio,
                         onReady: () => log('Desktop YouTube player ready'),
                         onEnded: () => widget.onEnded?.call(),
                       )

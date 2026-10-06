@@ -20,6 +20,10 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
     if (seekDirection == 0) return const SizedBox.shrink();
 
     final isForward = seekDirection == 1;
+    final containerColor =
+        styling?.controlsBackgroundColor ?? const Color(0xFF1B313F);
+    final textColor = styling?.textColor ?? Colors.white;
+    final iconColor = styling?.iconColor ?? Colors.white;
 
     return Positioned.fill(
       child: IgnorePointer(
@@ -30,7 +34,7 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 color: !isForward
-                    ? Colors.black.withValues(alpha: 0.3)
+                    ? Colors.black.withValues(alpha: 0.25)
                     : Colors.transparent,
                 child: !isForward
                     ? Center(
@@ -40,28 +44,26 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.75),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.15),
-                            ),
+                            color: containerColor,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.skipBackwardIcon,
-                                fallbackIcon: Icons.chevron_left,
-                                defaultColor: Colors.white,
-                                defaultSize: 22,
-                              ),
-                              const SizedBox(width: 4),
+                              _buildBackwardIcon(context, iconColor),
+                              const SizedBox(width: 6),
                               Text(
                                 '- $seekSeconds',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.5,
                                 ),
@@ -78,7 +80,7 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 color: isForward
-                    ? Colors.black.withValues(alpha: 0.3)
+                    ? Colors.black.withValues(alpha: 0.25)
                     : Colors.transparent,
                 child: isForward
                     ? Center(
@@ -88,32 +90,30 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.75),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.15),
-                            ),
+                            color: containerColor,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 '+ $seekSeconds',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.5,
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.skipForwardIcon,
-                                fallbackIcon: Icons.chevron_right,
-                                defaultColor: Colors.white,
-                                defaultSize: 22,
-                              ),
+                              const SizedBox(width: 6),
+                              _buildForwardIcon(context, iconColor),
                             ],
                           ),
                         ),
@@ -126,4 +126,45 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildBackwardIcon(BuildContext context, Color iconColor) {
+    final configured = styling?.icons.skipBackwardIcon;
+    final isNumberedIcon = configured?.iconData == Icons.replay_10_rounded ||
+        configured?.iconData == Icons.replay_5_rounded ||
+        configured?.iconData == Icons.replay_30_rounded;
+    if (configured != null && !isNumberedIcon) {
+      return configured.build(
+        context,
+        defaultColor: iconColor,
+        defaultSize: 20,
+        fallbackIcon: Icons.fast_rewind_rounded,
+      );
+    }
+    return Icon(
+      Icons.fast_rewind_rounded,
+      color: iconColor,
+      size: 20,
+    );
+  }
+
+  Widget _buildForwardIcon(BuildContext context, Color iconColor) {
+    final configured = styling?.icons.skipForwardIcon;
+    final isNumberedIcon = configured?.iconData == Icons.forward_10_rounded ||
+        configured?.iconData == Icons.forward_5_rounded ||
+        configured?.iconData == Icons.forward_30_rounded;
+    if (configured != null && !isNumberedIcon) {
+      return configured.build(
+        context,
+        defaultColor: iconColor,
+        defaultSize: 20,
+        fallbackIcon: Icons.fast_forward_rounded,
+      );
+    }
+    return Icon(
+      Icons.fast_forward_rounded,
+      color: iconColor,
+      size: 20,
+    );
+  }
 }
+

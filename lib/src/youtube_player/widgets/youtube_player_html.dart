@@ -29,13 +29,53 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         video::-webkit-media-controls,
         video::-webkit-media-controls-picture-in-picture-button,
         video::-webkit-media-controls-fullscreen-button,
-        video::-webkit-media-controls-enclosure,
         .ytp-fullscreen-button,
         .ytp-share-button,
         .ytp-watch-later-button,
         .ytp-copylink-button,
-        .ytp-overflow-button {
+        .ytp-copy-link-button,
+        .ytp-button-copylink,
+        .ytp-overflow-button,
+        .ytp-share-panel-link,
+        .ytp-share-icon,
+        .ytp-share-panel,
+        [class*="copylink" i],
+        [class*="copy-link" i],
+        [class*="ytp-share" i],
+        [class*="share-button" i],
+        [data-tooltip-target-id*="copy" i],
+        [data-tooltip-target-id*="share" i],
+        [data-tooltip-target-id*="link" i],
+        [data-title-no-tooltip*="copy" i],
+        [data-title-no-tooltip*="share" i],
+        [data-title-no-tooltip*="link" i],
+        [data-title-no-tooltip*="نسخ" i],
+        [data-title-no-tooltip*="رابط" i],
+        [data-title-no-tooltip*="مشاركة" i],
+        button[aria-label*="copy" i],
+        button[aria-label*="link" i],
+        button[aria-label*="share" i],
+        button[aria-label*="نسخ" i],
+        button[aria-label*="رابط" i],
+        button[aria-label*="مشاركة" i],
+        button[title*="copy" i],
+        button[title*="link" i],
+        button[title*="share" i],
+        button[title*="نسخ" i],
+        button[title*="رابط" i],
+        button[title*="مشاركة" i],
+        a[aria-label*="copy" i],
+        a[aria-label*="link" i],
+        a[aria-label*="share" i],
+        a[aria-label*="نسخ" i],
+        a[aria-label*="رابط" i],
+        a[aria-label*="مشاركة" i] {
             display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
     </style>
 </head>
@@ -121,10 +161,10 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
 
         function sendTimeUpdate() {
             if (player && typeof player.getCurrentTime === 'function' && window.flutter_inappwebview) {
-                var cur = Math.floor(player.getCurrentTime());
+                var cur = Math.round(player.getCurrentTime());
                 var dur = 0;
                 if (typeof player.getDuration === 'function') {
-                    dur = Math.floor(player.getDuration() || 0);
+                    dur = Math.round(player.getDuration() || 0);
                 }
                 window.flutter_inappwebview.callHandler('YouTubePlayerHandler', {
                     'event': 'onTimeUpdate',
@@ -205,7 +245,10 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         function onPlayerReady(event) {
             event.target.setPlaybackQuality('medium');
             if (startAtFlag > 0) {
-                event.target.seekTo(startAtFlag, true);
+                var cur = (typeof event.target.getCurrentTime === 'function') ? event.target.getCurrentTime() : 0;
+                if (cur < startAtFlag - 1) {
+                    event.target.seekTo(startAtFlag, true);
+                }
                 if (autoplayFlag === 1) {
                     event.target.playVideo();
                 }
@@ -247,14 +290,32 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         document.addEventListener('mozfullscreenchange', handleFullscreenChange);
         document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
-        // Notify Flutter on touch or click activity so controls overlay can reveal/auto-hide smoothly
+        // Notify Flutter on touch, click, or mousemove activity so controls overlay can reveal/auto-hide smoothly
         function notifyTouchActivity() {
             if (window.flutter_inappwebview) {
                 window.flutter_inappwebview.callHandler('YouTubePlayerHandler', { 'event': 'onTouchActivity' });
             }
         }
+        var lastTouchActivity = 0;
+        function notifyThrottledActivity() {
+            var now = Date.now();
+            if (now - lastTouchActivity > 200) {
+                lastTouchActivity = now;
+                notifyTouchActivity();
+            }
+        }
         document.addEventListener('touchstart', notifyTouchActivity, { passive: true });
         document.addEventListener('click', notifyTouchActivity, { passive: true });
+        document.addEventListener('mousemove', notifyThrottledActivity, { passive: true });
+
+        // Listen for postMessage from inner YouTube iframe
+        window.addEventListener('message', function(e) {
+            try {
+                if (e.data && e.data.type === 'YouTubePlayerHandler' && window.flutter_inappwebview) {
+                    window.flutter_inappwebview.callHandler('YouTubePlayerHandler', e.data);
+                }
+            } catch(err) {}
+        });
 
         // Keyboard handler inside WebView to bridge Esc, Seek, Play/Pause, and Fullscreen to Flutter
         window.addEventListener('keydown', function(e) {

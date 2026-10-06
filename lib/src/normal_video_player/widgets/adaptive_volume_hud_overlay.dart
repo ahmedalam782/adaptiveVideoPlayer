@@ -45,14 +45,13 @@ class AdaptiveVolumeHudOverlay extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.85),
+              color: styling?.controlsBackgroundColor ?? const Color(0xFF1B313F),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white24, width: 1),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Colors.black45,
+                  color: Colors.black.withValues(alpha: 0.35),
                   blurRadius: 10,
-                  spreadRadius: 1,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),

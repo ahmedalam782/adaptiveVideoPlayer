@@ -29,7 +29,7 @@ class NormalMiniPlayerOverlay extends StatefulWidget {
 
 class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
   Offset _offset = Offset.zero;
-  bool _controlsVisible = true;
+  final bool _controlsVisible = true;
 
   Widget _buildMiniPlayerContent(bool isOsPipWindow) {
     final screenWidth = MediaQuery.maybeSizeOf(context)?.width ?? 360.0;

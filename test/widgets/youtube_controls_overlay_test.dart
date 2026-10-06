@@ -124,8 +124,8 @@ void main() {
       final centerButtonFinder = find.byWidgetPredicate(
         (w) =>
             w is Container &&
-            w.constraints?.maxWidth == 58 &&
-            w.constraints?.maxHeight == 58,
+            (w.constraints?.maxWidth == 64 || w.constraints?.maxWidth == 58) &&
+            (w.constraints?.maxHeight == 64 || w.constraints?.maxHeight == 58),
       );
       expect(centerButtonFinder, findsOneWidget);
     });

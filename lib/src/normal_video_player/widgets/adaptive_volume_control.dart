@@ -133,11 +133,20 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
 
   Widget _buildVolumePopup(BuildContext context) {
     final activeColor =
-        widget.styling?.progressBarPlayedColor ?? Colors.white;
-    final thumbColor = widget.styling?.progressBarHandleColor ?? activeColor;
+        widget.styling?.volumeSliderActiveColor ??
+        widget.styling?.progressBarPlayedColor ??
+        Colors.white;
+    final thumbColor = widget.styling?.volumeSliderThumbColor ??
+        widget.styling?.progressBarHandleColor ??
+        activeColor;
+    final inactiveColor = widget.styling?.volumeSliderInactiveColor ??
+        widget.styling?.progressBarBackgroundColor ??
+        Colors.white.withValues(alpha: 0.24);
+    final containerColor =
+        widget.styling?.controlsBackgroundColor ?? const Color(0xFF1B313F);
 
     return Positioned(
-      width: 36,
+      width: 38,
       child: CompositedTransformFollower(
         link: _link,
         showWhenUnlinked: false,
@@ -150,13 +159,19 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
           child: Material(
             color: Colors.transparent,
             child: Container(
-              width: 36,
-              height: 112,
+              width: 38,
+              height: 114,
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xF21A1A1A),
+                color: containerColor,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: ValueListenableBuilder(
                 valueListenable: widget.controller,
@@ -166,22 +181,18 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
                     child: SliderTheme(
                       data: SliderTheme.of(context).copyWith(
                         trackHeight:
-                            widget.styling?.volumeSliderTrackHeight ?? 3.0,
+                            widget.styling?.volumeSliderTrackHeight ?? 3.5,
                         thumbShape: RoundSliderThumbShape(
                           enabledThumbRadius:
-                              widget.styling?.volumeSliderThumbRadius ?? 5.5,
+                              widget.styling?.volumeSliderThumbRadius ?? 6.0,
+                          pressedElevation: 3.0,
                         ),
                         overlayShape: const RoundSliderOverlayShape(
-                          overlayRadius: 10,
+                          overlayRadius: 12,
                         ),
-                        activeTrackColor:
-                            widget.styling?.volumeSliderActiveColor ??
-                                activeColor,
-                        inactiveTrackColor:
-                            widget.styling?.volumeSliderInactiveColor ??
-                                Colors.white30,
-                        thumbColor: widget.styling?.volumeSliderThumbColor ??
-                            thumbColor,
+                        activeTrackColor: activeColor,
+                        inactiveTrackColor: inactiveColor,
+                        thumbColor: thumbColor,
                       ),
                       child: Slider(
                         value: value.volume.clamp(0.0, 1.0),

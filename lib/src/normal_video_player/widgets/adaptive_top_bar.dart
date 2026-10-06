@@ -104,7 +104,8 @@ class AdaptiveTopBar extends StatelessWidget {
               messages: messages,
               styling: styling,
             ),
-          if (viewerCount != null)
+          if (viewerCount != null) ...[
+            const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -133,6 +134,7 @@ class AdaptiveTopBar extends StatelessWidget {
                 ],
               ),
             ),
+          ],
         ],
       ),
     );

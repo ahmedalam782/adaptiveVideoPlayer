@@ -143,6 +143,10 @@ class PlayerStyleConfig {
   /// Layout presentation style of the bottom bar controls (default: [BottomBarLayout.youtubePills])
   final BottomBarLayout bottomBarLayout;
 
+  /// How the video should fit into the player container (default: [BoxFit.contain]).
+  /// Use [BoxFit.cover] to fill the entire player frame and eliminate black bars on the sides.
+  final BoxFit videoFit;
+
   const PlayerStyleConfig({
     this.progressBarPlayedColor = Colors.red,
     this.progressBarHandleColor = Colors.redAccent,
@@ -187,6 +191,7 @@ class PlayerStyleConfig {
     this.bottomBarMargin,
     this.bottomBarBorderRadius,
     this.bottomBarLayout = BottomBarLayout.youtubePills,
+    this.videoFit = BoxFit.contain,
   });
 
   /// Creates a copy with updated values
@@ -234,6 +239,7 @@ class PlayerStyleConfig {
     EdgeInsetsGeometry? bottomBarMargin,
     BorderRadiusGeometry? bottomBarBorderRadius,
     BottomBarLayout? bottomBarLayout,
+    BoxFit? videoFit,
   }) {
     return PlayerStyleConfig(
       progressBarPlayedColor:
@@ -304,6 +310,7 @@ class PlayerStyleConfig {
       bottomBarBorderRadius:
           bottomBarBorderRadius ?? this.bottomBarBorderRadius,
       bottomBarLayout: bottomBarLayout ?? this.bottomBarLayout,
+      videoFit: videoFit ?? this.videoFit,
     );
   }
 }

@@ -17,6 +17,7 @@ class YouTubeDesktopPlayerView extends StatefulWidget {
   final String videoId;
   final YouTubePlayerConfig config;
   final YouTubeDesktopFullscreenManager fullscreenManager;
+  final double? aspectRatio;
   final VoidCallback onReady;
   final VoidCallback? onEnded;
 
@@ -26,6 +27,7 @@ class YouTubeDesktopPlayerView extends StatefulWidget {
     required this.videoId,
     required this.config,
     required this.fullscreenManager,
+    this.aspectRatio,
     required this.onReady,
     this.onEnded,
   });
@@ -82,6 +84,19 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
     }
   }
 
+  void _onControlsVisibilityChanged(bool visible) {
+    if (!mounted) return;
+    _controlsHideTimer?.cancel();
+    if (_isHovered != visible) {
+      setState(() {
+        _isHovered = visible;
+      });
+    }
+    if (visible) {
+      _scheduleHideControls();
+    }
+  }
+
   void _onMouseActivity() {
     if (!mounted) return;
     if (!_isHovered) {
@@ -95,7 +110,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   void _scheduleHideControls() {
     _controlsHideTimer?.cancel();
     if (_isPlaying) {
-      _controlsHideTimer = Timer(const Duration(seconds: 3), () {
+      _controlsHideTimer = Timer(const Duration(milliseconds: 2600), () {
         if (mounted && _isPlaying) {
           setState(() {
             _isHovered = false;
@@ -191,6 +206,9 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   }
 
   void _openPip() async {
+    if (widget.fullscreenManager.isInFullscreen) {
+      widget.fullscreenManager.closeFullscreen();
+    }
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       final entered = await NativePipService.enterPip();
       if (entered) return;
@@ -210,11 +228,9 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   }
 
   Widget _buildPlayerWithOverlay() {
-    final isNormalInline = !widget.fullscreenManager.isInFullscreen &&
-        !widget.fullscreenManager.isInPip;
     final inNativePip = NativePipService.isInPip.value;
     final showPipButton = !inNativePip && (_isHovered || !_isPlaying);
-    final showMini = isNormalInline &&
+    final showMini = !widget.fullscreenManager.isInPip &&
         !inNativePip &&
         widget.config.visibility.showControls &&
         widget.config.visibility.showMiniPlayerButton;
@@ -225,7 +241,6 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
     final effectiveDir = mounted
         ? widget.config.text.resolveTextDirection(context)
         : (widget.config.text.textDirection ?? TextDirection.ltr);
-    final timeOnRight = effectiveDir == TextDirection.rtl;
 
     return CallbackShortcuts(
       bindings: {
@@ -255,17 +270,50 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
             onHover: (_) => _onMouseActivity(),
             onExit: (_) {
               if (_isPlaying && mounted) {
-                setState(() {
-                  _isHovered = false;
-                });
+                _scheduleHideControls();
               }
             },
             child: Listener(
               behavior: HitTestBehavior.translucent,
               onPointerDown: (_) => _onMouseActivity(),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final targetAspect = widget.aspectRatio ?? (16.0 / 9.0);
+                  double letterboxBottom = 0.0;
+                  double pillarboxSide = 0.0;
+
+                  final isCover = widget.config.style.videoFit == BoxFit.cover;
+
+                  if (!isCover &&
+                      constraints.maxWidth.isFinite &&
+                      constraints.maxHeight.isFinite &&
+                      constraints.maxWidth > 0 &&
+                      constraints.maxHeight > 0) {
+                    final currentAspect =
+                        constraints.maxWidth / constraints.maxHeight;
+                    if (currentAspect < targetAspect) {
+                      // Taller than video aspect ratio -> vertical letterboxing (black bars top & bottom)
+                      final videoHeight = constraints.maxWidth / targetAspect;
+                      letterboxBottom =
+                          (constraints.maxHeight - videoHeight) / 2.0;
+                    } else if (currentAspect > targetAspect) {
+                      // Wider than video aspect ratio -> horizontal pillarboxing (black bars left & right)
+                      final videoWidth = constraints.maxHeight * targetAspect;
+                      pillarboxSide =
+                          (constraints.maxWidth - videoWidth) / 2.0;
+                    }
+                  }
+
+                  final baseBottom = widget.config.style.bottomBarMargin != null &&
+                          widget.config.style.bottomBarMargin is EdgeInsets
+                      ? (widget.config.style.bottomBarMargin as EdgeInsets).bottom
+                      : (widget.fullscreenManager.isInFullscreen ? 85.0 : 85.0);
+
+                  final responsiveBottom = letterboxBottom + baseBottom;
+                  final responsiveRight = pillarboxSide + 6.0;
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
                   IgnorePointer(
                     ignoring: inNativePip,
                     child: YouTubeWebViewPlayer(
@@ -304,47 +352,72 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
                       onSeekBackward: () => _triggerSeekFeedback(-1),
                       onToggleFullscreen: _toggleFullscreen,
                       onTouchActivity: _onMouseActivity,
+                      onControlsVisibilityChanged:
+                          _onControlsVisibilityChanged,
                     ),
                   ),
                   AdaptiveSeekFeedbackOverlay(
                     seekDirection: _seekDirection,
                     seekSeconds: _seekSeconds,
+                    styling: widget.config.style,
                   ),
                   if (showMini || showFullscreen)
-                    Positioned(
-                      right: timeOnRight ? 108 : 4,
-                      bottom:widget.fullscreenManager.isInFullscreen ? 85 : 60,
+                    PositionedDirectional(
+                      end: responsiveRight,
+                      bottom: responsiveBottom,
                       child: IgnorePointer(
                         ignoring: !showPipButton,
                         child: AnimatedOpacity(
                           opacity: showPipButton ? 1 : 0,
                           duration: const Duration(milliseconds: 220),
                           child: Directionality(
-                            textDirection: TextDirection.ltr,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (showMini)
-                                  _buildYouTubeStyleBtn(
-                                    icon: Icons.picture_in_picture_alt_rounded,
-                                    tooltip: widget.config.text.miniPlayerText,
-                                    onTap: _openPip,
-                                    size: 20,
-                                  ),
-                                if (showFullscreen)
-                                  _buildYouTubeStyleBtn(
-                                    icon:
-                                        widget.fullscreenManager.isInFullscreen
-                                            ? Icons.fullscreen_exit_rounded
-                                            : Icons.fullscreen_rounded,
-                                    tooltip: widget
-                                            .fullscreenManager.isInFullscreen
-                                        ? widget.config.text.exitFullscreenText
-                                        : widget.config.text.fullscreenText,
-                                    onTap: _toggleFullscreen,
-                                    size: 22,
-                                  ),
-                              ],
+                            textDirection: effectiveDir,
+                            child: Container(
+                              height: 36,
+                              margin: EdgeInsets.symmetric(horizontal: 8.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              decoration: BoxDecoration(
+                                color: 
+                                    const Color(0x6C000000),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (showMini)
+                                    _buildYouTubeStyleBtn(
+                                      playerIcon: widget
+                                          .config.style.icons.miniPlayerIcon,
+                                      fallbackIcon:
+                                          Icons.picture_in_picture_alt_rounded,
+                                      tooltip:
+                                          widget.config.text.miniPlayerText,
+                                      onTap: _openPip,
+                                      size: 19,
+                                    ),
+                                  if (showFullscreen)
+                                    _buildYouTubeStyleBtn(
+                                      playerIcon: widget.fullscreenManager
+                                              .isInFullscreen
+                                          ? widget.config.style.icons
+                                              .exitFullscreenIcon
+                                          : widget.config.style.icons
+                                              .fullscreenIcon,
+                                      fallbackIcon: widget.fullscreenManager
+                                              .isInFullscreen
+                                          ? Icons.fullscreen_exit_rounded
+                                          : Icons.fullscreen_rounded,
+                                      tooltip: widget.fullscreenManager
+                                              .isInFullscreen
+                                          ? widget
+                                              .config.text.exitFullscreenText
+                                          : widget.config.text.fullscreenText,
+                                      onTap: _toggleFullscreen,
+                                      size: 21,
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -370,7 +443,9 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
                       ),
                     ),
                 ],
-              ),
+              );
+            },
+          ),
             ),
           ),
         ),
@@ -379,7 +454,8 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   }
 
   Widget _buildYouTubeStyleBtn({
-    required IconData icon,
+    PlayerIcon? playerIcon,
+    IconData? fallbackIcon,
     required String tooltip,
     required VoidCallback onTap,
     double size = 20,
@@ -391,14 +467,21 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
         child: InkWell(
           onTap: onTap,
           customBorder: const CircleBorder(),
-          child: Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
-            child: Icon(
-              icon,
-              color: Colors.white.withValues(alpha: 0.9),
-              size: size,
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: Center(
+              child: Builder(
+                builder: (context) {
+                  return PlayerIcon.resolve(
+                    context,
+                    icon: playerIcon,
+                    fallbackIcon: fallbackIcon ?? Icons.circle,
+                    defaultColor: Colors.white.withValues(alpha: 0.95),
+                    defaultSize: size,
+                  );
+                },
+              ),
             ),
           ),
         ),

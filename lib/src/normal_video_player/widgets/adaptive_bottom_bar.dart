@@ -366,13 +366,19 @@ class AdaptiveBottomBar extends StatelessWidget {
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 640;
           final isCompact = constraints.maxWidth < 460;
-          return Padding(
-            padding: EdgeInsets.fromLTRB(
-              isCompact ? 6.0 : 12.0,
-              4.0,
-              isCompact ? 6.0 : 12.0,
-              10.0,
-            ),
+          final defaultStartEnd = isCompact ? 14.0 : 20.0;
+          final defaultBottom = isCompact ? 8.0 : 12.0;
+          final dynamicPadding = styling?.bottomBarPadding ??
+              EdgeInsetsDirectional.fromSTEB(
+                defaultStartEnd,
+                4.0,
+                defaultStartEnd,
+                defaultBottom,
+              );
+          final dynamicMargin = styling?.bottomBarMargin;
+
+          Widget barContent = Padding(
+            padding: dynamicPadding,
             child: ValueListenableBuilder(
               valueListenable: controller,
               builder: (context, VideoPlayerValue value, child) {
@@ -394,8 +400,7 @@ class AdaptiveBottomBar extends StatelessWidget {
                 final showMiniPlayer = showMiniPlayerHere &&
                     effectiveVisibility.showMiniPlayerButton &&
                     onMiniPlayerPressed != null &&
-                    !isFullScreen &&
-                    !isLive;
+                    !isFullScreen;
                 final showLoop = effectiveVisibility.showLoopSetting;
                 final showSubtitlesQuick =
                     effectiveVisibility.showCaptionsSetting;
@@ -581,6 +586,15 @@ class AdaptiveBottomBar extends StatelessWidget {
               },
             ),
           );
+
+          if (dynamicMargin != null) {
+            barContent = Padding(
+              padding: dynamicMargin,
+              child: barContent,
+            );
+          }
+
+          return barContent;
         },
       ),
     );
