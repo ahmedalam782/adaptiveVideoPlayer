@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../youtube_player/models/youtube_player_config.dart';
@@ -42,53 +43,65 @@ class AdaptiveVolumeHudOverlay extends StatelessWidget {
       right: 0,
       child: IgnorePointer(
         child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: styling?.controlsBackgroundColor ?? const Color(0xFF1B313F),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                PlayerIcon.resolve(
-                  context,
-                  icon: volIcon,
-                  fallbackIcon: fallbackIcon,
-                  defaultColor: styling?.iconColor ?? Colors.white,
-                  defaultSize: 20,
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 80,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(3),
-                    child: LinearProgressIndicator(
-                      value: volume,
-                      backgroundColor: styling?.volumeSliderInactiveColor ??
-                          Colors.white24,
-                      valueColor: AlwaysStoppedAnimation<Color>(activeColor),
-                      minHeight: 5,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.30),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '${(volume! * 100).toInt()}%',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PlayerIcon.resolve(
+                      context,
+                      icon: volIcon,
+                      fallbackIcon: fallbackIcon,
+                      defaultColor: styling?.iconColor ?? Colors.white,
+                      defaultSize: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 80,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: LinearProgressIndicator(
+                          value: volume,
+                          backgroundColor:
+                              styling?.volumeSliderInactiveColor ??
+                                  Colors.white24,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(activeColor),
+                          minHeight: 5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${(volume! * 100).toInt()}%',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

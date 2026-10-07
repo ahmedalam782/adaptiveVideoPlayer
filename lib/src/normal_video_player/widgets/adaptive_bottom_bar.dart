@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/player_events.dart';
 import '../../core/constants/player_strings.dart';
+import '../../core/widgets/adaptive_glassmorphic_container.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 import '../utils/video_player_web_safe.dart';
@@ -91,7 +92,7 @@ class AdaptiveBottomBar extends StatelessWidget {
   }
 
   Color get _pillColor =>
-      styling?.controlsBackgroundColor ?? const Color(0x8C000000);
+      styling?.controlsBackgroundColor ?? Colors.black.withValues(alpha: 0.40);
 
   @override
   Widget build(BuildContext context) {
@@ -209,13 +210,12 @@ class AdaptiveBottomBar extends StatelessWidget {
 
                               if (showVolume) ...[
                                 SizedBox(width: isCompact ? 4 : 8),
-                                // YouTube-style Volume Pill
-                                Container(
+                                // Glassmorphic Volume Pill
+                                AdaptiveGlassmorphicContainer(
                                   height: 38,
-                                  decoration: BoxDecoration(
-                                    color: _pillColor,
-                                    borderRadius: BorderRadius.circular(24),
-                                  ),
+                                  borderRadius: 24,
+                                  blur: 10,
+                                  color: _pillColor,
                                   child: AdaptiveVolumeControl(
                                     controller: controller,
                                     styling: styling,
@@ -226,25 +226,23 @@ class AdaptiveBottomBar extends StatelessWidget {
 
                               if (showTime) ...[
                                 SizedBox(width: isCompact ? 4 : 8),
-                                Container(
+                                // Glassmorphic Time Pill
+                                AdaptiveGlassmorphicContainer(
                                   height: 38,
+                                  borderRadius: 24,
+                                  blur: 10,
+                                  color: _pillColor,
                                   padding: EdgeInsets.symmetric(
                                     horizontal: isCompact ? 8.0 : 14.0,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: _pillColor,
-                                    borderRadius: BorderRadius.circular(24),
-                                  ),
-                                  child: Center(
-                                    widthFactor: 1.0,
-                                    child: AdaptiveDurationDisplay(
-                                      position: position,
-                                      duration: duration,
-                                      isWide: !isCompact,
-                                      styling: styling,
-                                      visibility: effectiveVisibility,
-                                      chapters: chapters,
-                                    ),
+                                  alignment: Alignment.center,
+                                  child: AdaptiveDurationDisplay(
+                                    position: position,
+                                    duration: duration,
+                                    isWide: !isCompact,
+                                    styling: styling,
+                                    visibility: effectiveVisibility,
+                                    chapters: chapters,
                                   ),
                                 ),
                               ],
@@ -259,15 +257,14 @@ class AdaptiveBottomBar extends StatelessWidget {
                         showFullscreen) ...[
                       SizedBox(width: isCompact ? 4 : 6),
 
-                      // YouTube-style Right Action Pill (Loop/Autoplay, CC, Settings, MiniPlayer, Fullscreen)
-                      Container(
+                      // Glassmorphic Right Action Pill (Loop/Autoplay, CC, Settings, MiniPlayer, Fullscreen)
+                      AdaptiveGlassmorphicContainer(
                         height: 38,
+                        borderRadius: 24,
+                        blur: 10,
+                        color: _pillColor,
                         padding: EdgeInsets.symmetric(
                           horizontal: isCompact ? 4.0 : 8.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _pillColor,
-                          borderRadius: BorderRadius.circular(24),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,

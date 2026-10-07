@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
@@ -54,41 +55,39 @@ class AdaptiveTopBar extends StatelessWidget {
               message: messages?.backText ??
                   messages?.exitFullscreenText ??
                   'Back',
-              child: Material(
-                color: Colors.transparent,
-                shape: const CircleBorder(),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: onExitFullscreen,
-                  splashColor: Colors.white24,
-                  highlightColor: Colors.white10,
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.55),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        width: 1.0,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+              child: GestureDetector(
+                onTap: onExitFullscreen,
+                child: ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.20),
+                          width: 1.0,
                         ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: PlayerIcon.resolve(
-                      context,
-                      icon: styling?.icons.backIcon,
-                      fallbackIcon: isRtl
-                          ? Icons.arrow_forward_rounded
-                          : Icons.arrow_back_rounded,
-                      defaultColor: iconColor,
-                      defaultSize: 24,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.30),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: PlayerIcon.resolve(
+                        context,
+                        icon: styling?.icons.backIcon,
+                        fallbackIcon: isRtl
+                            ? Icons.arrow_forward_rounded
+                            : Icons.arrow_back_rounded,
+                        defaultColor: iconColor,
+                        defaultSize: 24,
+                      ),
                     ),
                   ),
                 ),
@@ -106,32 +105,42 @@ class AdaptiveTopBar extends StatelessWidget {
             ),
           if (viewerCount != null) ...[
             const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PlayerIcon.resolve(
-                    context,
-                    icon: styling?.icons.viewerCountIcon,
-                    fallbackIcon: Icons.remove_red_eye_outlined,
-                    defaultColor: iconColor,
-                    defaultSize: 14,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    viewerCount!,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      width: 1.0,
                     ),
                   ),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PlayerIcon.resolve(
+                        context,
+                        icon: styling?.icons.viewerCountIcon,
+                        fallbackIcon: Icons.remove_red_eye_outlined,
+                        defaultColor: iconColor,
+                        defaultSize: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        viewerCount!,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],

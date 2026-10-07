@@ -1,3 +1,4 @@
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:adaptive_video_player/adaptive_video_player.dart';
 
@@ -78,64 +79,105 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
             backgroundColor: theme.scaffoldBackgroundColor,
             elevation: 0,
             actions: [
-              InkWell(
-                onTap: () {
-                  LanguagePickerSheet.show(
-                    context,
-                    currentLanguageCode: widget.currentLanguageCode,
-                    onLanguageSelected: (lang) =>
-                        widget.onSelectLanguage(lang.code),
-                  );
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.black.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isDark ? Colors.white12 : Colors.black12,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.translate_rounded,
-                        size: 15,
-                        color: Colors.cyanAccent,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: InkWell(
+                    onTap: () {
+                      LanguagePickerSheet.show(
+                        context,
+                        currentLanguageCode: widget.currentLanguageCode,
+                        onLanguageSelected: (lang) =>
+                            widget.onSelectLanguage(lang.code),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        currentLang.code.toUpperCase(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                          color: isDark ? Colors.cyanAccent : Colors.blueAccent,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.10)
+                            : Colors.white.withValues(alpha: 0.60),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.18)
+                              : Colors.black.withValues(alpha: 0.08),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black
+                                .withValues(alpha: isDark ? 0.25 : 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.translate_rounded,
+                            size: 15,
+                            color: Colors.cyanAccent,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            currentLang.code.toUpperCase(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                              color: isDark
+                                  ? Colors.cyanAccent
+                                  : Colors.blueAccent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              IconButton(
-                tooltip: isDark ? 'Switch to Light' : 'Switch to Dark',
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.black.withValues(alpha: 0.05),
+              ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.10)
+                          : Colors.white.withValues(alpha: 0.60),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.18)
+                            : Colors.black.withValues(alpha: 0.08),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.25 : 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      tooltip: isDark ? 'Switch to Light' : 'Switch to Dark',
+                      icon: Icon(
+                        isDark
+                            ? Icons.light_mode_rounded
+                            : Icons.dark_mode_rounded,
+                        color: isDark ? Colors.amberAccent : Colors.indigo,
+                      ),
+                      onPressed: widget.onToggleTheme,
+                    ),
+                  ),
                 ),
-                icon: Icon(
-                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                  color: isDark ? Colors.amberAccent : Colors.indigo,
-                ),
-                onPressed: widget.onToggleTheme,
               ),
               const SizedBox(width: 12),
             ],
@@ -208,38 +250,47 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
                     for (var i = 0; i < _sources.length; i++)
                       Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          selected: i == _selected,
-                          showCheckmark: false,
-                          avatar: Icon(
-                            _sources[i].icon,
-                            size: 16,
-                            color: i == _selected
-                                ? Colors.white
-                                : _sources[i].accentColor,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: FilterChip(
+                              selected: i == _selected,
+                              showCheckmark: false,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              avatar: Icon(
+                                _sources[i].icon,
+                                size: 16,
+                                color: i == _selected
+                                    ? Colors.white
+                                    : _sources[i].accentColor,
+                              ),
+                              label: Text(_sources[i].label),
+                              labelStyle: TextStyle(
+                                fontSize: 12,
+                                fontWeight: i == _selected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: i == _selected
+                                    ? Colors.white
+                                    : (isDark ? Colors.white70 : Colors.black87),
+                              ),
+                              selectedColor: _sources[i].accentColor,
+                              backgroundColor: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.white.withValues(alpha: 0.65),
+                              side: BorderSide(
+                                color: i == _selected
+                                    ? _sources[i].accentColor
+                                    : (isDark
+                                        ? Colors.white.withValues(alpha: 0.15)
+                                        : Colors.black.withValues(alpha: 0.08)),
+                              ),
+                              onSelected: (_) => setState(() => _selected = i),
+                            ),
                           ),
-                          label: Text(_sources[i].label),
-                          labelStyle: TextStyle(
-                            fontSize: 12,
-                            fontWeight: i == _selected
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: i == _selected
-                                ? Colors.white
-                                : (isDark ? Colors.white70 : Colors.black87),
-                          ),
-                          selectedColor: _sources[i].accentColor,
-                          backgroundColor: isDark
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.black.withValues(alpha: 0.04),
-                          side: BorderSide(
-                            color: i == _selected
-                                ? _sources[i].accentColor
-                                : (isDark
-                                    ? Colors.white.withValues(alpha: 0.08)
-                                    : Colors.black.withValues(alpha: 0.06)),
-                          ),
-                          onSelected: (_) => setState(() => _selected = i),
                         ),
                       ),
                   ],

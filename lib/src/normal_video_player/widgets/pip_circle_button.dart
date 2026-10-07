@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// A circular button with icon and tooltip used in PiP overlays.
+import '../../core/widgets/adaptive_glassmorphic_container.dart';
+
+/// A circular glassmorphic button with icon and tooltip used in PiP overlays.
 class PipCircleButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
@@ -17,7 +19,7 @@ class PipCircleButton extends StatelessWidget {
     required this.onTap,
     this.size = 36,
     this.iconSize = 20,
-    this.backgroundColor = const Color(0xCC2E2E2E),
+    this.backgroundColor = const Color(0x8C1E1E1E),
     this.iconColor = Colors.white,
   });
 
@@ -28,13 +30,21 @@ class PipCircleButton extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: Container(
+        child: AdaptiveGlassmorphicContainer(
+          shape: BoxShape.circle,
           width: size,
           height: size,
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            shape: BoxShape.circle,
-          ),
+          blur: 14.0,
+          color: backgroundColor,
+          borderColor: Colors.white.withValues(alpha: 0.22),
+          borderWidth: 1.0,
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
           alignment: Alignment.center,
           child: Icon(icon, color: iconColor, size: iconSize),
         ),
