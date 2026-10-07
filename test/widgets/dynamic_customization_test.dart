@@ -1,25 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_player/video_player.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart'
-    hide FullscreenButton;
-import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_bottom_bar.dart';
+import 'package:adaptive_video_player/adaptive_video_player.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_center_play_pause.dart';
-import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_progress_bar.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_controls_layer.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_player_settings_sheet.dart';
-import 'package:adaptive_video_player/src/normal_video_player/models/video_quality.dart';
-import 'package:adaptive_video_player/src/normal_video_player/models/subtitle_track.dart';
-import 'package:adaptive_video_player/src/youtube_player/models/player_style_config.dart';
-import 'package:adaptive_video_player/src/youtube_player/models/player_text_config.dart';
-import 'package:adaptive_video_player/src/youtube_player/models/player_visibility_config.dart';
-import 'package:adaptive_video_player/src/youtube_player/models/player_playback_config.dart';
-import 'package:adaptive_video_player/src/youtube_player/models/player_bottom_actions_config.dart';
-import 'package:adaptive_video_player/src/youtube_player/widgets/player_bottom_actions.dart';
-
-class MockYoutubePlayerController extends Mock
-    implements YoutubePlayerController {}
+import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_progress_bar.dart';
 
 class _FakeVideoPlayerController extends VideoPlayerController {
   _FakeVideoPlayerController({
@@ -340,37 +326,6 @@ void main() {
       expect(find.text('Subtitles'), findsNothing);
     });
 
-    testWidgets('PlayerBottomActionsBuilder respects showProgressBar, showVolumeButton, and showFullscreenButton',
-        (tester) async {
-      final ytController = MockYoutubePlayerController();
-
-      final actions = PlayerBottomActionsBuilder.build(
-        controller: ytController,
-        config: const PlayerBottomActionsConfig(),
-        isMuted: false,
-        showVolumeButton: false,
-        showFullscreenButton: false,
-        showTimeDisplay: false,
-        showProgressBar: false,
-        onFullscreenTap: () {},
-        onMuteTap: () {},
-      );
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Row(children: actions),
-          ),
-        ),
-      );
-
-      // Mute/Volume button hidden
-      expect(find.byIcon(Icons.volume_up), findsNothing);
-      // Fullscreen button hidden
-      expect(find.byIcon(Icons.fullscreen), findsNothing);
-      // Progress bar slider hidden
-      expect(find.byType(ProgressBar), findsNothing);
-    });
   });
 
   group('Dynamic Styling Config Tests', () {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/player_events.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../utils/video_player_web_safe.dart';
 
@@ -41,16 +42,16 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
             onTap: () {
               if (isPlaying) {
                 controller.pause();
-                onAnalyticsEvent?.call('video_paused',
-                    {'position': controller.value.position.inSeconds});
+                onAnalyticsEvent?.call(PlayerEvents.videoPaused,
+                    {PlayerEvents.paramPosition: controller.value.position.inSeconds});
               } else {
                 if (value.position >= value.duration &&
                     value.duration > Duration.zero) {
                   controller.seekTo(Duration.zero);
                 }
                 controller.play();
-                onAnalyticsEvent?.call('video_played',
-                    {'position': controller.value.position.inSeconds});
+                onAnalyticsEvent?.call(PlayerEvents.videoPlayed,
+                    {PlayerEvents.paramPosition: controller.value.position.inSeconds});
               }
               onPlayPause?.call();
             },

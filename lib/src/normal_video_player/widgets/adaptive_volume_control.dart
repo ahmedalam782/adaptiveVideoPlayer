@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../utils/video_player_web_safe.dart';
+import 'adaptive_volume_popup.dart';
 
 /// Interactive volume button. The slider opens above the icon, not beside it.
 class AdaptiveVolumeControl extends StatefulWidget {
@@ -122,107 +123,36 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
     }
     final overlay = Overlay.maybeOf(context);
     if (overlay == null) return;
-    _overlayEntry = OverlayEntry(builder: _buildVolumePopup);
+    _overlayEntry = OverlayEntry(
+      builder: (context) => AdaptiveVolumePopup(
+        link: _link,
+        controller: widget.controller,
+        styling: widget.styling,
+        onHoverEnter: _onHoverEnter,
+        onHoverExit: _onHoverExit,
+        onChangeStart: (_) {
+          _collapseTimer?.cancel();
+          _hoverExitTimer?.cancel();
+          setState(() => _isDraggingVolume = true);
+        },
+        onVolumeChanged: (newVolume) {
+          if (newVolume > 0) {
+            _lastNonZeroVolume = newVolume;
+          }
+          widget.controller.setVolume(newVolume);
+        },
+        onChangeEnd: (_) {
+          setState(() => _isDraggingVolume = false);
+          _resetCollapseTimer();
+        },
+      ),
+    );
     overlay.insert(_overlayEntry!);
   }
 
   void _removeOverlay() {
     _overlayEntry?.remove();
     _overlayEntry = null;
-  }
-
-  Widget _buildVolumePopup(BuildContext context) {
-    final activeColor =
-        widget.styling?.volumeSliderActiveColor ??
-        widget.styling?.progressBarPlayedColor ??
-        Colors.white;
-    final thumbColor = widget.styling?.volumeSliderThumbColor ??
-        widget.styling?.progressBarHandleColor ??
-        activeColor;
-    final inactiveColor = widget.styling?.volumeSliderInactiveColor ??
-        widget.styling?.progressBarBackgroundColor ??
-        Colors.white.withValues(alpha: 0.24);
-    final containerColor =
-        widget.styling?.controlsBackgroundColor ?? const Color(0xFF1B313F);
-
-    return Positioned(
-      width: 38,
-      child: CompositedTransformFollower(
-        link: _link,
-        showWhenUnlinked: false,
-        targetAnchor: Alignment.topCenter,
-        followerAnchor: Alignment.bottomCenter,
-        offset: const Offset(0, -8),
-        child: MouseRegion(
-          onEnter: (_) => _onHoverEnter(),
-          onExit: (_) => _onHoverExit(),
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: 38,
-              height: 114,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: containerColor,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: ValueListenableBuilder(
-                valueListenable: widget.controller,
-                builder: (context, VideoPlayerValue value, _) {
-                  return RotatedBox(
-                    quarterTurns: 3,
-                    child: SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        trackHeight:
-                            widget.styling?.volumeSliderTrackHeight ?? 3.5,
-                        thumbShape: RoundSliderThumbShape(
-                          enabledThumbRadius:
-                              widget.styling?.volumeSliderThumbRadius ?? 6.0,
-                          pressedElevation: 3.0,
-                        ),
-                        overlayShape: const RoundSliderOverlayShape(
-                          overlayRadius: 12,
-                        ),
-                        activeTrackColor: activeColor,
-                        inactiveTrackColor: inactiveColor,
-                        thumbColor: thumbColor,
-                      ),
-                      child: Slider(
-                        value: value.volume.clamp(0.0, 1.0),
-                        min: 0.0,
-                        max: 1.0,
-                        onChangeStart: (_) {
-                          _collapseTimer?.cancel();
-                          _hoverExitTimer?.cancel();
-                          setState(() => _isDraggingVolume = true);
-                        },
-                        onChanged: (newVolume) {
-                          if (newVolume > 0) {
-                            _lastNonZeroVolume = newVolume;
-                          }
-                          widget.controller.setVolume(newVolume);
-                        },
-                        onChangeEnd: (_) {
-                          setState(() => _isDraggingVolume = false);
-                          _resetCollapseTimer();
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   @override

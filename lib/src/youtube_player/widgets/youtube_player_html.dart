@@ -116,6 +116,8 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         var langFlag = 'en';
         var dirFlag = 'ltr';
         var timeUpdateInterval = null;
+        var pendingPlay = false;
+        var isPlayerReady = false;
 
         function updateRtlStyles(isRtl) {
             try {
@@ -151,6 +153,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                         if (typeof player.getPlayerState === 'function') {
                             autoplayFlag = (player.getPlayerState() === 1) ? 1 : 0;
                         }
+                        isPlayerReady = false;
                         player.destroy();
                         player = null;
                         createPlayer();
@@ -228,6 +231,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 playerVars['start'] = startAtFlag;
             }
 
+            isPlayerReady = false;
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
@@ -242,16 +246,43 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             });
         }
 
+        function tryUnmuteIfAllowed() {
+            if (muteFlag === 0 && player && typeof player.unMute === 'function') {
+                try {
+                    player.unMute();
+                    if (typeof player.setVolume === 'function') {
+                        player.setVolume(100);
+                    }
+                } catch(e) {}
+            }
+        }
+
         function onPlayerReady(event) {
+            isPlayerReady = true;
             event.target.setPlaybackQuality('medium');
             if (startAtFlag > 0) {
                 var cur = (typeof event.target.getCurrentTime === 'function') ? event.target.getCurrentTime() : 0;
                 if (cur < startAtFlag - 1) {
                     event.target.seekTo(startAtFlag, true);
                 }
-                if (autoplayFlag === 1) {
+            }
+            tryUnmuteIfAllowed();
+            if (autoplayFlag === 1 || pendingPlay) {
+                pendingPlay = false;
+                try {
                     event.target.playVideo();
-                }
+                } catch(e) {}
+                setTimeout(function() {
+                    try {
+                        if (player && typeof player.getPlayerState === 'function') {
+                            var s = player.getPlayerState();
+                            if (s === -1 || s === 2 || s === 5) {
+                                player.mute();
+                                player.playVideo();
+                            }
+                        }
+                    } catch(err) {}
+                }, 500);
             }
             startTimeTracking();
             if (window.flutter_inappwebview) {
@@ -263,6 +294,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             sendTimeUpdate();
             if (event.data === YT.PlayerState.BUFFERING || event.data === YT.PlayerState.PLAYING) {
                 event.target.setPlaybackQuality('medium');
+                tryUnmuteIfAllowed();
             }
             if (window.flutter_inappwebview) {
                 window.flutter_inappwebview.callHandler('YouTubePlayerHandler', { 'event': 'onStateChange', 'data': event.data });
@@ -292,6 +324,9 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
 
         // Notify Flutter on touch, click, or mousemove activity so controls overlay can reveal/auto-hide smoothly
         function notifyTouchActivity() {
+            if (muteFlag === 0 && player && typeof player.unMute === 'function') {
+                try { player.unMute(); } catch(e) {}
+            }
             if (window.flutter_inappwebview) {
                 window.flutter_inappwebview.callHandler('YouTubePlayerHandler', { 'event': 'onTouchActivity' });
             }
@@ -350,7 +385,27 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         });
 
         // API calls from Dart
-        function playVideo() { if (player) player.playVideo(); }
+        function playVideo() {
+            if (isPlayerReady && player && typeof player.playVideo === 'function') {
+                tryUnmuteIfAllowed();
+                try {
+                    player.playVideo();
+                } catch(e) {}
+                setTimeout(function() {
+                    try {
+                        if (player && typeof player.getPlayerState === 'function') {
+                            var s = player.getPlayerState();
+                            if (s === -1 || s === 2 || s === 5) {
+                                player.mute();
+                                player.playVideo();
+                            }
+                        }
+                    } catch(err) {}
+                }, 500);
+            } else {
+                pendingPlay = true;
+            }
+        }
         function pauseVideo() { if (player) { player.pauseVideo(); sendTimeUpdate(); } }
         function seekTo(seconds) { if (player) { player.seekTo(seconds, true); sendTimeUpdate(); } }
         function muteVideo() { if (player) player.mute(); }

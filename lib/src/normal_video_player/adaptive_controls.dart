@@ -1,7 +1,9 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../youtube_player/models/youtube_player_config.dart';
+import 'mixins/adaptive_player_gestures_mixin.dart';
+import 'mixins/adaptive_player_subtitles_sync_mixin.dart';
+import 'mixins/adaptive_player_visibility_mixin.dart';
 import 'models/video_config.dart';
 import 'utils/adaptive_player_keyboard_handler.dart';
 import 'utils/subtitle_parser.dart';
@@ -73,19 +75,13 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
       _BaseAdaptiveVideoPlayerState();
 }
 
-class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
-  bool _controlsVisible = true;
-  int _seekDirection = 0; // -1 for backward, 1 for forward, 0 for none
-  Timer? _hideTimer;
+class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
+    with
+        AdaptivePlayerVisibilityMixin,
+        AdaptivePlayerGesturesMixin,
+        AdaptivePlayerSubtitlesSyncMixin {
   final FocusNode _focusNode = FocusNode();
-  double? _feedbackVolume;
-  Timer? _volumeFeedbackTimer;
   bool _videoEndedEventSent = false;
-  String _currentSubtitleText = '';
-  int _seekSeconds = 10;
-  Timer? _seekResetTimer;
-  bool _isHold2xActive = false;
-  double _previousPlaybackSpeed = 1.0;
 
   AdaptivePlayerKeyboardHandler get _keyboardHandler =>
       AdaptivePlayerKeyboardHandler(
@@ -93,8 +89,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
         isLive: widget.isLive,
         isFullScreen: widget.isFullScreen,
         onTogglePlay: _togglePlay,
-        onSeek: _triggerSeekFeedback,
-        onVolumeChanged: _showVolumeFeedback,
+        onSeek: (dir) => triggerSeekFeedback(dir, startHideTimer),
+        onVolumeChanged: showVolumeFeedback,
         onEnterFullscreen: widget.onEnterFullscreen,
         onExitFullscreen: widget.onExitFullscreen,
       );
@@ -102,9 +98,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
   @override
   void initState() {
     super.initState();
-    _startHideTimer();
+    startHideTimer();
 
-    // Add listener to fire events
     widget.controller.addListener(_videoListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -125,12 +120,12 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
       widget.onAnalyticsEvent?.call('video_played',
           {'position': widget.controller.value.position.inSeconds});
     }
-    setState(() => _controlsVisible = true);
-    _startHideTimer();
+    setState(() => controlsVisible = true);
+    startHideTimer();
   }
 
   void _videoListener() {
-    if (widget.isLive) return; // Prevent listener overhead on high-framerate live streams
+    if (widget.isLive) return;
     final position = widget.controller.value.position;
     final duration = widget.controller.value.duration;
 
@@ -143,28 +138,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
       _videoEndedEventSent = false;
     }
 
-    _updateSubtitle(position);
-  }
-
-  void _updateSubtitle(Duration position) {
-    if (widget.parsedSubtitles == null || widget.parsedSubtitles!.isEmpty) {
-      if (_currentSubtitleText.isNotEmpty) {
-        setState(() => _currentSubtitleText = '');
-      }
-      return;
-    }
-
-    String newText = '';
-    for (final item in widget.parsedSubtitles!) {
-      if (position >= item.start && position <= item.end) {
-        newText = item.text;
-        break;
-      }
-    }
-
-    if (_currentSubtitleText != newText && mounted) {
-      setState(() => _currentSubtitleText = newText);
-    }
+    updateSubtitle(position);
   }
 
   @override
@@ -180,122 +154,10 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
   @override
   void dispose() {
     widget.controller.removeListener(_videoListener);
-    _hideTimer?.cancel();
-    _volumeFeedbackTimer?.cancel();
-    _seekResetTimer?.cancel();
+    disposeVisibilityTimer();
+    disposeGesturesTimers();
     _focusNode.dispose();
     super.dispose();
-  }
-
-  void _triggerSeekFeedback(int direction) {
-    if (!mounted) return;
-    _seekResetTimer?.cancel();
-    final skipSec = widget.visibility?.skipDuration.inSeconds ?? 10;
-    setState(() {
-      if (_seekDirection == direction) {
-        _seekSeconds += skipSec;
-      } else {
-        _seekDirection = direction;
-        _seekSeconds = skipSec;
-      }
-    });
-    _startHideTimer();
-    _seekResetTimer = Timer(const Duration(milliseconds: 900), () {
-      if (mounted) {
-        setState(() {
-          _seekDirection = 0;
-          _seekSeconds = widget.visibility?.skipDuration.inSeconds ?? 10;
-        });
-      }
-    });
-  }
-
-  void _showVolumeFeedback(double volume) {
-    if (!(widget.visibility?.showVolumeFeedback ?? true)) return;
-    _volumeFeedbackTimer?.cancel();
-    setState(() {
-      _feedbackVolume = volume;
-    });
-    final timeout = widget.visibility?.volumeFeedbackTimeout ??
-        const Duration(milliseconds: 1200);
-    _volumeFeedbackTimer = Timer(timeout, () {
-      if (mounted) setState(() => _feedbackVolume = null);
-    });
-  }
-
-  void _startHideTimer() {
-    _hideTimer?.cancel();
-    final timeout = widget.visibility?.controlsHideTimeout ??
-        const Duration(seconds: 3);
-    _hideTimer = Timer(timeout, () {
-      if (mounted && widget.controller.value.isPlaying) {
-        setState(() => _controlsVisible = false);
-      }
-    });
-  }
-
-  void _toggleControls() {
-    setState(() {
-      _controlsVisible = !_controlsVisible;
-      if (_controlsVisible) {
-        _startHideTimer();
-      } else {
-        _hideTimer?.cancel();
-      }
-    });
-  }
-
-  void _handleDoubleTap(TapDownDetails details) {
-    if (widget.isLive) return;
-
-    final width = MediaQuery.of(context).size.width;
-    final position = details.globalPosition.dx;
-    final currentPosition = widget.controller.value.position;
-    final wasPlaying = widget.controller.value.isPlaying;
-    final duration = widget.controller.value.duration;
-    final isRtl = (widget.messages ?? const PlayerTextConfig())
-            .resolveTextDirection(context) ==
-        TextDirection.rtl;
-    final tappedRightHalf = position > width / 2;
-    final isForward = isRtl ? !tappedRightHalf : tappedRightHalf;
-    final skipDuration =
-        widget.visibility?.skipDuration ?? const Duration(seconds: 10);
-
-    if (isForward) {
-      _triggerSeekFeedback(1);
-      final newPosition = currentPosition + skipDuration;
-      widget.controller
-          .seekTo(newPosition > duration ? duration : newPosition);
-    } else {
-      _triggerSeekFeedback(-1);
-      final newPosition = currentPosition - skipDuration;
-      widget.controller
-          .seekTo(newPosition.isNegative ? Duration.zero : newPosition);
-    }
-
-    if (wasPlaying) {
-      widget.controller.play();
-    }
-  }
-
-  void _handleLongPressStart(LongPressStartDetails details) {
-    if (widget.isLive) return;
-    _previousPlaybackSpeed = widget.controller.value.playbackSpeed;
-    setState(() => _isHold2xActive = true);
-    widget.controller.setPlaybackSpeed(2.0);
-    widget.onAnalyticsEvent?.call('playback_speed_hold_start', {'speed': 2.0});
-  }
-
-  void _handleLongPressEnd(LongPressEndDetails details) {
-    _stopHold2xSpeed();
-  }
-
-  void _stopHold2xSpeed() {
-    if (!_isHold2xActive) return;
-    setState(() => _isHold2xActive = false);
-    widget.controller.setPlaybackSpeed(_previousPlaybackSpeed);
-    widget.onAnalyticsEvent
-        ?.call('playback_speed_hold_end', {'speed': _previousPlaybackSpeed});
   }
 
   @override
@@ -314,7 +176,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
       width: (widget.isFullScreen || isCover) ? double.infinity : null,
       height: (widget.isFullScreen || isCover) ? double.infinity : null,
       child: Stack(
-        fit: (widget.isFullScreen || isCover) ? StackFit.expand : StackFit.loose,
+        fit:
+            (widget.isFullScreen || isCover) ? StackFit.expand : StackFit.loose,
         alignment: Alignment.center,
         children: [
           Center(
@@ -331,20 +194,20 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
 
           // Visual feedback overlay for Double-Tap seeking (+10s, +20s, +30s...)
           AdaptiveSeekFeedbackOverlay(
-            seekDirection: _seekDirection,
-            seekSeconds: _seekSeconds,
+            seekDirection: seekDirection,
+            seekSeconds: seekSeconds,
             styling: widget.styling,
           ),
 
           // Sleek Volume HUD Feedback Overlay
           AdaptiveVolumeHudOverlay(
-            volume: _feedbackVolume,
+            volume: feedbackVolume,
             isFullScreen: widget.isFullScreen,
             styling: widget.styling,
           ),
 
           // YouTube-style Hold-to-2x Speed Pill Badge at top-center
-          if (_isHold2xActive)
+          if (isHold2xActive)
             Positioned(
               top: widget.isFullScreen ? 32 : 14,
               child: IgnorePointer(
@@ -382,9 +245,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
 
           // Subtitle layer
           AdaptiveSubtitleLayer(
-            subtitleText: _currentSubtitleText,
+            subtitleText: currentSubtitleText,
             showControls: widget.showControls,
-            controlsVisible: _controlsVisible,
+            controlsVisible: controlsVisible,
             isFullScreen: widget.isFullScreen,
             subtitleBuilder: widget.subtitleBuilder,
             styling: widget.styling,
@@ -399,50 +262,51 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
                       _focusNode.requestFocus();
-                      _toggleControls();
+                      toggleControls();
                     },
-                    onDoubleTapDown: _handleDoubleTap,
-                    onLongPressStart: _handleLongPressStart,
-                    onLongPressEnd: _handleLongPressEnd,
-                    onLongPressCancel: _stopHold2xSpeed,
+                    onDoubleTapDown: (details) =>
+                        handleDoubleTap(details, startHideTimer),
+                    onLongPressStart: handleLongPressStart,
+                    onLongPressEnd: handleLongPressEnd,
+                    onLongPressCancel: stopHold2xSpeed,
                   ),
                   AnimatedOpacity(
-                    opacity: _controlsVisible ? 1 : 0,
+                    opacity: controlsVisible ? 1 : 0,
                     duration: const Duration(milliseconds: 250),
                     child: IgnorePointer(
-                      ignoring: !_controlsVisible,
+                      ignoring: !controlsVisible,
                       child: widget.controlsBuilder != null
                           ? widget.controlsBuilder!(
                               context, widget.controller, widget.isFullScreen)
                           : AdaptiveControlsLayer(
-                            controller: widget.controller,
-                            isFullScreen: widget.isFullScreen,
-                            styling: widget.styling,
-                            messages: widget.messages,
-                            visibility: widget.visibility,
-                            playback: widget.playback,
-                            onAnalyticsEvent: widget.onAnalyticsEvent,
-                            qualities: widget.qualities,
-                            currentQuality: widget.currentQuality,
-                            onQualitySelected: widget.onQualitySelected,
-                            subtitles: widget.subtitles,
-                            currentSubtitleTrack: widget.currentSubtitleTrack,
-                            onSubtitleSelected: widget.onSubtitleSelected,
-                            parsedSubtitles: widget.parsedSubtitles,
-                            chapters: widget.chapters,
-                            controlsBuilder: widget.controlsBuilder,
-                            subtitleBuilder: widget.subtitleBuilder,
-                            isLive: widget.isLive,
-                            viewerCount: widget.viewerCount,
-                            onEnterFullscreen: widget.onEnterFullscreen,
-                            onExitFullscreen: widget.onExitFullscreen,
-                            onMiniPlayerPressed: widget.onMiniPlayerPressed,
-                          ),
+                              controller: widget.controller,
+                              isFullScreen: widget.isFullScreen,
+                              styling: widget.styling,
+                              messages: widget.messages,
+                              visibility: widget.visibility,
+                              playback: widget.playback,
+                              onAnalyticsEvent: widget.onAnalyticsEvent,
+                              qualities: widget.qualities,
+                              currentQuality: widget.currentQuality,
+                              onQualitySelected: widget.onQualitySelected,
+                              subtitles: widget.subtitles,
+                              currentSubtitleTrack: widget.currentSubtitleTrack,
+                              onSubtitleSelected: widget.onSubtitleSelected,
+                              parsedSubtitles: widget.parsedSubtitles,
+                              chapters: widget.chapters,
+                              controlsBuilder: widget.controlsBuilder,
+                              subtitleBuilder: widget.subtitleBuilder,
+                              isLive: widget.isLive,
+                              viewerCount: widget.viewerCount,
+                              onEnterFullscreen: widget.onEnterFullscreen,
+                              onExitFullscreen: widget.onExitFullscreen,
+                              onMiniPlayerPressed: widget.onMiniPlayerPressed,
+                            ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -452,13 +316,12 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer> {
       autofocus: true,
       onKeyEvent: _keyboardHandler.handleKeyEvent,
       child: MouseRegion(
-        cursor: _controlsVisible
-            ? SystemMouseCursors.basic
-            : SystemMouseCursors.none,
+        cursor:
+            controlsVisible ? SystemMouseCursors.basic : SystemMouseCursors.none,
         onHover: (_) {
-          _startHideTimer();
-          if (!_controlsVisible) {
-            setState(() => _controlsVisible = true);
+          startHideTimer();
+          if (!controlsVisible) {
+            setState(() => controlsVisible = true);
           }
         },
         child: playerContent,

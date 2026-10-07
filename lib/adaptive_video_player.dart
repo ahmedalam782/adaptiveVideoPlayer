@@ -31,25 +31,44 @@ export 'src/core/extensions/player_duration_extensions.dart';
 export 'src/core/extensions/player_state_extensions.dart';
 export 'src/core/mixins/controls_visibility_mixin.dart';
 export 'src/core/mixins/volume_feedback_mixin.dart';
+export 'src/core/constants/constants.dart';
 export 'src/core/services/analytics_service.dart';
 export 'src/core/services/fullscreen_service.dart';
 export 'src/core/services/native_pip_service.dart';
 export 'src/normal_video_player/adaptive_controls.dart'
     show AdaptiveControlsBuilder, SubtitleBuilder;
 export 'src/normal_video_player/models/video_config.dart';
+export 'src/normal_video_player/normal_video_player.dart';
+export 'src/normal_video_player/widgets/adaptive_bottom_bar.dart';
+export 'src/normal_video_player/widgets/adaptive_circle_pill_button.dart';
+export 'src/normal_video_player/widgets/adaptive_duration_display.dart';
 export 'src/normal_video_player/widgets/adaptive_inline_bottom_bar.dart';
+export 'src/normal_video_player/widgets/adaptive_loop_toggle.dart';
+export 'src/normal_video_player/widgets/adaptive_play_pause_button.dart';
+export 'src/normal_video_player/widgets/adaptive_stop_button.dart';
+export 'src/normal_video_player/widgets/adaptive_subtitles_button.dart';
+export 'src/normal_video_player/widgets/adaptive_volume_popup.dart';
+export 'src/normal_video_player/widgets/normal_mini_player_content.dart';
+export 'src/normal_video_player/widgets/pip_circle_button.dart';
+export 'src/normal_video_player/widgets/seek_feedback_icon.dart';
 export 'src/platform_init.dart';
 export 'src/youtube_player/cubit/youtube_player_cubit.dart';
 export 'src/youtube_player/models/player_icon_config.dart';
 export 'src/youtube_player/models/youtube_player_config.dart';
 export 'src/youtube_player/utils/player_utils.dart';
-export 'src/youtube_player/widgets/fullscreen_player_page.dart';
+export 'src/youtube_player/services/youtube_local_server_service.dart';
+export 'src/youtube_player/views/youtube_desktop_player_view.dart';
+export 'src/youtube_player/views/youtube_desktop_player_with_overlay.dart';
 export 'src/youtube_player/widgets/player_controls.dart';
 export 'src/youtube_player/widgets/player_error_widget.dart';
 export 'src/youtube_player/widgets/player_loading_widget.dart';
-export 'src/youtube_player/widgets/youtube_controls_overlay.dart';
+export 'src/youtube_player/widgets/youtube_desktop_fullscreen_button.dart';
+export 'src/youtube_player/widgets/youtube_desktop_pip_content.dart';
+export 'src/youtube_player/widgets/youtube_desktop_pip_placeholder.dart';
+export 'src/youtube_player/widgets/youtube_desktop_style_button.dart';
 export 'src/youtube_player/widgets/youtube_live_badge.dart';
 export 'src/youtube_player/widgets/youtube_replay_overlay.dart';
+export 'src/youtube_player/widgets/youtube_web_iframe_view.dart';
 export 'src/youtube_player/youtube_video_player.dart';
 
 /// Adaptive video player that detects and plays both YouTube and normal videos (OCP, DIP, LSP).
@@ -137,29 +156,11 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
     }
 
     // For normal videos, use NormalVideoPlayer
-    return NormalVideoPlayer(
-      videoSource: widget.config.videoUrl,
-      isFile: widget.config.isFile,
-      videoBytes: widget.config.videoBytes,
-      isLive: widget.config.isLive,
-      qualities: widget.config.qualities,
-      initialQuality: widget.config.initialQuality,
-      subtitles: widget.config.subtitles,
-      initialSubtitle: widget.config.initialSubtitle,
-      chapters: widget.config.chapters,
-      viewerCount: widget.config.viewerCount,
-      styling: widget.config.styling,
-      messages: widget.config.messages,
-      visibility: widget.config.visibility,
-      playback: widget.config.playback,
-      controlsBuilder: widget.config.controlsBuilder,
-      subtitleBuilder: widget.config.subtitleBuilder,
-      loadingBuilder: widget.config.loadingBuilder,
-      errorBuilder: widget.config.errorBuilder,
-      onAnalyticsEvent: widget.config.onAnalyticsEvent,
-      extension: widget.config.extension,
-      sourceType: widget.config.sourceType,
-      aspectRatio: widget.config.aspectRatio,
-    );
+    final effectiveConfig = (widget.aspectRatio != null &&
+            widget.aspectRatio != widget.config.aspectRatio)
+        ? widget.config.copyWith(aspectRatio: widget.aspectRatio)
+        : widget.config;
+
+    return NormalVideoPlayer(config: effectiveConfig);
   }
 }

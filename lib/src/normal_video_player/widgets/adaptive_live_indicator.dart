@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/player_events.dart';
+import '../../core/constants/player_strings.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 
@@ -47,7 +49,7 @@ class AdaptiveLiveIndicator extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              messages?.liveText ?? 'LIVE',
+              messages?.liveText ?? PlayerStrings.live,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -63,7 +65,7 @@ class AdaptiveLiveIndicator extends StatelessWidget {
     if (liveQuality != null) {
       return GestureDetector(
         onTap: () {
-          onAnalyticsEvent?.call('switched_to_live', {});
+          onAnalyticsEvent?.call(PlayerEvents.switchedToLive, {});
           onQualitySelected?.call(liveQuality);
         },
         child: Container(

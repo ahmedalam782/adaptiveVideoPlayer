@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/player_events.dart';
+import '../../core/constants/player_strings.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 import '../utils/video_player_web_safe.dart';
@@ -81,7 +83,9 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
         ? Duration.zero
         : (target > total ? total : target);
     controller.seekTo(clamped);
-    onAnalyticsEvent?.call('video_seek', {'to_position': clamped.inSeconds});
+    onAnalyticsEvent?.call(PlayerEvents.videoSeek, {
+      PlayerEvents.paramToPosition: clamped.inSeconds,
+    });
   }
 
   @override
@@ -169,16 +173,16 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                       // 1. Play / Pause Button
                       Tooltip(
                         message: isPlaying
-                            ? (messages?.pauseText ?? 'Pause')
-                            : (messages?.playText ?? 'Play'),
+                            ? (messages?.pauseText ?? PlayerStrings.pause)
+                            : (messages?.playText ?? PlayerStrings.play),
                         waitDuration: const Duration(milliseconds: 500),
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () {
                             if (isPlaying) {
                               controller.pause();
-                              onAnalyticsEvent?.call('video_paused', {
-                                'position': controller.value.position.inSeconds,
+                              onAnalyticsEvent?.call(PlayerEvents.videoPaused, {
+                                PlayerEvents.paramPosition: controller.value.position.inSeconds,
                               });
                             } else {
                               if (value.position >= value.duration &&
@@ -186,8 +190,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                 controller.seekTo(Duration.zero);
                               }
                               controller.play();
-                              onAnalyticsEvent?.call('video_played', {
-                                'position': controller.value.position.inSeconds,
+                              onAnalyticsEvent?.call(PlayerEvents.videoPlayed, {
+                                PlayerEvents.paramPosition: controller.value.position.inSeconds,
                               });
                             }
                           },
@@ -214,14 +218,16 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                       if (effectiveVisibility.showStopButton) ...[
                         const SizedBox(width: 4),
                         Tooltip(
-                          message: 'Stop',
+                          message: messages?.stopVideoText ?? PlayerStrings.stop,
                           waitDuration: const Duration(milliseconds: 500),
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
                               controller.pause();
                               controller.seekTo(Duration.zero);
-                              onAnalyticsEvent?.call('video_stopped', {'position': 0});
+                              onAnalyticsEvent?.call(PlayerEvents.videoStopped, {
+                                PlayerEvents.paramPosition: 0,
+                              });
                             },
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -371,8 +377,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                               },
                               onChangeEnd: (val) {
                                 onDragEnd?.call(val);
-                                onAnalyticsEvent?.call('video_seek', {
-                                  'to_position': (val / 1000).round(),
+                                onAnalyticsEvent?.call(PlayerEvents.videoSeek, {
+                                  PlayerEvents.paramToPosition: (val / 1000).round(),
                                 });
                               },
                             ),

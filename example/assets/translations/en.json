@@ -22,6 +22,7 @@
   "close_mini_player": "Close miniplayer",
   "play": "Play",
   "pause": "Pause",
+  "stop_video": "Stop",
   "fullscreen": "Fullscreen",
   "exit_fullscreen": "Exit Fullscreen",
   "live": "LIVE",

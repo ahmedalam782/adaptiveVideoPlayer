@@ -1,6 +1,6 @@
 // This file imports testable library source files to ensure they are included
 // in the coverage report. Platform-dependent widget files that require
-// native platform channels (InAppWebView, video_player, YoutubePlayer)
+// native platform channels (InAppWebView, video_player)
 // are excluded as they require integration tests.
 
 // ignore_for_file: unused_import
@@ -26,7 +26,6 @@ import 'package:adaptive_video_player/src/core/contracts/i_fullscreen_service.da
 import 'package:adaptive_video_player/src/core/contracts/i_analytics_service.dart';
 import 'package:adaptive_video_player/src/core/factory/player_controller_factory.dart';
 import 'package:adaptive_video_player/src/normal_video_player/coordinator/normal_fullscreen_coordinator.dart';
-import 'package:adaptive_video_player/src/youtube_player/coordinator/youtube_fullscreen_coordinator.dart';
 
 // Testable Widgets
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_fullscreen_overlay.dart';
@@ -36,10 +35,7 @@ import 'package:adaptive_video_player/src/youtube_player/widgets/player_error_wi
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_loading_widget.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/youtube_live_badge.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/youtube_replay_overlay.dart';
-import 'package:adaptive_video_player/src/youtube_player/widgets/current_position.dart';
-import 'package:adaptive_video_player/src/youtube_player/widgets/remaining_duration.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_controls.dart';
-import 'package:adaptive_video_player/src/youtube_player/widgets/player_bottom_actions.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_settings_helper.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_settings_sheet.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/setting_item.dart';

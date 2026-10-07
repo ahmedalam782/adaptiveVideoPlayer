@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../../youtube_player/models/youtube_player_config.dart';
+import 'seek_feedback_icon.dart';
 
 /// Visual feedback overlay displayed when seeking via double tap or keyboard (+10s, +20s, +30s, etc.).
 class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
   final int seekDirection;
   final int seekSeconds;
   final PlayerStyleConfig? styling;
+  final Color? fallbackColor;
 
   const AdaptiveSeekFeedbackOverlay({
     super.key,
     required this.seekDirection,
     this.seekSeconds = 10,
     this.styling,
+    this.fallbackColor,
   });
 
   @override
@@ -21,7 +24,7 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
 
     final isForward = seekDirection == 1;
     final containerColor =
-        styling?.controlsBackgroundColor ?? const Color(0xFF1B313F);
+        styling?.controlsBackgroundColor ?? fallbackColor ?? const Color(0xFF1B313F);
     final textColor = styling?.textColor ?? Colors.white;
     final iconColor = styling?.iconColor ?? Colors.white;
 
@@ -57,7 +60,11 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              _buildBackwardIcon(context, iconColor),
+                              SeekFeedbackIcon(
+                                isForward: false,
+                                iconColor: iconColor,
+                                configuredIcon: styling?.icons.skipBackwardIcon,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 '- $seekSeconds',
@@ -113,7 +120,11 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              _buildForwardIcon(context, iconColor),
+                              SeekFeedbackIcon(
+                                isForward: true,
+                                iconColor: iconColor,
+                                configuredIcon: styling?.icons.skipForwardIcon,
+                              ),
                             ],
                           ),
                         ),
@@ -126,45 +137,4 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildBackwardIcon(BuildContext context, Color iconColor) {
-    final configured = styling?.icons.skipBackwardIcon;
-    final isNumberedIcon = configured?.iconData == Icons.replay_10_rounded ||
-        configured?.iconData == Icons.replay_5_rounded ||
-        configured?.iconData == Icons.replay_30_rounded;
-    if (configured != null && !isNumberedIcon) {
-      return configured.build(
-        context,
-        defaultColor: iconColor,
-        defaultSize: 20,
-        fallbackIcon: Icons.fast_rewind_rounded,
-      );
-    }
-    return Icon(
-      Icons.fast_rewind_rounded,
-      color: iconColor,
-      size: 20,
-    );
-  }
-
-  Widget _buildForwardIcon(BuildContext context, Color iconColor) {
-    final configured = styling?.icons.skipForwardIcon;
-    final isNumberedIcon = configured?.iconData == Icons.forward_10_rounded ||
-        configured?.iconData == Icons.forward_5_rounded ||
-        configured?.iconData == Icons.forward_30_rounded;
-    if (configured != null && !isNumberedIcon) {
-      return configured.build(
-        context,
-        defaultColor: iconColor,
-        defaultSize: 20,
-        fallbackIcon: Icons.fast_forward_rounded,
-      );
-    }
-    return Icon(
-      Icons.fast_forward_rounded,
-      color: iconColor,
-      size: 20,
-    );
-  }
 }
-

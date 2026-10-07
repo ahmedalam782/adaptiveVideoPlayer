@@ -102,6 +102,13 @@ class _StudioStageState extends State<StudioStage> {
       _ => source.viewerCount,
     };
 
+    final isYouTube = widget.source.id.startsWith('youtube') ||
+        source.isYouTube;
+    final effectiveControlsBg =
+        isYouTube ? const Color(0x6C000000) : _barColor;
+    final effectiveTextColor = isYouTube ? Colors.white : _iconColor;
+    final effectiveIconColor = isYouTube ? Colors.white : _iconColor;
+
     return VideoConfig(
       videoUrl: source.videoUrl,
       isFile: source.isFile,
@@ -123,10 +130,10 @@ class _StudioStageState extends State<StudioStage> {
           topBarColor: _topColor,
           centerButtonColor: _centerButton,
           centerIconColor: _centerIcon,
-          controlsBackgroundColor: _barColor,
-          settingsBackgroundColor: _barColor,
-          iconColor: _iconColor,
-          textColor: _iconColor,
+          controlsBackgroundColor: effectiveControlsBg,
+          settingsBackgroundColor: effectiveControlsBg,
+          iconColor: effectiveIconColor,
+          textColor: effectiveTextColor,
           progressBarPlayedColor: _progress,
           progressBarHandleColor: _progress,
           loadingIndicatorColor: _progress,

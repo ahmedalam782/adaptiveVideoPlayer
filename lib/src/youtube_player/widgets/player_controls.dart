@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 export 'player_error_widget.dart';
 export 'player_loading_widget.dart';
 
-/// Seek button widget used in both normal and fullscreen player
+/// Seek button widget used in controls overlay.
 class SeekButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -45,7 +45,7 @@ class SeekButton extends StatelessWidget {
   }
 }
 
-/// Seek buttons overlay that shows -10s and +10s buttons
+/// Seek buttons overlay that shows -10s and +10s buttons.
 class SeekButtonsOverlay extends StatelessWidget {
   final VoidCallback onSeekBackward;
   final VoidCallback onSeekForward;

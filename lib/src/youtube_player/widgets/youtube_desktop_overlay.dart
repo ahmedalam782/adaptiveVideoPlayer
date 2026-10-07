@@ -2,8 +2,10 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/constants/player_strings.dart';
 import '../../normal_video_player/utils/fullscreen_utils_export.dart';
-import '../../normal_video_player/widgets/pip_playback_chrome.dart';
+import 'youtube_desktop_fullscreen_button.dart';
+import 'youtube_desktop_pip_content.dart';
 import 'youtube_webview_player_export.dart';
 
 /// Fullscreen overlay and button manager for Desktop YouTube Player.
@@ -207,9 +209,10 @@ class YouTubeDesktopFullscreenManager {
     enterDesktopPipMode();
     _pipOverlayEntry?.markNeedsBuild();
 
-    if (wasPlaying == true) {
-      Future.delayed(const Duration(milliseconds: 150), () {
+    if (wasPlaying == true || currentPositionSeconds == 0) {
+      Future.delayed(const Duration(milliseconds: 250), () {
         desktopWebViewKey.currentState?.play();
+        desktopWebViewKey.currentState?.unMute();
       });
     }
 
@@ -271,24 +274,9 @@ class YouTubeDesktopFullscreenManager {
     required bool isFullScreenMode,
     VoidCallback? onEnterFullscreen,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: isFullScreenMode ? closeFullscreen : onEnterFullscreen,
-        borderRadius: BorderRadius.circular(4),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Icon(
-            isFullScreenMode ? Icons.fullscreen_exit : Icons.fullscreen,
-            color: Colors.white,
-            size: 28,
-          ),
-        ),
-      ),
+    return YouTubeDesktopFullscreenButton(
+      isFullScreenMode: isFullScreenMode,
+      onTap: isFullScreenMode ? closeFullscreen : (onEnterFullscreen ?? () {}),
     );
   }
 }
@@ -328,57 +316,17 @@ class _YouTubeDesktopPipOverlay extends StatefulWidget {
 class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
   Offset _offset = Offset.zero;
 
-  Widget _buildContent(bool isOsPipWindow) {
-    return Material(
-      color: Colors.black,
-      elevation: isOsPipWindow ? 0 : 14,
-      borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        width: isOsPipWindow ? double.infinity : 300,
-        height: isOsPipWindow ? double.infinity : 170,
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
-          border: isOsPipWindow
-              ? null
-              : Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            widget.playerBuilder(),
-            PipPlaybackChrome(
-              isPlaying: widget.isPlaying?.call() ?? false,
-              progress: widget.progress?.call() ?? 0,
-              closeTooltip:
-                  widget.getCloseTooltip?.call() ?? 'Close miniplayer',
-              expandTooltip: widget.getExpandTooltip?.call() ?? 'Expand player',
-              onClose: widget.onClose,
-              onExpand: widget.onExpand,
-              onPlayPause: widget.onPlayPause ?? () {},
-              onSeekBackward: widget.onSeekBackward,
-              onSeekForward: widget.onSeekForward,
-              onDragUpdate: (details) {
-                if (isOsPipWindow) {
-                  moveDesktopPipWindow(
-                    details.delta.dx.round(),
-                    details.delta.dy.round(),
-                  );
-                } else {
-                  setState(() {
-                    _offset += details.delta;
-                  });
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  void _handleDrag(DragUpdateDetails details, bool isOsPipWindow) {
+    if (isOsPipWindow) {
+      moveDesktopPipWindow(
+        details.delta.dx.round(),
+        details.delta.dy.round(),
+      );
+    } else {
+      setState(() {
+        _offset += details.delta;
+      });
+    }
   }
 
   @override
@@ -388,11 +336,27 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
         TextDirection.ltr;
     final isRtl = effectiveDirection == TextDirection.rtl;
     final isOsPipWindow = isDesktopPipMode();
+    final content = YouTubeDesktopPipContent(
+      isOsPipWindow: isOsPipWindow,
+      isPlaying: widget.isPlaying?.call() ?? false,
+      progress: widget.progress?.call() ?? 0,
+      closeTooltip:
+          widget.getCloseTooltip?.call() ?? PlayerStrings.closeMiniPlayer,
+      expandTooltip: widget.getExpandTooltip?.call() ?? PlayerStrings.expand,
+      onClose: widget.onClose,
+      onExpand: widget.onExpand,
+      onPlayPause: widget.onPlayPause ?? () {},
+      onSeekBackward: widget.onSeekBackward,
+      onSeekForward: widget.onSeekForward,
+      onDragUpdate: (details) => _handleDrag(details, isOsPipWindow),
+      child: widget.playerBuilder(),
+    );
+
     final pipContent = isOsPipWindow
         ? Scaffold(
             backgroundColor: Colors.black,
             body: SizedBox.expand(
-              child: _buildContent(true),
+              child: content,
             ),
           )
         : Stack(
@@ -402,7 +366,7 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
                 left: isRtl ? (16 + _offset.dx) : null,
                 right: isRtl ? null : (16 - _offset.dx),
                 bottom: 24 - _offset.dy,
-                child: _buildContent(false),
+                child: content,
               ),
             ],
           );

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/player_strings.dart';
+import 'pip_circle_button.dart';
+
 /// YouTube-style controls drawn over a picture-in-picture window.
 class PipPlaybackChrome extends StatelessWidget {
   final bool isPlaying;
@@ -25,10 +28,10 @@ class PipPlaybackChrome extends StatelessWidget {
     this.onSeekBackward,
     this.onSeekForward,
     this.onDragUpdate,
-    this.closeTooltip = 'Close',
-    this.expandTooltip = 'Expand',
-    this.playTooltip = 'Play',
-    this.pauseTooltip = 'Pause',
+    this.closeTooltip = PlayerStrings.close,
+    this.expandTooltip = PlayerStrings.expand,
+    this.playTooltip = PlayerStrings.play,
+    this.pauseTooltip = PlayerStrings.pause,
   });
 
   @override
@@ -41,6 +44,7 @@ class PipPlaybackChrome extends StatelessWidget {
           final side = compact ? 32.0 : 40.0;
           final skip = compact ? 40.0 : 52.0;
           final play = compact ? 52.0 : 68.0;
+
           return Listener(
             behavior: HitTestBehavior.translucent,
             onPointerMove: onDragUpdate == null
@@ -52,7 +56,6 @@ class PipPlaybackChrome extends StatelessWidget {
                         globalPosition: event.position,
                         localPosition: event.localPosition,
                         delta: event.delta,
-                        primaryDelta: event.delta.dx,
                         sourceTimeStamp: event.timeStamp,
                       ),
                     );
@@ -69,14 +72,14 @@ class PipPlaybackChrome extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _circleButton(
+                      PipCircleButton(
                         icon: Icons.close_rounded,
                         tooltip: closeTooltip,
                         onTap: onClose,
                         size: side,
                         iconSize: compact ? 16 : 20,
                       ),
-                      _circleButton(
+                      PipCircleButton(
                         icon: Icons.picture_in_picture_alt_rounded,
                         tooltip: expandTooltip,
                         onTap: onExpand,
@@ -86,35 +89,39 @@ class PipPlaybackChrome extends StatelessWidget {
                     ],
                   ),
                   Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _circleButton(
-                          icon: Icons.replay_10_rounded,
-                          tooltip: 'Back 10 seconds',
-                          onTap: onSeekBackward,
-                          size: skip,
-                          iconSize: compact ? 20 : 26,
-                        ),
-                        SizedBox(width: compact ? 12 : 22),
-                        _circleButton(
-                          icon: isPlaying
-                              ? Icons.pause_rounded
-                              : Icons.play_arrow_rounded,
-                          tooltip: isPlaying ? pauseTooltip : playTooltip,
-                          onTap: onPlayPause,
-                          size: play,
-                          iconSize: compact ? 28 : 36,
-                        ),
-                        SizedBox(width: compact ? 12 : 22),
-                        _circleButton(
-                          icon: Icons.forward_10_rounded,
-                          tooltip: 'Forward 10 seconds',
-                          onTap: onSeekForward,
-                          size: skip,
-                          iconSize: compact ? 20 : 26,
-                        ),
-                      ],
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: onPlayPause,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          PipCircleButton(
+                            icon: Icons.replay_10_rounded,
+                            tooltip: PlayerStrings.back10Seconds,
+                            onTap: onSeekBackward,
+                            size: skip,
+                            iconSize: compact ? 20 : 26,
+                          ),
+                          SizedBox(width: compact ? 12 : 22),
+                          PipCircleButton(
+                            icon: isPlaying
+                                ? Icons.pause_rounded
+                                : Icons.play_arrow_rounded,
+                            tooltip: isPlaying ? pauseTooltip : playTooltip,
+                            onTap: onPlayPause,
+                            size: play,
+                            iconSize: compact ? 28 : 36,
+                          ),
+                          SizedBox(width: compact ? 12 : 22),
+                          PipCircleButton(
+                            icon: Icons.forward_10_rounded,
+                            tooltip: PlayerStrings.forward10Seconds,
+                            onTap: onSeekForward,
+                            size: skip,
+                            iconSize: compact ? 20 : 26,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   ClipRRect(
@@ -134,32 +141,6 @@ class PipPlaybackChrome extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _circleButton({
-    required IconData icon,
-    required String tooltip,
-    required VoidCallback? onTap,
-    required double size,
-    required double iconSize,
-  }) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          width: size,
-          height: size,
-          decoration: const BoxDecoration(
-            color: Color(0xCC2E2E2E),
-            shape: BoxShape.circle,
-          ),
-          alignment: Alignment.center,
-          child: Icon(icon, color: Colors.white, size: iconSize),
-        ),
       ),
     );
   }

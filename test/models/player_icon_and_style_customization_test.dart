@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_player/video_player.dart';
 import 'package:adaptive_video_player/adaptive_video_player.dart';
-import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_bottom_bar.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_buffering_indicator.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_center_play_pause.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_fullscreen_button.dart';

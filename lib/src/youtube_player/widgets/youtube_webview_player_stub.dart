@@ -56,6 +56,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   void seekTo(int seconds) {}
   void mute() {}
   void unMute() {}
+  void setPlaybackRate(double rate) {}
   void exitFullscreen() {}
   Future<int?> getCurrentTime() async => currentPosition;
   Future<bool> isPlaying() async => true;

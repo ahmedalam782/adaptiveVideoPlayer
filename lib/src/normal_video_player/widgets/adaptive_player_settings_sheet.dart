@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/player_events.dart';
+import '../../core/constants/player_strings.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 
@@ -198,7 +200,7 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                onAnalyticsEvent?.call('resolution_settings_clicked', {});
+                onAnalyticsEvent?.call(PlayerEvents.resolutionSettingsClicked, {});
                 if (qualities != null && qualities!.isNotEmpty) {
                   onOpenQualities();
                 } else {
@@ -208,7 +210,7 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                     behavior: SnackBarBehavior.floating,
                     content: Text(
                       messages?.noQualitiesAvailableText ??
-                          'No qualities available',
+                          PlayerStrings.noQualitiesAvailable,
                       style: styling?.settingItemTextStyle ??
                           const TextStyle(color: Colors.white),
                     ),
@@ -228,7 +230,7 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                 defaultSize: 20,
               ),
               title: Text(
-                messages?.subtitlesText ?? 'Subtitles',
+                messages?.subtitlesText ?? PlayerStrings.subtitles,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: styling?.settingItemTextStyle ??
@@ -243,7 +245,7 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                     Flexible(
                       child: Text(
                         currentSubtitleTrack?.title ??
-                            (messages?.offText ?? 'Off'),
+                            (messages?.offText ?? PlayerStrings.off),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -263,7 +265,7 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                onAnalyticsEvent?.call('subtitle_settings_clicked', {});
+                onAnalyticsEvent?.call(PlayerEvents.subtitleSettingsClicked, {});
                 if (subtitles != null && subtitles!.isNotEmpty) {
                   onOpenSubtitles();
                 } else {
@@ -273,7 +275,7 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                     behavior: SnackBarBehavior.floating,
                     content: Text(
                       messages?.noSubtitlesAvailableText ??
-                          'No subtitles available',
+                          PlayerStrings.noSubtitlesAvailable,
                       style: styling?.settingItemTextStyle ??
                           const TextStyle(color: Colors.white),
                     ),

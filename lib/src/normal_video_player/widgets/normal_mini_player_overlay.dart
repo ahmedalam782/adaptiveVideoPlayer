@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../utils/fullscreen_utils_export.dart';
 import '../utils/video_player_web_safe.dart';
-import 'adaptive_video_surface.dart';
-import 'pip_playback_chrome.dart';
+import 'normal_mini_player_content.dart';
 
 /// Floating draggable Picture-in-Picture (Mini-Player) overlay for NormalVideoPlayer.
 class NormalMiniPlayerOverlay extends StatefulWidget {
@@ -31,103 +30,27 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
   Offset _offset = Offset.zero;
   final bool _controlsVisible = true;
 
-  Widget _buildMiniPlayerContent(bool isOsPipWindow) {
-    final screenWidth = MediaQuery.maybeSizeOf(context)?.width ?? 360.0;
-    final miniWidth = isOsPipWindow
-        ? double.infinity
-        : (screenWidth < 600
-            ? (screenWidth * 0.58).clamp(190.0, 240.0)
-            : 280.0);
-    final miniHeight = isOsPipWindow ? double.infinity : (miniWidth * 9 / 16);
+  void _onDragDelta(Offset delta, bool isOsPipWindow) {
+    if (isOsPipWindow) {
+      moveDesktopPipWindow(
+        delta.dx.round(),
+        delta.dy.round(),
+      );
+    } else {
+      setState(() {
+        _offset += delta;
+      });
+    }
+  }
 
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerMove: (event) {
-        if (event.buttons == 0) return;
-        if (isOsPipWindow) {
-          moveDesktopPipWindow(
-            event.delta.dx.round(),
-            event.delta.dy.round(),
-          );
-        } else {
-          setState(() {
-            _offset += event.delta;
-          });
-        }
-      },
-      child: Material(
-        color: Colors.transparent,
-        elevation: isOsPipWindow ? 0 : 14,
-        borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
-        clipBehavior: Clip.antiAlias,
-        child: Container(
-          width: miniWidth,
-          height: miniHeight,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(isOsPipWindow ? 0 : 12),
-            border: isOsPipWindow
-                ? null
-                : Border.all(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    width: 1,
-                  ),
-          ),
-          child: ValueListenableBuilder(
-            valueListenable: widget.controller,
-            builder: (context, VideoPlayerValue value, _) {
-              final durationMs = value.duration.inMilliseconds.toDouble();
-              final positionMs = value.position.inMilliseconds.toDouble();
-              final progress = durationMs > 0
-                  ? (positionMs / durationMs).clamp(0.0, 1.0)
-                  : 0.0;
-
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Center(
-                    child: AspectRatio(
-                      aspectRatio:
-                          (value.isInitialized && value.aspectRatio > 0)
-                              ? value.aspectRatio
-                              : 16 / 9,
-                      child: VideoPlayer(
-                        widget.controller,
-                        key: AdaptiveVideoSurface.keyForController(
-                          widget.controller,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (_controlsVisible)
-                    PipPlaybackChrome(
-                      isPlaying: value.isPlaying,
-                      progress: progress,
-                      closeTooltip: widget.messages?.closeMiniPlayerText ??
-                          'Close miniplayer',
-                      expandTooltip:
-                          widget.messages?.expandPlayerText ?? 'Expand player',
-                      playTooltip: widget.messages?.playText ?? 'Play',
-                      pauseTooltip: widget.messages?.pauseText ?? 'Pause',
-                      onClose: widget.onClose,
-                      onExpand: widget.onExpand,
-                      onPlayPause: () {
-                        if (value.isPlaying) {
-                          widget.controller.pause();
-                        } else {
-                          widget.controller.play();
-                        }
-                      },
-                      onSeekBackward: () => _seekBy(-10),
-                      onSeekForward: () => _seekBy(10),
-                    ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
+  void _seekBy(int seconds) {
+    final value = widget.controller.value;
+    var target = value.position + Duration(seconds: seconds);
+    if (target.isNegative) target = Duration.zero;
+    if (value.duration > Duration.zero && target > value.duration) {
+      target = value.duration;
+    }
+    widget.controller.seekTo(target);
   }
 
   @override
@@ -144,7 +67,16 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
         child: Scaffold(
           backgroundColor: Colors.black,
           body: SizedBox.expand(
-            child: _buildMiniPlayerContent(true),
+            child: NormalMiniPlayerContent(
+              controller: widget.controller,
+              isOsPipWindow: true,
+              messages: widget.messages,
+              controlsVisible: _controlsVisible,
+              onClose: widget.onClose,
+              onExpand: widget.onExpand,
+              onSeekBy: _seekBy,
+              onDragDelta: (delta) => _onDragDelta(delta, true),
+            ),
           ),
         ),
       );
@@ -159,20 +91,19 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
             left: isRtl ? (16 + _offset.dx) : null,
             right: isRtl ? null : (16 - _offset.dx),
             bottom: 24 - _offset.dy,
-            child: _buildMiniPlayerContent(false),
+            child: NormalMiniPlayerContent(
+              controller: widget.controller,
+              isOsPipWindow: false,
+              messages: widget.messages,
+              controlsVisible: _controlsVisible,
+              onClose: widget.onClose,
+              onExpand: widget.onExpand,
+              onSeekBy: _seekBy,
+              onDragDelta: (delta) => _onDragDelta(delta, false),
+            ),
           ),
         ],
       ),
     );
-  }
-
-  void _seekBy(int seconds) {
-    final value = widget.controller.value;
-    var target = value.position + Duration(seconds: seconds);
-    if (target.isNegative) target = Duration.zero;
-    if (value.duration > Duration.zero && target > value.duration) {
-      target = value.duration;
-    }
-    widget.controller.seekTo(target);
   }
 }

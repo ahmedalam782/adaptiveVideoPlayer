@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/constants/youtube_js_constants.dart';
+import '../../normal_video_player/utils/fullscreen_utils_export.dart';
 import '../models/youtube_player_config.dart';
-import 'youtube_player_html.dart';
+import '../services/youtube_local_server_service.dart';
 
 /// A unified YouTube player that uses InAppWebView + local HTTP server
 /// on all non-web platforms (Android, iOS, Windows, macOS, Linux).
@@ -55,8 +57,8 @@ class YouTubeWebViewPlayer extends StatefulWidget {
 
 class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   final GlobalKey _inAppWebViewKey = GlobalKey();
+  final YouTubeLocalServerService _serverService = YouTubeLocalServerService();
   InAppWebViewController? _webViewController;
-  HttpServer? _localServer;
   String? _serverUrl;
 
   /// A real http://127.0.0.1 page. Injecting the HTML with a fake
@@ -98,7 +100,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       _currentLang = nextLang;
       _currentDir = nextDir;
       _webViewController?.evaluateJavascript(
-        source: "setLanguage('$_currentLang', '$_currentDir');",
+        source: YouTubeJsCommands.setLanguage(_currentLang, _currentDir),
       );
     }
   }
@@ -124,42 +126,18 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     _syncLanguage(context);
   }
 
-  /// Start a local HTTP server to serve the YouTube player HTML.
-  /// YouTube allows iframe embedding from http://localhost origins,
-  /// which fixes Error 153 on Desktop and works on mobile too.
   Future<void> _startLocalServer() async {
-    try {
-      // Use embedded HTML from youtube_player_html.dart in this same directory
-      final htmlContent = kYouTubePlayerHtml;
-
-      // Start a local HTTP server on a random available port
-      _localServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-      final port = _localServer!.port;
-      log('YouTube local server started on port $port');
-
-      _localServer!.listen((HttpRequest request) {
-        request.response
-          ..headers.contentType = ContentType.html
-          ..headers.add('Access-Control-Allow-Origin', '*')
-          ..headers.add('Referrer-Policy', 'strict-origin-when-cross-origin')
-          ..write(htmlContent)
-          ..close();
+    final url = await _serverService.start();
+    if (url != null && mounted) {
+      setState(() {
+        _serverUrl = url;
       });
-
-      if (mounted) {
-        setState(() {
-          _serverUrl = 'http://127.0.0.1:$port';
-        });
-      }
-    } catch (e) {
-      log('Error starting local server: $e');
     }
   }
 
   @override
   void dispose() {
-    _localServer?.close(force: true);
-    log('YouTube local server stopped');
+    _serverService.stop();
     super.dispose();
   }
 
@@ -189,10 +167,9 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         allowsPictureInPictureMediaPlayback: false,
         isElementFullscreenEnabled: false,
         iframeAllowFullscreen: false,
-        iframeAllow:
-            "camera; microphone; playing; fullscreen; autoplay; encrypted-media; gyroscope; accelerometer; clipboard-write",
+        iframeAllow: YouTubeJsScripts.iframeAllowPermissions,
         userAgent: _usesDesktopUserAgent
-            ? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+            ? YouTubeJsScripts.desktopUserAgent
             : null,
         supportMultipleWindows:
             true, // Need this TRUE for onCreateWindow to fire on target="_blank"
@@ -201,206 +178,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       ),
       initialUserScripts: UnmodifiableListView<UserScript>([
         UserScript(
-          source: """
-            (function() {
-              function updatePlayerStyles() {
-                try {
-                  var vids = document.querySelectorAll('video');
-                  for (var i = 0; i < vids.length; i++) {
-                    var v = vids[i];
-                    v.disablePictureInPicture = true;
-                    v.setAttribute('disablePictureInPicture', '');
-                    var cl = v.getAttribute('controlsList') || '';
-                    if (cl.indexOf('nopip') === -1) {
-                      v.setAttribute('controlsList', (cl + ' nopip').trim());
-                    }
-                  }
-
-                  var isRtl = false;
-                  try {
-                    var doc = document.documentElement;
-                    var lang = (doc && (doc.getAttribute('lang') || doc.lang)) || '';
-                    var dir = (doc && (doc.getAttribute('dir') || doc.dir)) || '';
-                    var loc = window.location ? (window.location.search || window.location.href || '') : '';
-                    if (dir === 'rtl' || lang.toLowerCase().indexOf('ar') === 0 || loc.indexOf('hl=ar') !== -1) {
-                      isRtl = true;
-                    } else {
-                      try {
-                        if (window.parent && window.parent !== window && window.parent.document) {
-                          var pDoc = window.parent.document.documentElement;
-                          if (pDoc && (pDoc.dir === 'rtl' || (pDoc.lang && pDoc.lang.toLowerCase().indexOf('ar') === 0))) {
-                            isRtl = true;
-                          }
-                        }
-                      } catch (_) {}
-                    }
-                  } catch (_) {}
-
-                  var styleId = 'yt-custom-injected-style';
-                  var existing = document.getElementById(styleId);
-                  var css = '.ytp-fullscreen-button, .ytp-share-button, .ytp-watch-later-button, .ytp-copylink-button, .ytp-copy-link-button, .ytp-button-copylink, .ytp-overflow-button, .ytp-share-panel-link, .ytp-share-icon, .ytp-share-panel, [class*="copylink" i], [class*="copy-link" i], [class*="ytp-share" i], [class*="share-button" i], [data-tooltip-target-id*="copy" i], [data-tooltip-target-id*="share" i], [data-tooltip-target-id*="link" i], [data-title-no-tooltip*="copy" i], [data-title-no-tooltip*="share" i], [data-title-no-tooltip*="link" i], [data-title-no-tooltip*="نسخ" i], [data-title-no-tooltip*="رابط" i], [data-title-no-tooltip*="مشاركة" i], button[aria-label*="copy" i], button[aria-label*="link" i], button[aria-label*="share" i], button[aria-label*="نسخ" i], button[aria-label*="رابط" i], button[aria-label*="مشاركة" i], button[title*="copy" i], button[title*="link" i], button[title*="share" i], button[title*="نسخ" i], button[title*="رابط" i], button[title*="مشاركة" i], a[aria-label*="copy" i], a[aria-label*="link" i], a[aria-label*="share" i], a[aria-label*="نسخ" i], a[aria-label*="رابط" i], a[aria-label*="مشاركة" i], a[title*="copy" i], a[title*="link" i], a[title*="share" i], a[title*="نسخ" i], a[title*="رابط" i], a[title*="مشاركة" i] { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; width: 0 !important; height: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; margin: 0 !important; }';
-
-                  var nodes = document.querySelectorAll('button, a, div[role="button"], [role="button"], .ytp-button');
-                  for (var b = 0; b < nodes.length; b++) {
-                    var n = nodes[b];
-                    var rawHtml = '';
-                    try { rawHtml = (n.outerHTML || '').toLowerCase(); } catch(_) {}
-                    var label = ((n.getAttribute('aria-label') || '') + ' ' + (n.getAttribute('title') || '') + ' ' + (n.getAttribute('data-tooltip-target-id') || '') + ' ' + (n.getAttribute('data-title-no-tooltip') || '') + ' ' + (typeof n.className === 'string' ? n.className : '')).toLowerCase();
-                    var shouldHide = (
-                      label.indexOf('share') !== -1 ||
-                      label.indexOf('copy') !== -1 ||
-                      label.indexOf('link') !== -1 ||
-                      label.indexOf('نسخ') !== -1 ||
-                      label.indexOf('رابط') !== -1 ||
-                      label.indexOf('مشاركة') !== -1 ||
-                      label.indexOf('watch later') !== -1 ||
-                      label.indexOf('full screen') !== -1 ||
-                      label.indexOf('fullscreen') !== -1 ||
-                      rawHtml.indexOf('copylink') !== -1 ||
-                      rawHtml.indexOf('copy-link') !== -1 ||
-                      rawHtml.indexOf('share-button') !== -1 ||
-                      rawHtml.indexOf('aria-label="copy') !== -1 ||
-                      rawHtml.indexOf('title="copy') !== -1 ||
-                      rawHtml.indexOf('نسخ') !== -1 ||
-                      rawHtml.indexOf('رابط') !== -1
-                    );
-
-                    if (!shouldHide) {
-                      var svgs = n.querySelectorAll('svg, path, title, use');
-                      for (var s = 0; s < svgs.length; s++) {
-                        var sTxt = ((svgs[s].getAttribute('aria-label') || '') + ' ' + (svgs[s].getAttribute('title') || '') + ' ' + (svgs[s].textContent || '')).toLowerCase();
-                        if (
-                          sTxt.indexOf('share') !== -1 ||
-                          sTxt.indexOf('copy') !== -1 ||
-                          sTxt.indexOf('link') !== -1 ||
-                          sTxt.indexOf('نسخ') !== -1 ||
-                          sTxt.indexOf('رابط') !== -1 ||
-                          sTxt.indexOf('مشاركة') !== -1
-                        ) {
-                          shouldHide = true;
-                          break;
-                        }
-                      }
-                    }
-
-                    if (shouldHide) {
-                      n.style.setProperty('display', 'none', 'important');
-                      n.style.setProperty('opacity', '0', 'important');
-                      n.style.setProperty('visibility', 'hidden', 'important');
-                      n.style.setProperty('pointer-events', 'none', 'important');
-                      n.style.setProperty('width', '0', 'important');
-                      n.style.setProperty('height', '0', 'important');
-                    }
-                  }
-
-                  // In new embed layout, non-essential button in .ytp-left-controls is the copy link button
-                  var leftControls = document.querySelectorAll('.ytp-left-controls button, .ytp-left-controls a, .ytp-left-controls [role="button"], .ytp-left-controls .ytp-button');
-                  for (var l = 0; l < leftControls.length; l++) {
-                    var item = leftControls[l];
-                    var isEssential = item.classList.contains('ytp-play-button') ||
-                                      item.classList.contains('ytp-mute-button') ||
-                                      item.classList.contains('ytp-volume-area') ||
-                                      item.classList.contains('ytp-time-display') ||
-                                      item.classList.contains('ytp-live-badge');
-                    if (!isEssential) {
-                      item.style.setProperty('display', 'none', 'important');
-                      item.style.setProperty('opacity', '0', 'important');
-                      item.style.setProperty('visibility', 'hidden', 'important');
-                      item.style.setProperty('pointer-events', 'none', 'important');
-                      item.style.setProperty('width', '0', 'important');
-                      item.style.setProperty('height', '0', 'important');
-                    }
-                  }
-
-                  if (isRtl) {
-                    css += ' .ytp-progress-bar-container, .ytp-progress-bar { transform: scaleX(-1) !important; }';
-                  }
-
-                  if (!existing) {
-                    var st = document.createElement('style');
-                    st.id = styleId;
-                    st.innerHTML = css;
-                    (document.head || document.documentElement).appendChild(st);
-                  } else if (existing.innerHTML !== css) {
-                    existing.innerHTML = css;
-                  }
-                } catch(e) {}
-              }
-              updatePlayerStyles();
-              if (window.MutationObserver) {
-                new MutationObserver(updatePlayerStyles).observe(document.documentElement || document.body, {
-                  childList: true,
-                  subtree: true
-                });
-              }
-              window.addEventListener('load', updatePlayerStyles);
-              setInterval(updatePlayerStyles, 600);
-
-              try {
-                var lastActivityTime = 0;
-                function sendToFlutter(payload) {
-                  try {
-                    if (window.flutter_inappwebview) {
-                      window.flutter_inappwebview.callHandler('YouTubePlayerHandler', payload);
-                    }
-                  } catch(e) {}
-                  try {
-                    if (window.parent && window.parent !== window) {
-                      window.parent.postMessage({ type: 'YouTubePlayerHandler', ...payload }, '*');
-                    }
-                  } catch(e) {}
-                }
-                function onUserTouchActivity() {
-                  sendToFlutter({ 'event': 'onTouchActivity' });
-                }
-                function onUserMoveActivity() {
-                  var now = Date.now();
-                  if (now - lastActivityTime > 200) {
-                    lastActivityTime = now;
-                    onUserTouchActivity();
-                    checkControlsVisibility();
-                  }
-                }
-                window.addEventListener('touchstart', onUserTouchActivity, { passive: true, capture: true });
-                window.addEventListener('pointerdown', onUserTouchActivity, { passive: true, capture: true });
-                window.addEventListener('click', onUserTouchActivity, { passive: true, capture: true });
-                window.addEventListener('mousemove', onUserMoveActivity, { passive: true, capture: true });
-                window.addEventListener('pointermove', onUserMoveActivity, { passive: true, capture: true });
-
-                var lastVisibility = null;
-                function checkControlsVisibility() {
-                  try {
-                    var player = document.querySelector('.html5-video-player') || document.getElementById('movie_player');
-                    if (player) {
-                      var isVisible = !player.classList.contains('ytp-autohide');
-                      if (lastVisibility !== isVisible) {
-                        lastVisibility = isVisible;
-                        sendToFlutter({
-                          'event': 'onControlsVisibilityChanged',
-                          'visible': isVisible
-                        });
-                      }
-                    }
-                  } catch(e) {}
-                }
-
-                if (window.MutationObserver) {
-                  var obs = new MutationObserver(checkControlsVisibility);
-                  function attachPlayerObserver() {
-                    var player = document.querySelector('.html5-video-player') || document.getElementById('movie_player');
-                    if (player) {
-                      obs.observe(player, { attributes: true, attributeFilter: ['class'] });
-                      checkControlsVisibility();
-                    } else {
-                      setTimeout(attachPlayerObserver, 300);
-                    }
-                  }
-                  attachPlayerObserver();
-                  setInterval(checkControlsVisibility, 150);
-                }
-              } catch(e) {}
-            })();
-          """,
+          source: YouTubeJsScripts.injectedPlayerScript,
           injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
           forMainFrameOnly: false,
         ),
@@ -469,50 +247,57 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
         // Register handler for JS → Dart communication
         controller.addJavaScriptHandler(
-          handlerName: 'YouTubePlayerHandler',
+          handlerName: YouTubeJsHandler.handlerName,
           callback: (args) {
             if (args.isEmpty) return;
             final data = args[0];
             final event = data['event'];
-            if (event == 'onReady') {
+            if (event == YouTubeJsHandler.onReady) {
               log("YouTube player ready");
               widget.onReady?.call();
-            } else if (event == 'onTimeUpdate') {
+              final shouldPlay =
+                  (widget.autoPlay ?? widget.config.playback.autoPlay) ||
+                      isDesktopPipMode();
+              if (shouldPlay) {
+                play();
+              }
+            } else if (event == YouTubeJsHandler.onTimeUpdate) {
               final cur = _secondsOf(data['currentTime']);
               final dur = _secondsOf(data['duration']);
               _currentPosition = cur;
               if (dur > 0) _duration = dur;
               widget.onPositionUpdate?.call(_currentPosition, _duration);
-            } else if (event == 'onStateChange') {
+            } else if (event == YouTubeJsHandler.onStateChange) {
               final state = data['data'];
               widget.onPlayingStateChanged?.call(state == 1);
               if (state == 0) {
                 // YT.PlayerState.ENDED
                 widget.onEnded?.call();
               }
-            } else if (event == 'onError') {
+            } else if (event == YouTubeJsHandler.onError) {
               log("YouTube player error: ${data['data']}");
-            } else if (event == 'onEnterFullscreen') {
+            } else if (event == YouTubeJsHandler.onEnterFullscreen) {
               log("YouTube player JS onEnterFullscreen");
               widget.onEnterFullscreen?.call();
-            } else if (event == 'onExitFullscreen' || event == 'onEscapeKey') {
+            } else if (event == YouTubeJsHandler.onExitFullscreen ||
+                event == YouTubeJsHandler.onEscapeKey) {
               log("YouTube player JS $event");
               widget.onExitFullscreen?.call();
-            } else if (event == 'onSeekForward') {
+            } else if (event == YouTubeJsHandler.onSeekForward) {
               log("YouTube player JS onSeekForward");
               final next = _currentPosition + 10;
               seekTo(next);
               widget.onSeekForward?.call();
-            } else if (event == 'onSeekBackward') {
+            } else if (event == YouTubeJsHandler.onSeekBackward) {
               log("YouTube player JS onSeekBackward");
               final prev = (_currentPosition - 10).clamp(0, 999999);
               seekTo(prev);
               widget.onSeekBackward?.call();
-            } else if (event == 'onToggleFullscreen') {
+            } else if (event == YouTubeJsHandler.onToggleFullscreen) {
               widget.onToggleFullscreen?.call();
-            } else if (event == 'onTouchActivity') {
+            } else if (event == YouTubeJsHandler.onTouchActivity) {
               widget.onTouchActivity?.call();
-            } else if (event == 'onControlsVisibilityChanged') {
+            } else if (event == YouTubeJsHandler.onControlsVisibilityChanged) {
               final visible = data['visible'] as bool? ?? true;
               widget.onControlsVisibilityChanged?.call(visible);
             }
@@ -522,7 +307,9 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       onLoadStop: (controller, url) {
         log("YouTube page loaded: $url");
         // Inject videoId and settings after page loads
-        final isAutoPlay = widget.autoPlay ?? widget.config.playback.autoPlay;
+        final isAutoPlay =
+            (widget.autoPlay ?? widget.config.playback.autoPlay) ||
+                isDesktopPipMode();
         final autoplay = isAutoPlay ? 1 : 0;
         final mute = widget.config.playback.mute ? 1 : 0;
         final startAt = widget.startAt;
@@ -530,8 +317,14 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         _currentLang = lang;
         _currentDir = dir;
         controller.evaluateJavascript(
-          source:
-              "initPlayer('${widget.videoId}', $autoplay, $mute, $startAt, '$_currentLang', '$_currentDir');",
+          source: YouTubeJsCommands.initPlayer(
+            videoId: widget.videoId,
+            autoPlay: autoplay,
+            mute: mute,
+            startAt: startAt,
+            lang: _currentLang,
+            dir: _currentDir,
+          ),
         );
       },
       onConsoleMessage: (controller, consoleMessage) {
@@ -541,25 +334,27 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   }
 
   // Public control methods
-  void play() => _webViewController?.evaluateJavascript(source: "playVideo();");
+  void play() =>
+      _webViewController?.evaluateJavascript(source: YouTubeJsCommands.playVideo);
   void pause() =>
-      _webViewController?.evaluateJavascript(source: "pauseVideo();");
-  void seekTo(int seconds) =>
-      _webViewController?.evaluateJavascript(source: "seekTo($seconds);");
-  void mute() => _webViewController?.evaluateJavascript(source: "muteVideo();");
-  void unMute() =>
-      _webViewController?.evaluateJavascript(source: "unMuteVideo();");
+      _webViewController?.evaluateJavascript(source: YouTubeJsCommands.pauseVideo);
+  void seekTo(int seconds) => _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.seekTo(seconds));
+  void mute() =>
+      _webViewController?.evaluateJavascript(source: YouTubeJsCommands.muteVideo);
+  void unMute() => _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.unMuteVideo);
+  void setPlaybackRate(double rate) => _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.setPlaybackRate(rate));
   void exitFullscreen() {
     _webViewController?.evaluateJavascript(
-        source:
-            "if (document.fullscreenElement) { document.exitFullscreen(); } else if (document.webkitFullscreenElement) { document.webkitExitFullscreen(); }");
+        source: YouTubeJsCommands.exitFullscreen);
   }
 
   Future<int?> getCurrentTime() async {
     try {
       final result = await _webViewController?.evaluateJavascript(
-        source:
-            "player && typeof player.getCurrentTime === 'function' ? Math.round(player.getCurrentTime()) : 0;",
+        source: YouTubeJsCommands.getCurrentTime,
       );
       if (result is num) {
         _currentPosition = result.toInt();
@@ -574,14 +369,16 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   Future<bool> isPlaying() async {
     try {
       final result = await _webViewController?.evaluateJavascript(
-        source:
-            "player && typeof player.getPlayerState === 'function' ? (player.getPlayerState() === 1 || player.getPlayerState() === 3) : false;",
+        source: YouTubeJsCommands.isPlaying,
       );
       if (result is bool) return result;
       if (result is int) return result == 1;
+      if (result is String) {
+        return result.toLowerCase() == 'true' || result == '1';
+      }
     } catch (e) {
       log('Error checking isPlaying: $e');
     }
-    return true;
+    return false;
   }
 }

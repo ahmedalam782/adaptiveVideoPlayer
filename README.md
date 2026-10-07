@@ -70,13 +70,13 @@ AdaptiveVideoPlayer(
 
 | Platform | YouTube Engine | Direct Video Engine | Notes |
 |---|---|---|---|
-| **Android / iOS** | `youtube_player_flutter` (native-like) | `video_player` | Full custom controls overlay & background audio/PiP |
+| **Android / iOS** | `flutter_inappwebview` via localhost | `video_player` | Native InAppWebView with local origin server, bypasses Error 150/153, full controls & PiP |
 | **Windows** | `flutter_inappwebview` via localhost | `video_player_win` | Native Win32 borderless fullscreen & always-on-top PiP window |
-| **macOS** | `flutter_inappwebview` (best-effort) | `video_player` | Native AVFoundation playback |
-| **Linux** | `flutter_inappwebview` (best-effort) | `video_player_media_kit` | Initialized via `AdaptiveVideoPlayerPlatform.ensureInitialized()` |
+| **macOS** | `flutter_inappwebview` via localhost | `video_player` | Native AVFoundation playback |
+| **Linux** | `flutter_inappwebview` via localhost | `video_player_media_kit` | Initialized via `AdaptiveVideoPlayerPlatform.ensureInitialized()` |
 | **Web** | HTML iframe | `video_player` | HTML5 Fullscreen, native browser PiP, WASM-ready |
 
-> **Why localhost for desktop YouTube?** YouTube blocks iframe embedding from `data:`/`file://` origins (Error 153). Serving via `http://localhost` provides a trusted origin YouTube allows.
+> **Why localhost origin for YouTube?** YouTube restricts iframe embedding from `data:`/`file://` origins (Error 150/153). Serving via a local HTTP origin (`http://localhost`) provides a secure, trusted origin YouTube permits across Mobile and Desktop.
 
 ---
 

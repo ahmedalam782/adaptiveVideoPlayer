@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_video_player/src/youtube_player/models/player_text_config.dart';
@@ -16,6 +17,7 @@ import 'package:adaptive_video_player/src/normal_video_player/adaptive_controls.
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_progress_bar.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_mini_player_overlay.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/normal_player_loading_widget.dart';
+import 'package:adaptive_video_player/src/normal_video_player/widgets/pip_playback_chrome.dart';
 import 'package:adaptive_video_player/src/normal_video_player/utils/video_player_web_safe.dart';
 
 class _FakeVideoPlayerController extends VideoPlayerController {
@@ -599,6 +601,44 @@ void main() {
       expect(closed, isTrue);
 
       await controller.dispose();
+    });
+
+    testWidgets('PipPlaybackChrome handles 2D diagonal drag updates without assertion errors', (tester) async {
+      DragUpdateDetails? receivedDetails;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 300,
+                height: 200,
+                child: PipPlaybackChrome(
+                  isPlaying: true,
+                  progress: 0.5,
+                  onClose: () {},
+                  onExpand: () {},
+                  onPlayPause: () {},
+                  onDragUpdate: (details) {
+                    receivedDetails = details;
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final center = tester.getCenter(find.byType(PipPlaybackChrome));
+      final gesture = await tester.startGesture(center, kind: PointerDeviceKind.mouse, buttons: kPrimaryMouseButton);
+      await gesture.moveBy(const Offset(25, 35));
+      await tester.pump();
+
+      expect(receivedDetails, isNotNull);
+      expect(receivedDetails!.delta, equals(const Offset(25, 35)));
+      expect(receivedDetails!.primaryDelta, isNull);
+
+      await gesture.up();
     });
   });
 }

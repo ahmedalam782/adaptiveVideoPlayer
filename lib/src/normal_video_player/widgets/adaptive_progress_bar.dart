@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/constants/player_events.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_chapter.dart';
 import '../utils/video_player_web_safe.dart';
@@ -437,8 +438,8 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                             },
                             onChangeEnd: (newPosition) {
                               widget.onDragEnd(newPosition);
-                              widget.onAnalyticsEvent?.call('video_seek', {
-                                'to_position': (newPosition / 1000).round(),
+                              widget.onAnalyticsEvent?.call(PlayerEvents.videoSeek, {
+                                PlayerEvents.paramToPosition: (newPosition / 1000).round(),
                               });
                             },
                           ),

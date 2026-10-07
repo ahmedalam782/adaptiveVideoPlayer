@@ -22,6 +22,7 @@
   "close_mini_player": "Cerrar minirreproductor",
   "play": "Reproducir",
   "pause": "Pausar",
+  "stop_video": "Detener",
   "fullscreen": "Pantalla completa",
   "exit_fullscreen": "Salir de pantalla completa",
   "live": "EN DIRECTO",

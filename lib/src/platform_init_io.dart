@@ -1,3 +1,6 @@
+import 'dart:ffi';
+import 'dart:io';
+import 'package:ffi/ffi.dart';
 import 'package:flutter/widgets.dart';
 import 'package:video_player_media_kit/video_player_media_kit.dart';
 import 'core/services/native_pip_service.dart';
@@ -23,9 +26,27 @@ class AdaptiveVideoPlayerPlatform {
   /// It is safe to call this method multiple times; subsequent calls
   /// will be ignored.
   static void ensureInitialized() {
-    restoreDesktopWindowIfStuckInPip();
     if (_initialized) return;
     _initialized = true;
+
+    if (Platform.isWindows) {
+      try {
+        final kernel32 = DynamicLibrary.open('kernel32.dll');
+        final setEnvironmentVariable = kernel32.lookupFunction<
+            Int32 Function(Pointer<Utf16>, Pointer<Utf16>),
+            int Function(Pointer<Utf16>, Pointer<Utf16>)>(
+          'SetEnvironmentVariableW',
+        );
+        final name = 'WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'.toNativeUtf16();
+        final value =
+            '--autoplay-policy=no-user-gesture-required'.toNativeUtf16();
+        setEnvironmentVariable(name, value);
+        calloc.free(name);
+        calloc.free(value);
+      } catch (_) {}
+    }
+
+    restoreDesktopWindowIfStuckInPip();
 
     WidgetsFlutterBinding.ensureInitialized();
     NativePipService.initialize();

@@ -5,6 +5,7 @@ import '../../core/contracts/i_analytics_service.dart';
 import '../../core/contracts/i_fullscreen_service.dart';
 import '../../core/mixins/volume_feedback_mixin.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
+import '../../youtube_player/utils/player_utils.dart';
 import '../adaptive_controls.dart';
 import 'subtitle_track.dart';
 import 'video_chapter.dart';
@@ -119,4 +120,58 @@ class VideoConfig {
   PlayerTextConfig get messages => playerConfig.text;
   PlayerVisibilityConfig get visibility => playerConfig.visibility;
   PlayerPlaybackConfig get playback => playerConfig.playback;
+
+  /// Whether this video configuration targets a YouTube video URL
+  bool get isYouTube => PlayerUtils.isYouTubeUrl(videoUrl);
+
+  VideoConfig copyWith({
+    String? videoUrl,
+    bool? isFile,
+    bool? isLive,
+    Uint8List? videoBytes,
+    List<VideoQuality>? qualities,
+    VideoQuality? initialQuality,
+    List<SubtitleTrack>? subtitles,
+    SubtitleTrack? initialSubtitle,
+    List<VideoChapter>? chapters,
+    AdaptiveControlsBuilder? controlsBuilder,
+    SubtitleBuilder? subtitleBuilder,
+    VolumeFeedbackBuilder? volumeFeedbackBuilder,
+    Widget Function(BuildContext context)? loadingBuilder,
+    Widget Function(BuildContext context, String errorMessage)? errorBuilder,
+    IFullscreenService? fullscreenService,
+    IAnalyticsService? analyticsService,
+    String? viewerCount,
+    void Function(String event, Map<String, dynamic> data)? onAnalyticsEvent,
+    VideoFileExtension? extension,
+    VideoSourceType? sourceType,
+    double? aspectRatio,
+    YouTubePlayerConfig? playerConfig,
+  }) {
+    return VideoConfig(
+      videoUrl: videoUrl ?? this.videoUrl,
+      isFile: isFile ?? this.isFile,
+      isLive: isLive ?? this.isLive,
+      videoBytes: videoBytes ?? this.videoBytes,
+      qualities: qualities ?? this.qualities,
+      initialQuality: initialQuality ?? this.initialQuality,
+      subtitles: subtitles ?? this.subtitles,
+      initialSubtitle: initialSubtitle ?? this.initialSubtitle,
+      chapters: chapters ?? this.chapters,
+      controlsBuilder: controlsBuilder ?? this.controlsBuilder,
+      subtitleBuilder: subtitleBuilder ?? this.subtitleBuilder,
+      volumeFeedbackBuilder:
+          volumeFeedbackBuilder ?? this.volumeFeedbackBuilder,
+      loadingBuilder: loadingBuilder ?? this.loadingBuilder,
+      errorBuilder: errorBuilder ?? this.errorBuilder,
+      fullscreenService: fullscreenService ?? this.fullscreenService,
+      analyticsService: analyticsService ?? this.analyticsService,
+      viewerCount: viewerCount ?? this.viewerCount,
+      onAnalyticsEvent: onAnalyticsEvent ?? this.onAnalyticsEvent,
+      extension: extension ?? this.extension,
+      sourceType: sourceType ?? this.sourceType,
+      aspectRatio: aspectRatio ?? this.aspectRatio,
+      playerConfig: playerConfig ?? this.playerConfig,
+    );
+  }
 }

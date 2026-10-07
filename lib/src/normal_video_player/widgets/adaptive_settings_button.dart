@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/player_events.dart';
+import '../../core/constants/player_strings.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 import 'adaptive_player_settings_sheet.dart';
@@ -35,7 +37,7 @@ class AdaptiveSettingsButton extends StatelessWidget {
   });
 
   void _openSettings(BuildContext context) {
-    onAnalyticsEvent?.call('settings_opened', {});
+    onAnalyticsEvent?.call(PlayerEvents.settingsOpened, {});
 
     final box = context.findRenderObject() as RenderBox?;
     final offset = box != null ? box.localToGlobal(Offset.zero) : Offset.zero;
@@ -141,13 +143,13 @@ class AdaptiveSettingsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: messages?.playerSettingsText ?? 'Player Settings',
+      message: messages?.playerSettingsText ?? PlayerStrings.playerSettings,
       waitDuration: const Duration(milliseconds: 500),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           if (onPressed != null) {
-            onAnalyticsEvent?.call('settings_opened', {});
+            onAnalyticsEvent?.call(PlayerEvents.settingsOpened, {});
             onPressed!();
           } else {
             _openSettings(context);

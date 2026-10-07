@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/constants/player_strings.dart';
+
 /// Configuration model for player localization, text labels, and error messages (SRP).
 ///
 /// In the package, all labels and error messages default strictly to English ('en').
@@ -96,6 +98,9 @@ class PlayerTextConfig {
   /// Tooltip / label for pause button
   final String pauseText;
 
+  /// Tooltip / label for stop button
+  final String stopVideoText;
+
   /// Tooltip / label for fullscreen button
   final String fullscreenText;
 
@@ -121,42 +126,43 @@ class PlayerTextConfig {
   const PlayerTextConfig({
     this.languageCode,
     this.textDirection,
-    this.invalidYoutubeUrlText = 'Invalid YouTube URL',
-    this.videoLoadFailedText = 'Failed to load video',
-    this.videoUnavailableText = 'Video unavailable',
-    this.videoNotCompatibleText = 'Video format not compatible',
+    this.invalidYoutubeUrlText = PlayerStrings.invalidYoutubeUrl,
+    this.videoLoadFailedText = PlayerStrings.loadFailed,
+    this.videoUnavailableText = PlayerStrings.videoUnavailable,
+    this.videoNotCompatibleText = PlayerStrings.videoNotCompatible,
     this.videoCannotBeLoadedSecurityPolicyText =
-        'Video cannot be loaded due to security policy',
-    this.playerSettingsText = 'Player Settings',
-    this.autoPlayText = 'Auto Play',
-    this.loopVideoText = 'Loop Video',
-    this.forceHdQualityText = 'Force HD Quality',
-    this.enableCaptionsText = 'Enable Captions',
-    this.muteAudioText = 'Mute Audio',
-    this.unmuteAudioText = 'Unmute Audio',
-    this.noQualitiesAvailableText = 'No qualities available',
-    this.noSubtitlesAvailableText = 'No subtitles available',
+        PlayerStrings.securityPolicyBlocked,
+    this.playerSettingsText = PlayerStrings.playerSettings,
+    this.autoPlayText = PlayerStrings.autoPlay,
+    this.loopVideoText = PlayerStrings.loopVideo,
+    this.forceHdQualityText = PlayerStrings.forceHdQuality,
+    this.enableCaptionsText = PlayerStrings.enableCaptions,
+    this.muteAudioText = PlayerStrings.muteAudio,
+    this.unmuteAudioText = PlayerStrings.unmuteAudio,
+    this.noQualitiesAvailableText = PlayerStrings.noQualitiesAvailable,
+    this.noSubtitlesAvailableText = PlayerStrings.noSubtitlesAvailable,
     this.qualityText = 'Quality (Resolution)',
-    this.subtitlesText = 'Subtitles',
-    this.playbackSpeedText = 'Playback Speed',
-    this.normalSpeedText = 'Normal',
-    this.autoText = 'Auto',
-    this.offText = 'Off',
+    this.subtitlesText = PlayerStrings.subtitles,
+    this.playbackSpeedText = PlayerStrings.playbackSpeed,
+    this.normalSpeedText = PlayerStrings.normal,
+    this.autoText = PlayerStrings.auto,
+    this.offText = PlayerStrings.off,
     this.skipBackwardText = 'Rewind 10s',
     this.skipForwardText = 'Forward 10s',
-    this.miniPlayerText = 'Miniplayer',
+    this.miniPlayerText = PlayerStrings.miniPlayer,
     this.restorePlayerText = 'Restore Player',
-    this.expandPlayerText = 'Expand player',
-    this.closeMiniPlayerText = 'Close miniplayer',
-    this.playText = 'Play',
-    this.pauseText = 'Pause',
-    this.fullscreenText = 'Fullscreen',
-    this.exitFullscreenText = 'Exit Fullscreen',
-    this.liveText = 'LIVE',
+    this.expandPlayerText = PlayerStrings.expand,
+    this.closeMiniPlayerText = PlayerStrings.closeMiniPlayer,
+    this.playText = PlayerStrings.play,
+    this.pauseText = PlayerStrings.pause,
+    this.stopVideoText = PlayerStrings.stop,
+    this.fullscreenText = PlayerStrings.fullscreen,
+    this.exitFullscreenText = PlayerStrings.exitFullscreen,
+    this.liveText = PlayerStrings.live,
     this.goLiveText = 'GO LIVE',
     this.speed2xText = '2x',
     this.backText = 'Back',
-    this.volumeText = 'Volume',
+    this.volumeText = PlayerStrings.volume,
   });
 
   /// Explicit English (LTR) localization constructor.
@@ -192,6 +198,7 @@ class PlayerTextConfig {
     String closeMiniPlayerText = 'Close miniplayer',
     String playText = 'Play',
     String pauseText = 'Pause',
+    String stopVideoText = 'Stop',
     String fullscreenText = 'Fullscreen',
     String exitFullscreenText = 'Exit Fullscreen',
     String liveText = 'LIVE',
@@ -231,6 +238,7 @@ class PlayerTextConfig {
           closeMiniPlayerText: closeMiniPlayerText,
           playText: playText,
           pauseText: pauseText,
+          stopVideoText: stopVideoText,
           fullscreenText: fullscreenText,
           exitFullscreenText: exitFullscreenText,
           liveText: liveText,
@@ -890,6 +898,7 @@ class PlayerTextConfig {
           resolveKey('close_mini_player', def.closeMiniPlayerText),
       playText: resolveKey('play', def.playText),
       pauseText: resolveKey('pause', def.pauseText),
+      stopVideoText: resolveKey('stop_video', def.stopVideoText),
       fullscreenText: resolveKey('fullscreen', def.fullscreenText),
       exitFullscreenText:
           resolveKey('exit_fullscreen', def.exitFullscreenText),
@@ -961,6 +970,7 @@ class PlayerTextConfig {
           translate('close_mini_player', def.closeMiniPlayerText),
       playText: translate('play', def.playText),
       pauseText: translate('pause', def.pauseText),
+      stopVideoText: translate('stop_video', def.stopVideoText),
       fullscreenText: translate('fullscreen', def.fullscreenText),
       exitFullscreenText:
           translate('exit_fullscreen', def.exitFullscreenText),
@@ -1106,6 +1116,7 @@ class PlayerTextConfig {
     String? closeMiniPlayerText,
     String? playText,
     String? pauseText,
+    String? stopVideoText,
     String? fullscreenText,
     String? exitFullscreenText,
     String? liveText,
@@ -1151,6 +1162,7 @@ class PlayerTextConfig {
       closeMiniPlayerText: closeMiniPlayerText ?? this.closeMiniPlayerText,
       playText: playText ?? this.playText,
       pauseText: pauseText ?? this.pauseText,
+      stopVideoText: stopVideoText ?? this.stopVideoText,
       fullscreenText: fullscreenText ?? this.fullscreenText,
       exitFullscreenText: exitFullscreenText ?? this.exitFullscreenText,
       liveText: liveText ?? this.liveText,
