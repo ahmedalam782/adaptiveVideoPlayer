@@ -10,10 +10,11 @@ import 'models/youtube_player_config.dart';
 import 'utils/player_utils.dart';
 import 'utils/youtube_web_export.dart';
 import 'views/youtube_desktop_player_view.dart';
+import 'views/youtube_web_player_view.dart';
 import 'widgets/player_error_widget.dart';
 import 'widgets/player_loading_widget.dart';
 import 'widgets/youtube_desktop_overlay.dart';
-import 'widgets/youtube_web_iframe_view.dart';
+import 'widgets/youtube_desktop_pip_placeholder.dart';
 import 'widgets/youtube_webview_player_export.dart';
 
 /// A widget for playing YouTube videos natively across all supported platforms.
@@ -260,24 +261,32 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
     final effectiveConfig = resolveEffectiveConfig(context);
 
     if (kIsWeb) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: AspectRatio(
-          aspectRatio: widget.aspectRatio ?? 16 / 9,
-          child: Directionality(
-            textDirection: effectiveConfig.text.resolveTextDirection(context),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                if (webIframeId != null)
-                  YouTubeWebIframeView(
-                    key: ValueKey(webIframeId!),
-                    viewId: webIframeId!,
-                  ),
-              ],
-            ),
-          ),
-        ),
+      if (isInMobilePip) {
+        return YouTubeDesktopPipPlaceholder(
+          onRestore: () => closeMobilePip(pauseOnClose: false),
+          restorePlayerText: effectiveConfig.text.restorePlayerText,
+        );
+      }
+
+      if (webIframeId == null) {
+        return const SizedBox.shrink();
+      }
+
+      return YouTubeWebPlayerView(
+        viewId: webIframeId!,
+        videoId: _videoId!,
+        config: effectiveConfig,
+        aspectRatio: widget.aspectRatio,
+        isLive: widget.isLive,
+        viewerCount: widget.viewerCount,
+        liveBadgeBuilder: widget.liveBadgeBuilder,
+        onOpenPip: openPip,
+        onToggleFullscreen: enterFullScreen,
+        isInFullscreen: isYoutubeWebFullscreen(),
+        onPlay: play,
+        onPause: pause,
+        onMute: mute,
+        onUnMute: unMute,
       );
     }
 
@@ -288,6 +297,9 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
       config: effectiveConfig,
       fullscreenManager: _desktopFullscreenManager,
       aspectRatio: widget.aspectRatio,
+      isLive: widget.isLive,
+      viewerCount: widget.viewerCount,
+      liveBadgeBuilder: widget.liveBadgeBuilder,
       onReady: () => log('Native YouTube player ready'),
       onEnded: () => widget.onEnded?.call(),
     );
@@ -295,34 +307,63 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
 
   // Unified public playback control API
   void play() {
-    _desktopWebViewKey.currentState?.play();
+    if (kIsWeb && webIframeId != null) {
+      sendYoutubeWebCommand(webIframeId!, 'playVideo');
+    } else {
+      _desktopWebViewKey.currentState?.play();
+    }
   }
 
   void pause() {
-    _desktopWebViewKey.currentState?.pause();
+    if (kIsWeb && webIframeId != null) {
+      sendYoutubeWebCommand(webIframeId!, 'pauseVideo');
+    } else {
+      _desktopWebViewKey.currentState?.pause();
+    }
   }
 
   void stop() {
-    _desktopWebViewKey.currentState?.pause();
-    _desktopWebViewKey.currentState?.seekTo(0);
+    if (kIsWeb && webIframeId != null) {
+      sendYoutubeWebCommand(webIframeId!, 'pauseVideo');
+      sendYoutubeWebCommand(webIframeId!, 'seekTo', [0, true]);
+    } else {
+      _desktopWebViewKey.currentState?.pause();
+      _desktopWebViewKey.currentState?.seekTo(0);
+    }
   }
 
   void seekTo(Duration position) {
-    _desktopWebViewKey.currentState?.seekTo(position.inSeconds);
+    if (kIsWeb && webIframeId != null) {
+      sendYoutubeWebCommand(webIframeId!, 'seekTo', [position.inSeconds, true]);
+    } else {
+      _desktopWebViewKey.currentState?.seekTo(position.inSeconds);
+    }
   }
 
   void mute() {
-    _desktopWebViewKey.currentState?.mute();
+    if (kIsWeb && webIframeId != null) {
+      sendYoutubeWebCommand(webIframeId!, 'mute');
+    } else {
+      _desktopWebViewKey.currentState?.mute();
+    }
     _cubit.setMuted(true);
   }
 
   void unMute() {
-    _desktopWebViewKey.currentState?.unMute();
+    if (kIsWeb && webIframeId != null) {
+      sendYoutubeWebCommand(webIframeId!, 'unMute');
+    } else {
+      _desktopWebViewKey.currentState?.unMute();
+    }
     _cubit.setMuted(false);
   }
 
   void setPlaybackRate(double rate) {
-    _desktopWebViewKey.currentState?.setPlaybackRate(rate);
+    if (kIsWeb && webIframeId != null) {
+      sendYoutubeWebCommand(webIframeId!, 'setPlaybackRate', [rate]);
+    } else {
+      _desktopWebViewKey.currentState?.setPlaybackRate(rate);
+    }
   }
 
   Duration get currentPosition =>
@@ -333,6 +374,12 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
   bool get isPlaying => _desktopFullscreenManager.wasPlaying ?? false;
 
   void enterFullScreen() {
+    if (kIsWeb) {
+      if (webIframeId != null) {
+        toggleYoutubeWebFullscreen(webIframeId!);
+      }
+      return;
+    }
     final effectiveConfig = resolveEffectiveConfig(context);
     _desktopFullscreenManager.openFullscreen(
       desktopPlayerBuilder: () => YouTubeDesktopPlayerView(
@@ -340,6 +387,9 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
         videoId: _videoId!,
         config: effectiveConfig,
         fullscreenManager: _desktopFullscreenManager,
+        isLive: widget.isLive,
+        viewerCount: widget.viewerCount,
+        liveBadgeBuilder: widget.liveBadgeBuilder,
         onReady: () => log('Native YouTube player fullscreen ready'),
         onEnded: () => widget.onEnded?.call(),
       ),

@@ -17,15 +17,17 @@ class AdaptiveVideoPlayerPlatform {
   /// On **Linux**, this registers the `media_kit`-based implementation
   /// for the `video_player` plugin.
   ///
-  /// On **Windows**, `video_player_win` is used automatically via
-  /// Flutter's federated plugin system (no manual initialization needed).
+  /// On **Windows**, passing [windowsUseMediaKit] (defaults to `true`) registers
+  /// the `media_kit` backend (libmpv), which prevents Windows Media Foundation
+  /// buffering stutter and log loops on network/HLS streams. Set to `false`
+  /// if you wish to fall back to `video_player_win`.
   ///
   /// On **Android**, **iOS**, **macOS**, and **Web**, this is a no-op
   /// since those platforms are natively supported by `video_player`.
   ///
   /// It is safe to call this method multiple times; subsequent calls
   /// will be ignored.
-  static void ensureInitialized() {
+  static void ensureInitialized({bool windowsUseMediaKit = true}) {
     if (_initialized) return;
     _initialized = true;
 
@@ -55,8 +57,7 @@ class AdaptiveVideoPlayerPlatform {
       android: false, // Natively supported by video_player
       iOS: false, // Natively supported by video_player
       macOS: false, // Natively supported by video_player
-      windows:
-          false, // Uses video_player_win (avoids COM conflict with InAppWebView)
+      windows: windowsUseMediaKit, // Uses media_kit (libmpv) to prevent WMF buffering loops
       linux: true, // Use media_kit backend
     );
   }

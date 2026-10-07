@@ -22,6 +22,9 @@ class YouTubeDesktopPlayerView extends StatefulWidget {
   final double? aspectRatio;
   final VoidCallback onReady;
   final VoidCallback? onEnded;
+  final bool isLive;
+  final String? viewerCount;
+  final YouTubeLiveBadgeBuilder? liveBadgeBuilder;
 
   const YouTubeDesktopPlayerView({
     super.key,
@@ -32,6 +35,9 @@ class YouTubeDesktopPlayerView extends StatefulWidget {
     this.aspectRatio,
     required this.onReady,
     this.onEnded,
+    this.isLive = false,
+    this.viewerCount,
+    this.liveBadgeBuilder,
   });
 
   @override
@@ -281,6 +287,9 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
       onReady: widget.onReady,
       onEnded: widget.onEnded,
       onTriggerSeekFeedback: _triggerSeekFeedback,
+      isLive: widget.isLive,
+      viewerCount: widget.viewerCount,
+      liveBadgeBuilder: widget.liveBadgeBuilder,
     );
   }
 

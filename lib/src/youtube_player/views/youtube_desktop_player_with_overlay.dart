@@ -7,6 +7,7 @@ import '../../normal_video_player/widgets/pip_playback_chrome.dart';
 import '../models/youtube_player_config.dart';
 import '../widgets/youtube_desktop_overlay.dart';
 import '../widgets/youtube_desktop_style_button.dart';
+import '../widgets/youtube_live_badge.dart';
 import '../widgets/youtube_webview_player_export.dart';
 
 /// Desktop YouTube player viewport with keyboard shortcut bindings, responsive letterboxing,
@@ -37,6 +38,9 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
   final VoidCallback? onReady;
   final VoidCallback? onEnded;
   final void Function(int direction) onTriggerSeekFeedback;
+  final bool isLive;
+  final String? viewerCount;
+  final YouTubeLiveBadgeBuilder? liveBadgeBuilder;
 
   const YouTubeDesktopPlayerWithOverlay({
     super.key,
@@ -65,6 +69,9 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
     this.onReady,
     this.onEnded,
     required this.onTriggerSeekFeedback,
+    this.isLive = false,
+    this.viewerCount,
+    this.liveBadgeBuilder,
   });
 
   @override
@@ -176,6 +183,24 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                         styling: config.style,
                         fallbackColor: const Color(0x6C000000),
                       ),
+                      if (isLive || viewerCount != null || liveBadgeBuilder != null)
+                        PositionedDirectional(
+                          top: 12,
+                          start: 12,
+                          child: (liveBadgeBuilder ?? config.liveBadgeBuilder)
+                              ?.call(
+                                context,
+                                isLive: isLive,
+                                viewerCount: viewerCount,
+                              ) ??
+                              YouTubeLiveBadge(
+                                isLive: isLive,
+                                viewerCount: viewerCount,
+                                liveText: config.text.liveText,
+                                iconColor: config.style.iconColor,
+                                textColor: config.style.textColor,
+                              ),
+                        ),
                       if (showMini || showFullscreen)
                         PositionedDirectional(
                           end: responsiveRight,

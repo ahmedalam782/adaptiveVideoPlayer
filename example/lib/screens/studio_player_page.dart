@@ -103,10 +103,9 @@ class _StudioStageState extends State<StudioStage> {
       _ => source.viewerCount,
     };
 
-    final isYouTube = widget.source.id.startsWith('youtube') ||
-        source.isYouTube;
-    final effectiveControlsBg =
-        isYouTube ? const Color(0x6C000000) : _barColor;
+    final isYouTube =
+        widget.source.id.startsWith('youtube') || source.isYouTube;
+    final effectiveControlsBg = isYouTube ? const Color(0x6C000000) : _barColor;
     final effectiveTextColor = isYouTube ? Colors.white : _iconColor;
     final effectiveIconColor = isYouTube ? Colors.white : _iconColor;
 
@@ -171,6 +170,9 @@ class _StudioStageState extends State<StudioStage> {
       );
     }
 
+    final screenH = MediaQuery.sizeOf(context).height;
+    final isCompact = screenH < 750;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -179,13 +181,13 @@ class _StudioStageState extends State<StudioStage> {
           background: _background,
           child: player,
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: isCompact ? 10 : 14),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             source.description,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: isCompact ? 12 : 13,
               height: 1.4,
               color: widget.isDark
                   ? Colors.white.withValues(alpha: 0.65)
@@ -193,7 +195,7 @@ class _StudioStageState extends State<StudioStage> {
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: isCompact ? 6 : 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Wrap(
@@ -626,8 +628,9 @@ class _ColorSwatch extends StatelessWidget {
           color: color,
           shape: BoxShape.circle,
           border: Border.all(
-            color:
-                selected ? Colors.white : Colors.white.withValues(alpha: 0.25),
+            color: selected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.25),
             width: selected ? 2.5 : 1,
           ),
           boxShadow: [
@@ -667,8 +670,25 @@ class _PlayerFrame extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final width = constraints.maxWidth.clamp(160.0, 1100.0);
-          final height = width / (16 / 9);
+          final screenH = MediaQuery.sizeOf(context).height;
+          // Scale player proportionally to available viewport height so the
+          // entire stage (header, chips, player, and tags) fits harmoniously
+          // on screen at any DPI / scale factor (100%, 125%, 150%, 175%, 200%).
+          final maxAllowedH = (screenH * 0.54).clamp(180.0, 620.0);
+          final maxAllowedW = constraints.maxWidth.clamp(160.0, 1100.0);
+
+          double height = maxAllowedW / (16.0 / 9.0);
+          double width = maxAllowedW;
+
+          if (height > maxAllowedH) {
+            height = maxAllowedH;
+            width = height * (16.0 / 9.0);
+          }
+
+          // Exact pixel alignment avoids subpixel blur/hairlines on scaled displays
+          width = width.floorToDouble();
+          height = (width / (16.0 / 9.0)).roundToDouble();
+
           return Center(
             child: Container(
               width: width,
@@ -762,7 +782,9 @@ class _Panel extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                     ),
@@ -771,7 +793,9 @@ class _Panel extends StatelessWidget {
                         trailing!,
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                          color: isDark
+                              ? Colors.white54
+                              : const Color(0xFF64748B),
                         ),
                       ),
                   ],

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import '../utils/video_player_web_safe.dart';
 
 import '../../youtube_player/models/player_style_config.dart';
 
@@ -41,6 +41,8 @@ class AdaptiveVolumePopup extends StatelessWidget {
         styling?.controlsBackgroundColor ?? const Color(0xFF1B313F);
 
     return Positioned(
+      left: 0,
+      top: 0,
       width: 38,
       child: CompositedTransformFollower(
         link: link,
@@ -71,30 +73,33 @@ class AdaptiveVolumePopup extends StatelessWidget {
               child: ValueListenableBuilder(
                 valueListenable: controller,
                 builder: (context, VideoPlayerValue value, _) {
-                  return RotatedBox(
-                    quarterTurns: 3,
-                    child: SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        trackHeight: styling?.volumeSliderTrackHeight ?? 3.5,
-                        thumbShape: RoundSliderThumbShape(
-                          enabledThumbRadius:
-                              styling?.volumeSliderThumbRadius ?? 6.0,
-                          pressedElevation: 3.0,
+                  return Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: RotatedBox(
+                      quarterTurns: 3,
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: styling?.volumeSliderTrackHeight ?? 3.5,
+                          thumbShape: RoundSliderThumbShape(
+                            enabledThumbRadius:
+                                styling?.volumeSliderThumbRadius ?? 6.0,
+                            pressedElevation: 3.0,
+                          ),
+                          overlayShape: const RoundSliderOverlayShape(
+                            overlayRadius: 12,
+                          ),
+                          activeTrackColor: activeColor,
+                          inactiveTrackColor: inactiveColor,
+                          thumbColor: thumbColor,
                         ),
-                        overlayShape: const RoundSliderOverlayShape(
-                          overlayRadius: 12,
+                        child: Slider(
+                          value: value.volume.clamp(0.0, 1.0),
+                          min: 0.0,
+                          max: 1.0,
+                          onChangeStart: onChangeStart,
+                          onChanged: onVolumeChanged,
+                          onChangeEnd: onChangeEnd,
                         ),
-                        activeTrackColor: activeColor,
-                        inactiveTrackColor: inactiveColor,
-                        thumbColor: thumbColor,
-                      ),
-                      child: Slider(
-                        value: value.volume.clamp(0.0, 1.0),
-                        min: 0.0,
-                        max: 1.0,
-                        onChangeStart: onChangeStart,
-                        onChanged: onVolumeChanged,
-                        onChangeEnd: onChangeEnd,
                       ),
                     ),
                   );

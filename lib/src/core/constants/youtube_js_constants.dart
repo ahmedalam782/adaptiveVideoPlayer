@@ -91,7 +91,7 @@ class YouTubeJsScripts {
 
   /// Permissions allowed for embedded iframe elements.
   static const String iframeAllowPermissions =
-      'camera; microphone; playing; fullscreen; autoplay; encrypted-media; gyroscope; accelerometer; clipboard-write';
+      'camera; microphone; playing; fullscreen; autoplay; encrypted-media; gyroscope; accelerometer; clipboard-write; picture-in-picture';
 
   /// Full injected client script that strips unwanted YouTube chrome, suppresses OS PiP,
   /// observes controls visibility, and bridges touch/pointer activity back to Flutter.
@@ -132,7 +132,7 @@ class YouTubeJsScripts {
 
       var styleId = 'yt-custom-injected-style';
       var existing = document.getElementById(styleId);
-      var css = '.ytp-fullscreen-button, .ytp-share-button, .ytp-watch-later-button, .ytp-copylink-button, .ytp-copy-link-button, .ytp-button-copylink, .ytp-overflow-button, .ytp-share-panel-link, .ytp-share-icon, .ytp-share-panel, [class*="copylink" i], [class*="copy-link" i], [class*="ytp-share" i], [class*="share-button" i], [data-tooltip-target-id*="copy" i], [data-tooltip-target-id*="share" i], [data-tooltip-target-id*="link" i], [data-title-no-tooltip*="copy" i], [data-title-no-tooltip*="share" i], [data-title-no-tooltip*="link" i], [data-title-no-tooltip*="نسخ" i], [data-title-no-tooltip*="رابط" i], [data-title-no-tooltip*="مشاركة" i], button[aria-label*="copy" i], button[aria-label*="link" i], button[aria-label*="share" i], button[aria-label*="نسخ" i], button[aria-label*="رابط" i], button[aria-label*="مشاركة" i], button[title*="copy" i], button[title*="link" i], button[title*="share" i], button[title*="نسخ" i], button[title*="رابط" i], button[title*="مشاركة" i], a[aria-label*="copy" i], a[aria-label*="link" i], a[aria-label*="share" i], a[aria-label*="نسخ" i], a[aria-label*="رابط" i], a[aria-label*="مشاركة" i], a[title*="copy" i], a[title*="link" i], a[title*="share" i], a[title*="نسخ" i], a[title*="رابط" i], a[title*="مشاركة" i] { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; width: 0 !important; height: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; margin: 0 !important; }';
+      var css = '.ytp-fullscreen-button, .ytp-share-button, .ytp-watch-later-button, .ytp-subtitles-button, .ytp-autonav-toggle-button, .ytp-autonav-toggle-button-container, .ytp-autonav-endscreen-button-container, .ytp-chrome-top, .ytp-chrome-top-buttons, [class*="autonav" i], [class*="subtitles-button" i], button[aria-label*="subtitles" i], button[aria-label*="captions" i], button[aria-label*="ترجمة" i], button[aria-label*="الترجمة" i], button[aria-label*="autoplay" i], button[aria-label*="تشغيل تلقائي" i], button[title*="subtitles" i], button[title*="captions" i], button[title*="ترجمة" i], button[title*="الترجمة" i], button[title*="autoplay" i], button[title*="تشغيل تلقائي" i], .ytp-copylink-button, .ytp-copy-link-button, .ytp-button-copylink, .ytp-overflow-button, .ytp-share-panel-link, .ytp-share-icon, .ytp-share-panel, [class*="copylink" i], [class*="copy-link" i], [class*="ytp-share" i], [class*="share-button" i], [data-tooltip-target-id*="copy" i], [data-tooltip-target-id*="share" i], [data-tooltip-target-id*="link" i], [data-title-no-tooltip*="copy" i], [data-title-no-tooltip*="share" i], [data-title-no-tooltip*="link" i], [data-title-no-tooltip*="نسخ" i], [data-title-no-tooltip*="رابط" i], [data-title-no-tooltip*="مشاركة" i], button[aria-label*="copy" i], button[aria-label*="link" i], button[aria-label*="share" i], button[aria-label*="نسخ" i], button[aria-label*="رابط" i], button[aria-label*="مشاركة" i], button[title*="copy" i], button[title*="link" i], button[title*="share" i], button[title*="نسخ" i], button[title*="رابط" i], button[title*="مشاركة" i], a[aria-label*="copy" i], a[aria-label*="link" i], a[aria-label*="share" i], a[aria-label*="نسخ" i], a[aria-label*="رابط" i], a[aria-label*="مشاركة" i], a[title*="copy" i], a[title*="link" i], a[title*="share" i], a[title*="نسخ" i], a[title*="رابط" i], a[title*="مشاركة" i] { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; width: 0 !important; height: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; margin: 0 !important; }';
 
       var nodes = document.querySelectorAll('button, a, div[role="button"], [role="button"], .ytp-button');
       for (var b = 0; b < nodes.length; b++) {
@@ -141,6 +141,14 @@ class YouTubeJsScripts {
         try { rawHtml = (n.outerHTML || '').toLowerCase(); } catch(_) {}
         var label = ((n.getAttribute('aria-label') || '') + ' ' + (n.getAttribute('title') || '') + ' ' + (n.getAttribute('data-tooltip-target-id') || '') + ' ' + (n.getAttribute('data-title-no-tooltip') || '') + ' ' + (typeof n.className === 'string' ? n.className : '')).toLowerCase();
         var shouldHide = (
+          label.indexOf('autonav') !== -1 ||
+          label.indexOf('autoplay') !== -1 ||
+          label.indexOf('تشغيل تلقائي') !== -1 ||
+          label.indexOf('subtitles') !== -1 ||
+          label.indexOf('captions') !== -1 ||
+          label.indexOf('ترجمة') !== -1 ||
+          rawHtml.indexOf('autonav') !== -1 ||
+          rawHtml.indexOf('subtitles-button') !== -1 ||
           label.indexOf('share') !== -1 ||
           label.indexOf('copy') !== -1 ||
           label.indexOf('link') !== -1 ||

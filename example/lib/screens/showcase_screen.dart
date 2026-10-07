@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:adaptive_video_player/adaptive_video_player.dart';
 
@@ -69,13 +69,17 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
       );
     }
 
+    final screenH = MediaQuery.sizeOf(context).height;
+    final isCompact = screenH < 750;
+    final expandedHeight = isCompact ? 116.0 : 168.0;
+
     return Scaffold(
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
             pinned: true,
-            expandedHeight: 168,
+            expandedHeight: expandedHeight,
             backgroundColor: theme.scaffoldBackgroundColor,
             elevation: 0,
             actions: [
@@ -202,7 +206,12 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
                 ),
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      isCompact ? 10 : 16,
+                      20,
+                      isCompact ? 8 : 12,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +221,7 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: isCompact ? 18 : 22,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.4,
                             color: isDark
@@ -220,13 +229,13 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
                                 : const Color(0xFF0F172A),
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: isCompact ? 2 : 4),
                         Text(
                           'One player. Choose a normal URL, a live stream, YouTube, or YouTube live.',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: isCompact ? 11.5 : 13,
                             color: isDark
                                 ? Colors.white.withValues(alpha: 0.6)
                                 : const Color(0xFF475569),
@@ -241,7 +250,12 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                isCompact ? 8 : 16,
+                20,
+                isCompact ? 8 : 14,
+              ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
