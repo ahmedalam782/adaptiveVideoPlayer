@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/services/native_pip_service.dart';
+import '../../normal_video_player/utils/fullscreen_utils_export.dart';
 import '../../normal_video_player/widgets/adaptive_seek_feedback_overlay.dart';
 import '../../normal_video_player/widgets/pip_playback_chrome.dart';
 import '../models/youtube_player_config.dart';
@@ -278,6 +279,10 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                             onPlayPause: onTogglePlayPause,
                             onSeekBackward: () => onSeekBy(-10),
                             onSeekForward: () => onSeekBy(10),
+                            onDragUpdate: (details) => moveDesktopPipWindow(
+                              details.delta.dx.round(),
+                              details.delta.dy.round(),
+                            ),
                           ),
                         ),
                     ],

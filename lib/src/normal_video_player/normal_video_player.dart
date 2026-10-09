@@ -127,6 +127,14 @@ class NormalVideoPlayer extends StatefulWidget {
   VideoFileExtension? get extension => config.extension;
   VideoSourceType? get sourceType => config.sourceType;
   double? get aspectRatio => config.aspectRatio;
+  String? get title => config.title;
+  List<VideoEpisode>? get episodes => config.episodes;
+  VideoEpisode? get currentEpisode => config.currentEpisode;
+  void Function(VideoEpisode)? get onEpisodeSelected => config.onEpisodeSelected;
+  VoidCallback? get onNextEpisode => config.onNextEpisode;
+  List<AudioTrack>? get audioTracks => config.audioTracks;
+  AudioTrack? get currentAudioTrack => config.currentAudioTrack;
+  void Function(AudioTrack)? get onAudioTrackSelected => config.onAudioTrackSelected;
 
   @override
   NormalVideoPlayerState createState() => NormalVideoPlayerState();
@@ -139,6 +147,10 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
         NormalPlayerPlaybackResilienceMixin,
         NormalPlayerFullscreenMixin,
         NormalPlayerPipMixin {
+  VideoEpisode? currentEpisode;
+  AudioTrack? currentAudioTrack;
+  String? currentTitle;
+
   @override
   VideoPlayerController? get resilienceController =>
       videoPlayerController ??
@@ -162,6 +174,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
     super.initState();
     initPipListeners();
     initControllerState();
+    _initStreamingState();
     initializeVideo(
       onPlaybackUpdate: _handlePlayerControllerUpdate,
       onEnsurePlayback: ensurePlaybackContinues,
@@ -170,11 +183,97 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
     initFullscreenCoordinator();
   }
 
+  void _initStreamingState() {
+    currentEpisode = widget.currentEpisode ?? widget.episodes?.firstOrNull;
+    currentAudioTrack =
+        widget.currentAudioTrack ?? widget.audioTracks?.firstOrNull;
+    currentTitle = _computeEffectiveTitle();
+  }
+
+  String? _computeEffectiveTitle() {
+    if (currentEpisode != null) {
+      final baseTitle = widget.title;
+      if (baseTitle != null && baseTitle.isNotEmpty) {
+        if (baseTitle.contains(currentEpisode!.title)) {
+          return baseTitle;
+        }
+        return '$baseTitle - ${currentEpisode!.title}';
+      }
+      return currentEpisode!.title;
+    }
+    return widget.title;
+  }
+
+  void _handleEpisodeSelected(VideoEpisode episode) {
+    setState(() {
+      currentEpisode = episode;
+      currentTitle = _computeEffectiveTitle();
+    });
+
+    if (episode.videoUrl != null &&
+        episode.videoUrl!.isNotEmpty &&
+        episode.videoUrl != effectiveSource) {
+      final newQuality = VideoQuality(
+        title: currentQuality?.title ?? 'Auto',
+        url: episode.videoUrl!,
+      );
+      changeQuality(
+        newQuality,
+        onPlaybackUpdate: _handlePlayerControllerUpdate,
+        onEnsurePlayback: ensurePlaybackContinues,
+      );
+    } else {
+      seekTo(Duration.zero);
+      play();
+    }
+
+    widget.onEpisodeSelected?.call(episode);
+  }
+
+  void _handleNextEpisode() {
+    widget.onNextEpisode?.call();
+
+    final episodes = widget.episodes;
+    if (episodes != null && episodes.isNotEmpty) {
+      final currentIndex =
+          currentEpisode != null ? episodes.indexOf(currentEpisode!) : -1;
+      if (currentIndex >= 0 && currentIndex + 1 < episodes.length) {
+        final nextEp = episodes[currentIndex + 1];
+        _handleEpisodeSelected(nextEp);
+      } else if (currentIndex == -1 && episodes.isNotEmpty) {
+        _handleEpisodeSelected(episodes.first);
+      }
+    }
+  }
+
+  void _handleAudioTrackSelected(AudioTrack track) {
+    setState(() {
+      currentAudioTrack = track;
+    });
+    widget.onAudioTrackSelected?.call(track);
+  }
+
+  void _syncStreamingStateOnUpdate(NormalVideoPlayer oldWidget) {
+    if (widget.currentEpisode != oldWidget.currentEpisode &&
+        widget.currentEpisode != null) {
+      currentEpisode = widget.currentEpisode;
+    }
+    if (widget.currentAudioTrack != oldWidget.currentAudioTrack &&
+        widget.currentAudioTrack != null) {
+      currentAudioTrack = widget.currentAudioTrack;
+    }
+    if (widget.title != oldWidget.title ||
+        widget.currentEpisode != oldWidget.currentEpisode) {
+      currentTitle = _computeEffectiveTitle();
+    }
+  }
+
   @override
   void didUpdateWidget(covariant NormalVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     syncQualityOnUpdate(oldWidget);
     syncSubtitlesOnUpdate(oldWidget);
+    _syncStreamingStateOnUpdate(oldWidget);
 
     if (isInFullscreen || isInMiniPlayer) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -255,6 +354,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
             child: NormalPlayerLoadingWidget(
               styling: widget.styling,
               customBuilder: widget.loadingBuilder,
+              controller: videoPlayerController,
             ),
           );
         }
@@ -288,6 +388,14 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
             viewerCount: widget.viewerCount,
             onEnterFullscreen: () {},
             onExitFullscreen: _handleCloseFullscreen,
+            title: currentTitle,
+            episodes: widget.episodes,
+            currentEpisode: currentEpisode,
+            onEpisodeSelected: _handleEpisodeSelected,
+            onNextEpisode: _handleNextEpisode,
+            audioTracks: widget.audioTracks,
+            currentAudioTrack: currentAudioTrack,
+            onAudioTrackSelected: _handleAudioTrackSelected,
           ),
         );
       },
@@ -327,6 +435,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       return NormalPlayerLoadingWidget(
         styling: widget.styling,
         customBuilder: widget.loadingBuilder,
+        controller: videoPlayerController,
       );
     }
 
@@ -362,6 +471,14 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       onEnterFullscreen: _handleOpenFullscreen,
       onExitFullscreen: _handleCloseFullscreen,
       onMiniPlayerPressed: openMiniPlayer,
+      title: currentTitle,
+      episodes: widget.episodes,
+      currentEpisode: currentEpisode,
+      onEpisodeSelected: _handleEpisodeSelected,
+      onNextEpisode: _handleNextEpisode,
+      audioTracks: widget.audioTracks,
+      currentAudioTrack: currentAudioTrack,
+      onAudioTrackSelected: _handleAudioTrackSelected,
     );
 
     final resolvedAspectRatio = widget.aspectRatio ??
@@ -429,7 +546,10 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
 
   // Public playback API
   void play() => videoPlayerController?.play();
-  void pause() => videoPlayerController?.pause();
+  void pause() {
+    cancelPlaybackResilience();
+    videoPlayerController?.pause();
+  }
   void seekTo(Duration position) => videoPlayerController?.seekTo(position);
   Duration get currentPosition =>
       videoPlayerController?.value.position ?? Duration.zero;

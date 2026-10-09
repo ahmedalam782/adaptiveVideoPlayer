@@ -105,12 +105,56 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     }
   }
 
+  static WebViewEnvironment? _sharedWebViewEnvironment;
+  static bool? _isWebViewAvailableOnWindows;
+  bool _isCheckingEnvironment = false;
+  String? _initErrorMessage;
+
   @override
   void initState() {
     super.initState();
     _currentPosition = widget.startAt;
     if (_usesLocalServer) {
       _startLocalServer();
+    }
+    if (Platform.isWindows) {
+      _checkWindowsWebViewEnvironment();
+    }
+  }
+
+  Future<void> _checkWindowsWebViewEnvironment() async {
+    if (!Platform.isWindows) return;
+    if (_isWebViewAvailableOnWindows != null && _sharedWebViewEnvironment != null) {
+      return;
+    }
+    _isCheckingEnvironment = true;
+    try {
+      final version = await WebViewEnvironment.getAvailableVersion();
+      if (version == null) {
+        _isWebViewAvailableOnWindows = false;
+        _initErrorMessage =
+            'Microsoft Edge WebView2 Runtime is required for YouTube playback on Windows.\nPlease install WebView2 Runtime from Microsoft.';
+      } else {
+        _isWebViewAvailableOnWindows = true;
+        if (_sharedWebViewEnvironment == null) {
+          final localAppData = Platform.environment['LOCALAPPDATA'] ??
+              Platform.environment['TEMP'] ??
+              Directory.systemTemp.path;
+          final userDataDir = '$localAppData\\AdaptiveVideoPlayer_WebView2';
+          _sharedWebViewEnvironment = await WebViewEnvironment.create(
+            settings: WebViewEnvironmentSettings(userDataFolder: userDataDir),
+          );
+        }
+      }
+    } catch (e) {
+      log('WebViewEnvironment check failed: $e');
+      _initErrorMessage = 'Failed to initialize WebView2: $e';
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingEnvironment = false;
+        });
+      }
     }
   }
 
@@ -143,6 +187,49 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    if (Platform.isWindows) {
+      if (_isCheckingEnvironment &&
+          _sharedWebViewEnvironment == null &&
+          _isWebViewAvailableOnWindows != false) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.red),
+        );
+      }
+      if (_isWebViewAvailableOnWindows == false || _initErrorMessage != null) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.web_asset_off_rounded,
+                    color: Colors.orangeAccent, size: 48),
+                const SizedBox(height: 12),
+                Text(
+                  _initErrorMessage ??
+                      'Microsoft Edge WebView2 Runtime is required for YouTube playback on Windows.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.download_rounded, size: 16),
+                  label: const Text('Download WebView2 Runtime'),
+                  onPressed: () {
+                    launchUrl(
+                      Uri.parse(
+                          'https://developer.microsoft.com/en-us/microsoft-edge/webview2/'),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+
     if (_usesLocalServer && _serverUrl == null) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.red),
@@ -151,6 +238,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
     return InAppWebView(
       key: _inAppWebViewKey,
+      webViewEnvironment: _sharedWebViewEnvironment,
       initialUrlRequest: URLRequest(
         url: WebUri(_serverUrl!),
         headers: const {

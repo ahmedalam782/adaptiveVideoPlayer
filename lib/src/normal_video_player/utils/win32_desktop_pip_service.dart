@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 
+import '../../core/services/native_pip_service.dart';
 import 'win32_fullscreen_service.dart';
 import 'win32_window_ffi.dart';
 
@@ -68,6 +69,7 @@ class Win32DesktopPipService {
         final style = getWindowLong(user32, hwnd, gwlStyle);
         final normalStyle =
             ((style & ~wsPopup) | wsOverlappedWindow | wsVisible).toSigned(32);
+        NativePipService.isInPip.value = false;
 
         runWhenSchedulerIdle(() {
           try {
@@ -162,6 +164,7 @@ class Win32DesktopPipService {
       _pipWindowY = workBottom - height - 24;
 
       _isWindowsPip = true;
+      NativePipService.isInPip.value = true;
 
       runWhenSchedulerIdle(() {
         if (!_isWindowsPip) return;
@@ -248,6 +251,7 @@ class Win32DesktopPipService {
       final savedPlacement = _pipSavedPlacement;
       _pipSavedPlacement = null;
       _isWindowsPip = false;
+      NativePipService.isInPip.value = false;
       _pipHwnd = 0;
 
       runWhenSchedulerIdle(() {

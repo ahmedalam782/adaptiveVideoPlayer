@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../utils/video_player_web_safe.dart';
+import 'adaptive_circular_percentage_loader.dart';
 
 /// Buffering loading indicator overlay shown while the player is loading or buffering.
 ///
@@ -99,23 +100,13 @@ class _AdaptiveBufferingIndicatorState
       );
     }
 
-    final indicatorSize = widget.styling?.loadingIndicatorSize;
-    Widget indicator = CircularProgressIndicator(
-      color: widget.styling?.loadingIndicatorColor ??
-          const Color.fromRGBO(255, 0, 0, 0.7),
-      strokeWidth: widget.styling?.loadingIndicatorStrokeWidth ?? 4.0,
-      strokeCap: StrokeCap.round,
+    return Center(
+      child: AdaptiveCircularPercentageLoader(
+        controller: widget.controller,
+        styling: widget.styling,
+      ),
     );
-
-    if (indicatorSize != null) {
-      indicator = SizedBox(
-        width: indicatorSize,
-        height: indicatorSize,
-        child: indicator,
-      );
-    }
-
-    return Center(child: indicator);
   }
 }
+
 

@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import '../../normal_video_player/utils/fullscreen_utils_export.dart';
 
-/// Service managing native OS Picture-in-Picture mode on Android and iOS.
+/// Service managing native OS Picture-in-Picture mode on Android, iOS, and Windows.
 class NativePipService {
   NativePipService._();
 
@@ -59,6 +60,11 @@ class NativePipService {
   /// Leaves the system PiP window and brings the app back to the screen.
   static Future<void> exitPip() async {
     if (kIsWeb) return;
+    if (Platform.isWindows) {
+      exitDesktopPipMode();
+      isInPip.value = false;
+      return;
+    }
     if (!Platform.isAndroid && !Platform.isIOS) return;
     try {
       await _channel.invokeMethod('exitPip');
@@ -68,6 +74,11 @@ class NativePipService {
   /// Dismisses the system PiP window.
   static Future<void> closePip() async {
     if (kIsWeb) return;
+    if (Platform.isWindows) {
+      exitDesktopPipMode();
+      isInPip.value = false;
+      return;
+    }
     if (!Platform.isAndroid && !Platform.isIOS) return;
     try {
       await _channel.invokeMethod('closePip');
@@ -77,6 +88,13 @@ class NativePipService {
   /// Requests the operating system to immediately enter Picture-in-Picture mode.
   static Future<bool> enterPip() async {
     if (kIsWeb) return false;
+    if (Platform.isWindows) {
+      final success = enterDesktopPipMode();
+      if (success) {
+        isInPip.value = true;
+      }
+      return success;
+    }
     if (!Platform.isAndroid && !Platform.isIOS) return false;
     try {
       final res = await _channel.invokeMethod<bool>('enterPip');
@@ -89,6 +107,7 @@ class NativePipService {
   /// Checks if native OS Picture-in-Picture is supported on this device.
   static Future<bool> isSupported() async {
     if (kIsWeb) return false;
+    if (Platform.isWindows) return true;
     if (!Platform.isAndroid && !Platform.isIOS) return false;
     try {
       final res = await _channel.invokeMethod<bool>('isPipSupported');

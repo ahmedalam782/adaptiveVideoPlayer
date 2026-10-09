@@ -33,6 +33,12 @@
   "invalid_youtube_url": "رابط يوتيوب غير صالح",
   "video_load_failed": "فشل تحميل الفيديو",
   "video_unavailable": "الفيديو غير متاح",
-  "video_not_compatible": "صيغة الفيديو غير مدعومة",
-  "video_security_policy_error": "تعذر تحميل الفيديو بسبب سياسة الأمان"
+  "video_not_compatible": "تنسيق الفيديو غير متوافق",
+  "video_security_policy_error": "تعذر تحميل الفيديو بسبب سياسة الأمان",
+  "episodes": "الحلقات",
+  "next_episode": "الحلقة التالية",
+  "audio": "الصوت",
+  "now_playing": "يعرض الآن",
+  "audio_description": "الوصف الصوتي",
+  "audio_and_subtitles": "الصوت والترجمة"
 }

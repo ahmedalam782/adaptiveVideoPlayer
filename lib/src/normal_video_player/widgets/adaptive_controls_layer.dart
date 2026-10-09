@@ -5,11 +5,14 @@ import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 import '../utils/subtitle_parser.dart';
 import '../utils/video_player_web_safe.dart';
+import 'adaptive_audio_subtitles_popup.dart';
 import 'adaptive_bottom_bar.dart';
 import 'adaptive_center_play_pause.dart';
+import 'adaptive_episodes_drawer.dart';
 import 'adaptive_inline_bottom_bar.dart';
 import 'adaptive_player_settings_sheet.dart';
 import 'adaptive_progress_bar.dart';
+import 'adaptive_speed_stepper_popup.dart';
 import 'adaptive_top_bar.dart';
 
 typedef AdaptiveControlsBuilder = Widget Function(
@@ -44,6 +47,14 @@ class AdaptiveControlsLayer extends StatefulWidget {
   final VoidCallback? onExitFullscreen;
   final PlayerPlaybackConfig? playback;
   final VoidCallback? onMiniPlayerPressed;
+  final String? title;
+  final List<VideoEpisode>? episodes;
+  final VideoEpisode? currentEpisode;
+  final void Function(VideoEpisode)? onEpisodeSelected;
+  final VoidCallback? onNextEpisode;
+  final List<AudioTrack>? audioTracks;
+  final AudioTrack? currentAudioTrack;
+  final void Function(AudioTrack)? onAudioTrackSelected;
 
   const AdaptiveControlsLayer({
     super.key,
@@ -69,6 +80,14 @@ class AdaptiveControlsLayer extends StatefulWidget {
     this.onEnterFullscreen,
     this.onExitFullscreen,
     this.onMiniPlayerPressed,
+    this.title,
+    this.episodes,
+    this.currentEpisode,
+    this.onEpisodeSelected,
+    this.onNextEpisode,
+    this.audioTracks,
+    this.currentAudioTrack,
+    this.onAudioTrackSelected,
   });
 
   @override
@@ -78,10 +97,17 @@ class AdaptiveControlsLayer extends StatefulWidget {
 class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
   double? _dragPosition;
   bool _showSettingsMenu = false;
+  bool _showEpisodesDrawer = false;
+  bool _showAudioSubtitlesPopup = false;
+  bool _showSpeedStepperPopup = false;
   Offset _settingsMenuOffset = Offset.zero;
 
   bool get _hasTopBarContent =>
-      widget.isLive || (widget.viewerCount?.isNotEmpty ?? false);
+      widget.isLive ||
+      (widget.viewerCount?.isNotEmpty ?? false) ||
+      (widget.title?.isNotEmpty ?? false) ||
+      widget.isFullScreen ||
+      (widget.visibility?.showActionsInTopBar ?? false);
 
   bool get _showCenterPlayPause =>
       (widget.visibility?.showCenterPlayPause ?? true) &&
@@ -159,6 +185,28 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                           .seekTo(Duration(milliseconds: val.toInt()));
                       setState(() => _dragPosition = null);
                     },
+                    title: widget.title,
+                    episodes: widget.episodes,
+                    onNextEpisode: widget.onNextEpisode,
+                    onEpisodesPressed: () => setState(() {
+                      _showEpisodesDrawer = !_showEpisodesDrawer;
+                      _showAudioSubtitlesPopup = false;
+                      _showSpeedStepperPopup = false;
+                      _showSettingsMenu = false;
+                    }),
+                    audioTracks: widget.audioTracks,
+                    onAudioSubtitlesPressed: () => setState(() {
+                      _showAudioSubtitlesPopup = !_showAudioSubtitlesPopup;
+                      _showEpisodesDrawer = false;
+                      _showSpeedStepperPopup = false;
+                      _showSettingsMenu = false;
+                    }),
+                    onSpeedPressed: () => setState(() {
+                      _showSpeedStepperPopup = !_showSpeedStepperPopup;
+                      _showEpisodesDrawer = false;
+                      _showAudioSubtitlesPopup = false;
+                      _showSettingsMenu = false;
+                    }),
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
@@ -180,6 +228,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                           chapters: widget.chapters,
                           playback: widget.playback,
                           messages: widget.messages,
+                          visibility: widget.visibility,
                           onAnalyticsEvent: widget.onAnalyticsEvent,
                         ),
                       AdaptiveBottomBar(
@@ -204,6 +253,28 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                             widget.visibility?.showSkipButtons ?? true,
                         skipDuration: widget.visibility?.skipDuration ??
                             const Duration(seconds: 10),
+                        title: widget.title,
+                        episodes: widget.episodes,
+                        onNextEpisode: widget.onNextEpisode,
+                        onEpisodesPressed: () => setState(() {
+                          _showEpisodesDrawer = !_showEpisodesDrawer;
+                          _showAudioSubtitlesPopup = false;
+                          _showSpeedStepperPopup = false;
+                          _showSettingsMenu = false;
+                        }),
+                        audioTracks: widget.audioTracks,
+                        onAudioSubtitlesPressed: () => setState(() {
+                          _showAudioSubtitlesPopup = !_showAudioSubtitlesPopup;
+                          _showEpisodesDrawer = false;
+                          _showSpeedStepperPopup = false;
+                          _showSettingsMenu = false;
+                        }),
+                        onSpeedPressed: () => setState(() {
+                          _showSpeedStepperPopup = !_showSpeedStepperPopup;
+                          _showEpisodesDrawer = false;
+                          _showAudioSubtitlesPopup = false;
+                          _showSettingsMenu = false;
+                        }),
                         onSettingsPressed: () => setState(
                             () => _showSettingsMenu = !_showSettingsMenu),
                       ),
@@ -256,6 +327,34 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                       messages: widget.messages,
                       styling: widget.styling,
                       visibility: widget.visibility,
+                      title: widget.title,
+                      subtitle: widget.currentEpisode?.title,
+                      episodes: widget.episodes,
+                      onEpisodesPressed: () => setState(() {
+                        _showEpisodesDrawer = !_showEpisodesDrawer;
+                        _showAudioSubtitlesPopup = false;
+                        _showSpeedStepperPopup = false;
+                        _showSettingsMenu = false;
+                      }),
+                      audioTracks: widget.audioTracks,
+                      subtitles: widget.subtitles,
+                      currentSubtitleTrack: widget.currentSubtitleTrack,
+                      onSubtitleSelected: widget.onSubtitleSelected,
+                      onAudioSubtitlesPressed: () => setState(() {
+                        _showAudioSubtitlesPopup = !_showAudioSubtitlesPopup;
+                        _showEpisodesDrawer = false;
+                        _showSpeedStepperPopup = false;
+                        _showSettingsMenu = false;
+                      }),
+                      onSpeedPressed: () => setState(() {
+                        _showSpeedStepperPopup = !_showSpeedStepperPopup;
+                        _showEpisodesDrawer = false;
+                        _showAudioSubtitlesPopup = false;
+                        _showSettingsMenu = false;
+                      }),
+                      onSettingsPressed: () => setState(
+                          () => _showSettingsMenu = !_showSettingsMenu),
+                      onMiniPlayerPressed: widget.onMiniPlayerPressed,
                     ),
                   )
                 : const SizedBox(height: 28),
@@ -391,6 +490,116 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                       ),
                     ),
                   ),
+                ),
+              ),
+            ),
+          ),
+        ],
+
+        // Netflix-style Speed Stepper Popup (Image 3)
+        if (_showSpeedStepperPopup) ...[
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _showSpeedStepperPopup = false),
+              child: const SizedBox.expand(),
+            ),
+          ),
+          PositionedDirectional(
+            bottom: widget.isFullScreen ? 60 : 52,
+            end: 20,
+            child: CallbackShortcuts(
+              bindings: {
+                const SingleActivator(LogicalKeyboardKey.escape): () {
+                  setState(() => _showSpeedStepperPopup = false);
+                },
+              },
+              child: Focus(
+                autofocus: true,
+                child: AdaptiveSpeedStepperPopup(
+                  controller: widget.controller,
+                  styling: widget.styling,
+                  messages: widget.messages,
+                  onClose: () => setState(() => _showSpeedStepperPopup = false),
+                ),
+              ),
+            ),
+          ),
+        ],
+
+        // Netflix-style Dual-Column Audio & Subtitles Popup (Image 1)
+        if (_showAudioSubtitlesPopup) ...[
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _showAudioSubtitlesPopup = false),
+              child: const SizedBox.expand(),
+            ),
+          ),
+          PositionedDirectional(
+            bottom: widget.isFullScreen ? 60 : 52,
+            end: 20,
+            child: CallbackShortcuts(
+              bindings: {
+                const SingleActivator(LogicalKeyboardKey.escape): () {
+                  setState(() => _showAudioSubtitlesPopup = false);
+                },
+              },
+              child: Focus(
+                autofocus: true,
+                child: AdaptiveAudioSubtitlesPopup(
+                  audioTracks: widget.audioTracks,
+                  currentAudioTrack: widget.currentAudioTrack,
+                  onAudioTrackSelected: (track) {
+                    widget.onAudioTrackSelected?.call(track);
+                    setState(() => _showAudioSubtitlesPopup = false);
+                  },
+                  subtitles: widget.subtitles,
+                  currentSubtitleTrack: widget.currentSubtitleTrack,
+                  onSubtitleSelected: (track) {
+                    widget.onSubtitleSelected?.call(track);
+                    setState(() => _showAudioSubtitlesPopup = false);
+                  },
+                  styling: widget.styling,
+                  messages: widget.messages,
+                  onClose: () =>
+                      setState(() => _showAudioSubtitlesPopup = false),
+                ),
+              ),
+            ),
+          ),
+        ],
+
+        // Netflix-style Episodes Drawer (Image 5)
+        if (_showEpisodesDrawer && widget.episodes != null) ...[
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _showEpisodesDrawer = false),
+              child: const SizedBox.expand(),
+            ),
+          ),
+          PositionedDirectional(
+            bottom: widget.isFullScreen ? 60 : 52,
+            end: 20,
+            child: CallbackShortcuts(
+              bindings: {
+                const SingleActivator(LogicalKeyboardKey.escape): () {
+                  setState(() => _showEpisodesDrawer = false);
+                },
+              },
+              child: Focus(
+                autofocus: true,
+                child: AdaptiveEpisodesDrawer(
+                  episodes: widget.episodes!,
+                  currentEpisode: widget.currentEpisode,
+                  onEpisodeSelected: (ep) {
+                    widget.onEpisodeSelected?.call(ep);
+                    setState(() => _showEpisodesDrawer = false);
+                  },
+                  styling: widget.styling,
+                  messages: widget.messages,
+                  onClose: () => setState(() => _showEpisodesDrawer = false),
                 ),
               ),
             ),

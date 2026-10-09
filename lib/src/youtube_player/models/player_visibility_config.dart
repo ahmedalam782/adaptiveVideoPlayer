@@ -72,6 +72,34 @@ class PlayerVisibilityConfig {
   /// Timeout duration for volume feedback HUD overlay
   final Duration volumeFeedbackTimeout;
 
+  /// Whether double clicking with mouse toggles fullscreen (default true)
+  final bool doubleClickToggleFullscreen;
+
+  /// Whether single clicking/tapping the video toggles play and pause (default true)
+  final bool clickToPlayPause;
+
+  /// Whether to show the Next Episode button (>|)
+  final bool showNextEpisodeButton;
+
+  /// Whether to show the Episodes drawer/list button
+  final bool showEpisodesButton;
+
+  /// Whether to show the Audio & Subtitles dual popup button
+  final bool showAudioSubtitlesButton;
+
+  /// Whether to show dedicated Playback Speed stepper button
+  final bool showSpeedButton;
+
+  /// Whether to show the centered video/episode title in bottom bar
+  final bool showCenteredTitle;
+
+  /// Whether to show the countdown remaining duration on timeline (e.g. 45:30)
+  final bool showRemainingDuration;
+
+  /// Whether secondary action buttons (Settings, MiniPlayer, Episodes, Audio/Subtitles, Speed)
+  /// should be displayed in the top bar (top end of the video) instead of crowding the bottom bar.
+  final bool showActionsInTopBar;
+
   const PlayerVisibilityConfig({
     this.showControls = true,
     this.showFullscreenButton = true,
@@ -94,6 +122,15 @@ class PlayerVisibilityConfig {
     this.showVolumeFeedback = true,
     this.showSkipButtons = true,
     this.showStopButton = false,
+    this.doubleClickToggleFullscreen = true,
+    this.clickToPlayPause = true,
+    this.showNextEpisodeButton = true,
+    this.showEpisodesButton = true,
+    this.showAudioSubtitlesButton = true,
+    this.showSpeedButton = true,
+    this.showCenteredTitle = true,
+    this.showRemainingDuration = true,
+    this.showActionsInTopBar = false,
     this.skipDuration = const Duration(seconds: 10),
     this.controlsHideTimeout = const Duration(seconds: 3),
     this.volumeFeedbackTimeout = const Duration(milliseconds: 1200),
@@ -122,6 +159,15 @@ class PlayerVisibilityConfig {
     bool? showVolumeFeedback,
     bool? showSkipButtons,
     bool? showStopButton,
+    bool? doubleClickToggleFullscreen,
+    bool? clickToPlayPause,
+    bool? showNextEpisodeButton,
+    bool? showEpisodesButton,
+    bool? showAudioSubtitlesButton,
+    bool? showSpeedButton,
+    bool? showCenteredTitle,
+    bool? showRemainingDuration,
+    bool? showActionsInTopBar,
     Duration? skipDuration,
     Duration? controlsHideTimeout,
     Duration? volumeFeedbackTimeout,
@@ -149,6 +195,19 @@ class PlayerVisibilityConfig {
       showVolumeFeedback: showVolumeFeedback ?? this.showVolumeFeedback,
       showSkipButtons: showSkipButtons ?? this.showSkipButtons,
       showStopButton: showStopButton ?? this.showStopButton,
+      doubleClickToggleFullscreen:
+          doubleClickToggleFullscreen ?? this.doubleClickToggleFullscreen,
+      clickToPlayPause: clickToPlayPause ?? this.clickToPlayPause,
+      showNextEpisodeButton:
+          showNextEpisodeButton ?? this.showNextEpisodeButton,
+      showEpisodesButton: showEpisodesButton ?? this.showEpisodesButton,
+      showAudioSubtitlesButton:
+          showAudioSubtitlesButton ?? this.showAudioSubtitlesButton,
+      showSpeedButton: showSpeedButton ?? this.showSpeedButton,
+      showCenteredTitle: showCenteredTitle ?? this.showCenteredTitle,
+      showRemainingDuration:
+          showRemainingDuration ?? this.showRemainingDuration,
+      showActionsInTopBar: showActionsInTopBar ?? this.showActionsInTopBar,
       skipDuration: skipDuration ?? this.skipDuration,
       controlsHideTimeout: controlsHideTimeout ?? this.controlsHideTimeout,
       volumeFeedbackTimeout:

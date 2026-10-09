@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../normal_video_player/models/video_config.dart';
+import '../../normal_video_player/utils/playback_error_utils.dart';
 import '../../normal_video_player/utils/video_player_web_safe.dart';
 import '../contracts/i_video_player_controller.dart';
 import '../models/player_state.dart';
@@ -84,6 +85,8 @@ class NativePlayerAdapter implements IVideoPlayerController {
         value.duration > Duration.zero &&
         value.position >= value.duration;
 
+    final isBenign = isBenignPlaybackError(value.errorDescription);
+
     _stateNotifier.value = _stateNotifier.value.copyWith(
       position: value.position,
       duration: value.duration,
@@ -92,8 +95,8 @@ class NativePlayerAdapter implements IVideoPlayerController {
       isBuffering: value.isBuffering,
       isCompleted: isCompleted,
       isReady: value.isInitialized,
-      hasError: value.hasError,
-      errorMessage: value.errorDescription,
+      hasError: !isBenign && value.hasError,
+      errorMessage: isBenign ? null : value.errorDescription,
       volume: value.volume,
       isMuted: value.volume == 0.0,
       playbackSpeed: value.playbackSpeed,

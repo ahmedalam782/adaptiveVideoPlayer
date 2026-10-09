@@ -113,6 +113,15 @@ class PlayerStyleConfig {
   /// Optional custom builder for the circular loading / buffering indicator
   final Widget Function(BuildContext context)? loadingIndicatorBuilder;
 
+  /// Whether to display the percentage text inside the circular loading / buffering indicator (default: true)
+  final bool showLoadingPercentage;
+
+  /// Custom text style for the percentage text inside the loading / buffering indicator
+  final TextStyle? loadingIndicatorTextStyle;
+
+  /// Optional background track color for the uncompleted portion of the loading indicator
+  final Color? loadingIndicatorBackgroundColor;
+
   /// Active track color for the volume slider in the bottom bar
   final Color? volumeSliderActiveColor;
 
@@ -181,6 +190,9 @@ class PlayerStyleConfig {
     this.loadingIndicatorSize,
     this.loadingIndicatorStrokeWidth = 4.0,
     this.loadingIndicatorBuilder,
+    this.showLoadingPercentage = true,
+    this.loadingIndicatorTextStyle,
+    this.loadingIndicatorBackgroundColor,
     this.volumeSliderActiveColor,
     this.volumeSliderInactiveColor,
     this.volumeSliderThumbColor,
@@ -229,6 +241,9 @@ class PlayerStyleConfig {
     double? loadingIndicatorSize,
     double? loadingIndicatorStrokeWidth,
     Widget Function(BuildContext context)? loadingIndicatorBuilder,
+    bool? showLoadingPercentage,
+    TextStyle? loadingIndicatorTextStyle,
+    Color? loadingIndicatorBackgroundColor,
     Color? volumeSliderActiveColor,
     Color? volumeSliderInactiveColor,
     Color? volumeSliderThumbColor,
@@ -294,6 +309,12 @@ class PlayerStyleConfig {
           loadingIndicatorStrokeWidth ?? this.loadingIndicatorStrokeWidth,
       loadingIndicatorBuilder:
           loadingIndicatorBuilder ?? this.loadingIndicatorBuilder,
+      showLoadingPercentage:
+          showLoadingPercentage ?? this.showLoadingPercentage,
+      loadingIndicatorTextStyle:
+          loadingIndicatorTextStyle ?? this.loadingIndicatorTextStyle,
+      loadingIndicatorBackgroundColor:
+          loadingIndicatorBackgroundColor ?? this.loadingIndicatorBackgroundColor,
       volumeSliderActiveColor:
           volumeSliderActiveColor ?? this.volumeSliderActiveColor,
       volumeSliderInactiveColor:

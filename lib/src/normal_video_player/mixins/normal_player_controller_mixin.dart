@@ -6,8 +6,11 @@ import 'package:flutter/services.dart';
 
 import '../models/video_config.dart';
 import '../normal_video_player.dart';
+import '../utils/cached_player_export.dart';
 import '../utils/file_utils_export.dart';
+import '../utils/playback_error_utils.dart';
 import '../utils/video_player_web_safe.dart';
+import '../../core/services/adaptive_video_preloader.dart';
 
 /// Mixin handling VideoPlayerController initialization, URL validation, and seamless quality changes
 /// for [NormalVideoPlayer].
@@ -28,6 +31,7 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
     hasInMemoryData = widget.videoBytes != null;
     updateEffectiveSource();
     useFileController = widget.isFile && !hasInMemoryData;
+    _didAttemptDecodeRecovery = false;
   }
 
   void syncQualityOnUpdate(NormalVideoPlayer oldWidget) {
@@ -109,6 +113,7 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
     final currentVolume = videoPlayerController?.value.volume ?? 1.0;
     final currentSpeed = videoPlayerController?.value.playbackSpeed ?? 1.0;
     final oldController = videoPlayerController;
+    _didAttemptDecodeRecovery = false;
 
     try {
       final isHls = widget.extension == VideoFileExtension.hls ||
@@ -121,21 +126,44 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
               ? VideoFormat.dash
               : null;
 
-      final newController = useFileController
-          ? getFileVideoController(newQuality.url)
-          : VideoPlayerController.networkUrl(
-              Uri.parse(newQuality.url),
-              formatHint: formatHint,
-              videoPlayerOptions: VideoPlayerOptions(
-                allowBackgroundPlayback: true,
-                mixWithOthers: true,
-              ),
-            );
+      VideoPlayerController? cachedController;
+      if (widget.config.enableCache &&
+          !newQuality.isLive &&
+          !isHls &&
+          !isDash) {
+        cachedController = await createCachedVideoController(
+          Uri.parse(newQuality.url),
+          videoPlayerOptions: VideoPlayerOptions(
+            allowBackgroundPlayback: true,
+            mixWithOthers: true,
+          ),
+        );
+      }
 
-      await newController.initialize();
+      final VideoPlayerController newController;
+      if (useFileController) {
+        newController = getFileVideoController(newQuality.url);
+        await newController.initialize();
+      } else if (cachedController != null) {
+        newController = cachedController;
+      } else {
+        newController = VideoPlayerController.networkUrl(
+          Uri.parse(newQuality.url),
+          formatHint: formatHint,
+          videoPlayerOptions: VideoPlayerOptions(
+            allowBackgroundPlayback: true,
+            mixWithOthers: true,
+          ),
+        );
+        await newController.initialize();
+      }
       newController.addListener(onPlaybackUpdate);
       if (!newQuality.isLive && currentPosition > Duration.zero) {
-        await newController.seekTo(currentPosition);
+        final maxDur = newController.value.duration;
+        final target = (maxDur > Duration.zero && currentPosition > maxDur)
+            ? maxDur
+            : currentPosition;
+        await newController.seekTo(target);
       }
       await newController.setVolume(currentVolume);
       if (currentSpeed != 1.0) {
@@ -156,8 +184,16 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
         });
       }
 
-      oldController?.removeListener(onPlaybackUpdate);
-      await oldController?.dispose();
+      try {
+        oldController?.removeListener(onPlaybackUpdate);
+      } catch (_) {}
+      if (oldController != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            oldController.dispose();
+          } catch (_) {}
+        });
+      }
     } catch (e) {
       log('Error during seamless quality change: $e');
       currentQuality = newQuality;
@@ -217,22 +253,61 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
               ? VideoFormat.dash
               : null;
 
-      videoPlayerController = useFileController
-          ? getFileVideoController(effectiveSource)
-          : VideoPlayerController.networkUrl(
-              Uri.parse(effectiveSource),
-              formatHint: formatHint,
-              videoPlayerOptions: VideoPlayerOptions(
-                allowBackgroundPlayback: true,
-                mixWithOthers: true,
-              ),
-            );
+      final VideoPlayerController nextController;
+      final preloaded = widget.config.preloadedController ??
+          AdaptiveVideoPreloader.take(effectiveSource);
 
-      await videoPlayerController!.initialize();
+      if (preloaded != null && preloaded.value.isInitialized) {
+        nextController = preloaded;
+      } else if (useFileController) {
+        final fileCtrl = getFileVideoController(effectiveSource);
+        await fileCtrl.initialize();
+        nextController = fileCtrl;
+      } else {
+        VideoPlayerController? cachedCtrl;
+        if (widget.config.enableCache &&
+            !effectiveIsLive &&
+            !isHls &&
+            !isDash) {
+          cachedCtrl = await createCachedVideoController(
+            Uri.parse(effectiveSource),
+            videoPlayerOptions: VideoPlayerOptions(
+              allowBackgroundPlayback: true,
+              mixWithOthers: true,
+            ),
+          );
+        }
+        if (cachedCtrl != null) {
+          nextController = cachedCtrl;
+        } else {
+          final netCtrl = VideoPlayerController.networkUrl(
+            Uri.parse(effectiveSource),
+            formatHint: formatHint,
+            videoPlayerOptions: VideoPlayerOptions(
+              allowBackgroundPlayback: true,
+              mixWithOthers: true,
+            ),
+          );
+          await netCtrl.initialize();
+          nextController = netCtrl;
+        }
+      }
+
+      final oldController = videoPlayerController;
+      if (oldController != null) {
+        try {
+          oldController.removeListener(onPlaybackUpdate);
+        } catch (_) {}
+      }
+      videoPlayerController = nextController;
       videoPlayerController!.addListener(onPlaybackUpdate);
 
       if (startAt != null && !effectiveIsLive) {
-        await videoPlayerController!.seekTo(startAt);
+        final maxDur = videoPlayerController!.value.duration;
+        final target = (maxDur > Duration.zero && startAt > maxDur)
+            ? maxDur
+            : startAt;
+        await videoPlayerController!.seekTo(target);
       }
 
       if (widget.playback.loop) {
@@ -252,6 +327,15 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
         setState(() {
           isInitialized = true;
           hasError = false;
+          _isRecoveringDecode = false;
+        });
+      }
+
+      if (oldController != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            oldController.dispose();
+          } catch (_) {}
         });
       }
 
@@ -268,6 +352,10 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
         onEnsurePlayback(true);
       }
     } catch (e) {
+      if (isBenignPlaybackError(e.toString())) {
+        log('Ignoring benign playback interruption during initialization: $e');
+        return;
+      }
       log('Video player initialization error: $e');
       if (mounted) {
         setState(() {
@@ -278,11 +366,18 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
                 errorMsg.contains('ExoPlaybackException') ||
                 errorMsg.contains('MEDIA_ERR_SRC_NOT_SUPPORTED') ||
                 errorMsg.contains('DEMUXER_ERROR') ||
+                errorMsg.contains('PIPELINE_ERROR') ||
+                errorMsg.contains('DECODE') ||
+                errorMsg.contains('decode error') ||
                 errorMsg.contains('not supported')) {
               errorMessage = widget.messages.videoNotCompatibleText;
-            } else {
+            } else if (errorMsg.contains('security') ||
+                errorMsg.contains('SecurityPolicy') ||
+                errorMsg.contains('ERR_BLOCKED')) {
               errorMessage =
                   widget.messages.videoCannotBeLoadedSecurityPolicyText;
+            } else {
+              errorMessage = widget.messages.videoLoadFailedText;
             }
           } else {
             errorMessage = widget.messages.videoLoadFailedText;
@@ -292,17 +387,52 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
     }
   }
 
+  bool _isRecoveringDecode = false;
+  bool _didAttemptDecodeRecovery = false;
+
   void handleControllerPlaybackUpdate(VoidCallback onPipUpdate) {
     if (!mounted || videoPlayerController == null) return;
     if (videoPlayerController!.value.hasError && !hasError) {
       final errorMsg = videoPlayerController!.value.errorDescription ?? '';
+      if (isBenignPlaybackError(errorMsg)) {
+        log('Ignoring benign playback interruption: $errorMsg');
+        return;
+      }
       log('Controller reported playback error: $errorMsg');
+
+      // Attempt one automatic recovery reload if it's a pipeline/hardware decode drop
+      if ((errorMsg.contains('PIPELINE_ERROR') ||
+              errorMsg.contains('decode error') ||
+              errorMsg.contains('MEDIA_ERR_DECODE')) &&
+          !_isRecoveringDecode &&
+          !_didAttemptDecodeRecovery) {
+        _isRecoveringDecode = true;
+        _didAttemptDecodeRecovery = true;
+        log('Attempting automatic recovery from video pipeline decode error...');
+        final currentPos =
+            videoPlayerController?.value.position ?? Duration.zero;
+        initializeVideo(
+          startAt: currentPos,
+          wasPlaying: true,
+          onPlaybackUpdate: () => handleControllerPlaybackUpdate(onPipUpdate),
+          onEnsurePlayback: (_) {},
+        ).then((_) {
+          _isRecoveringDecode = false;
+        }).catchError((_) {
+          _isRecoveringDecode = false;
+        });
+        return;
+      }
+
       setState(() {
         hasError = true;
         if (errorMsg.contains('MediaCodec') ||
             errorMsg.contains('ExoPlaybackException') ||
             errorMsg.contains('MEDIA_ERR_SRC_NOT_SUPPORTED') ||
             errorMsg.contains('DEMUXER_ERROR') ||
+            errorMsg.contains('PIPELINE_ERROR') ||
+            errorMsg.contains('DECODE') ||
+            errorMsg.contains('decode error') ||
             errorMsg.contains('not supported')) {
           errorMessage = widget.messages.videoNotCompatibleText;
         } else {

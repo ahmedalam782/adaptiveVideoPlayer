@@ -34,6 +34,7 @@ class _StudioStageState extends State<StudioStage> {
   bool _autoPlay = false;
   bool _loop = false;
   bool _mute = false;
+  bool _enableCache = true;
   Color _background = const Color(0xFF000000);
   Color _topColor = const Color(0xCC000000);
   Color _barColor = const Color(0xCC1B313F);
@@ -113,6 +114,7 @@ class _StudioStageState extends State<StudioStage> {
       videoUrl: source.videoUrl,
       isFile: source.isFile,
       isLive: source.isLive,
+      enableCache: _enableCache,
       videoBytes: source.videoBytes,
       qualities: source.qualities,
       initialQuality: source.initialQuality,
@@ -122,6 +124,14 @@ class _StudioStageState extends State<StudioStage> {
       viewerCount: viewerCount,
       extension: source.extension,
       aspectRatio: _videoFit == BoxFit.cover ? (16 / 9) : source.aspectRatio,
+      title: source.title,
+      episodes: source.episodes,
+      currentEpisode: source.currentEpisode,
+      onEpisodeSelected: source.onEpisodeSelected,
+      onNextEpisode: source.onNextEpisode,
+      audioTracks: source.audioTracks,
+      currentAudioTrack: source.currentAudioTrack,
+      onAudioTrackSelected: source.onAudioTrackSelected,
       playerConfig: YouTubePlayerConfig(
         style: PlayerStyleConfig(
           bottomBarLayout: _layout,
@@ -385,6 +395,9 @@ class _StudioStageState extends State<StudioStage> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
+                  _toggle('Top bar actions', _visibility.showActionsInTopBar, (v) {
+                    _visibility = _visibility.copyWith(showActionsInTopBar: v);
+                  }, source.accentColor),
                   _toggle('Play overlay', _visibility.showCenterPlayPause, (v) {
                     _visibility = _visibility.copyWith(showCenterPlayPause: v);
                   }, source.accentColor),
@@ -414,6 +427,24 @@ class _StudioStageState extends State<StudioStage> {
                   }, source.accentColor),
                   _toggle('Stop', _visibility.showStopButton, (v) {
                     _visibility = _visibility.copyWith(showStopButton: v);
+                  }, source.accentColor),
+                  _toggle('Next episode', _visibility.showNextEpisodeButton, (v) {
+                    _visibility = _visibility.copyWith(showNextEpisodeButton: v);
+                  }, source.accentColor),
+                  _toggle('Episodes drawer', _visibility.showEpisodesButton, (v) {
+                    _visibility = _visibility.copyWith(showEpisodesButton: v);
+                  }, source.accentColor),
+                  _toggle('Audio & Subtitles', _visibility.showAudioSubtitlesButton, (v) {
+                    _visibility = _visibility.copyWith(showAudioSubtitlesButton: v);
+                  }, source.accentColor),
+                  _toggle('Speed button', _visibility.showSpeedButton, (v) {
+                    _visibility = _visibility.copyWith(showSpeedButton: v);
+                  }, source.accentColor),
+                  _toggle('Centered title', _visibility.showCenteredTitle, (v) {
+                    _visibility = _visibility.copyWith(showCenteredTitle: v);
+                  }, source.accentColor),
+                  _toggle('Loop toggle', _visibility.showLoopSetting, (v) {
+                    _visibility = _visibility.copyWith(showLoopSetting: v);
                   }, source.accentColor),
                   _toggle('Captions', _visibility.showCaptionsSetting, (v) {
                     _visibility = _visibility.copyWith(showCaptionsSetting: v);
@@ -462,7 +493,89 @@ class _StudioStageState extends State<StudioStage> {
                     isDark: widget.isDark,
                     onTap: () => setState(() => _mute = !_mute),
                   ),
+                  _Choice(
+                    label: 'Disk cache',
+                    selected: _enableCache,
+                    accent: source.accentColor,
+                    isDark: widget.isDark,
+                    onTap: () => setState(() => _enableCache = !_enableCache),
+                  ),
                 ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _Panel(
+          isDark: widget.isDark,
+          title: 'Streaming & Series Features (Netflix Style)',
+          icon: Icons.movie_filter_rounded,
+          accent: source.accentColor,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Explore all rich Netflix/YouTube streaming capabilities directly on the player bar above:',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  height: 1.4,
+                  color: widget.isDark
+                      ? Colors.white.withValues(alpha: 0.8)
+                      : const Color(0xFF334155),
+                ),
+              ),
+              _FeatureDemoCard(
+                isDark: widget.isDark,
+                accent: source.accentColor,
+                icon: Icons.offline_bolt_rounded,
+                title: 'Persistent Disk Cache',
+                description:
+                    'Powered by CachedVideoPlayerPlus. Caches network videos locally to disk for instant replays and offline playback.',
+              ),
+              const SizedBox(height: 8),
+              _FeatureDemoCard(
+                isDark: widget.isDark,
+                accent: source.accentColor,
+                icon: Icons.skip_next_rounded,
+                title: 'Next Episode (>|)',
+                description:
+                    'Instant skip to next episode with automatic playlist index resolution, video reload, and title updates.',
+              ),
+              const SizedBox(height: 8),
+              _FeatureDemoCard(
+                isDark: widget.isDark,
+                accent: source.accentColor,
+                icon: Icons.video_library_rounded,
+                title: 'Episodes Drawer',
+                description:
+                    'Bottom drawer listing all episodes with animated equalizer for active episode, thumbnail badges, and watch progress.',
+              ),
+              const SizedBox(height: 8),
+              _FeatureDemoCard(
+                isDark: widget.isDark,
+                accent: source.accentColor,
+                icon: Icons.subtitles_rounded,
+                title: 'Audio & Subtitles',
+                description:
+                    'Dual-column popup for switching original/dubbed audio tracks and multi-language subtitles with instant checkmarks.',
+              ),
+              const SizedBox(height: 8),
+              _FeatureDemoCard(
+                isDark: widget.isDark,
+                accent: source.accentColor,
+                icon: Icons.speed_rounded,
+                title: 'Discrete Speed Stepper',
+                description:
+                    'Quick-cycle between 0.5x, 0.75x, 1x, 1.25x, 1.5x, and 2x with custom badge highlights.',
+              ),
+              const SizedBox(height: 8),
+              _FeatureDemoCard(
+                isDark: widget.isDark,
+                accent: source.accentColor,
+                icon: Icons.mouse_rounded,
+                title: 'Mouse & Touch Gestures',
+                description:
+                    'Single-click video to play/pause, double-click anywhere to enter/exit fullscreen, and drag to seek.',
               ),
             ],
           ),
@@ -934,6 +1047,80 @@ class _Tag extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _FeatureDemoCard extends StatelessWidget {
+  final bool isDark;
+  final Color accent;
+  final IconData icon;
+  final String title;
+  final String description;
+
+  const _FeatureDemoCard({
+    required this.isDark,
+    required this.accent,
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: accent, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.35,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.65)
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -16,6 +16,7 @@ class AdaptiveProgressBar extends StatefulWidget {
   final List<VideoChapter>? chapters;
   final PlayerPlaybackConfig? playback;
   final PlayerTextConfig? messages;
+  final PlayerVisibilityConfig? visibility;
   final void Function(String event, Map<String, dynamic> data)?
       onAnalyticsEvent;
 
@@ -29,6 +30,7 @@ class AdaptiveProgressBar extends StatefulWidget {
     this.chapters,
     this.playback,
     this.messages,
+    this.visibility,
     this.onAnalyticsEvent,
   });
 
@@ -244,24 +246,9 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                       .clamp(0.0, double.infinity),
                 );
 
-                return MouseRegion(
-                  onEnter: (event) => _updateHoverPosition(
-                    event.localPosition,
-                    constraints.maxWidth,
-                    isRtl: isRtlMode,
-                  ),
-                  onHover: (event) => _updateHoverPosition(
-                    event.localPosition,
-                    constraints.maxWidth,
-                    isRtl: isRtlMode,
-                  ),
-                  onExit: (_) => setState(() {
-                    _isHovered = false;
-                    _hoverFraction = null;
-                  }),
-                  child: SizedBox(
-                    height: 22,
-                    child: Stack(
+                Widget sliderContent = SizedBox(
+                  height: 22,
+                  child: Stack(
                       clipBehavior: Clip.none,
                       alignment: Alignment.center,
                       children: [
@@ -446,12 +433,52 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
+                  );
+
+                  sliderContent = MouseRegion(
+                    onEnter: (event) => _updateHoverPosition(
+                      event.localPosition,
+                      constraints.maxWidth,
+                      isRtl: isRtlMode,
+                    ),
+                    onHover: (event) => _updateHoverPosition(
+                      event.localPosition,
+                      constraints.maxWidth,
+                      isRtl: isRtlMode,
+                    ),
+                    onExit: (_) => setState(() {
+                      _isHovered = false;
+                      _hoverFraction = null;
+                    }),
+                    child: sliderContent,
+                  );
+
+                  final showRemaining = widget.visibility?.showRemainingDuration ?? false;
+                  if (showRemaining && duration > 0) {
+                    final remainingMs = (duration - position).clamp(0.0, double.infinity).toInt();
+                    final remainingText = _formatPreviewTime(Duration(milliseconds: remainingMs));
+                    sliderContent = Row(
+                      children: [
+                        Expanded(child: sliderContent),
+                        const SizedBox(width: 10),
+                        Text(
+                          remainingText,
+                          style: TextStyle(
+                            color: widget.styling?.textColor ?? Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                    );
+                  }
+
+                  return sliderContent;
+                },
+              ),
             ),
-          ),
-        );
+          );
       },
     );
   }

@@ -32,6 +32,14 @@ class NormalPlayerView extends StatelessWidget {
   final VoidCallback onEnterFullscreen;
   final VoidCallback onExitFullscreen;
   final VoidCallback? onMiniPlayerPressed;
+  final String? title;
+  final List<VideoEpisode>? episodes;
+  final VideoEpisode? currentEpisode;
+  final void Function(VideoEpisode)? onEpisodeSelected;
+  final VoidCallback? onNextEpisode;
+  final List<AudioTrack>? audioTracks;
+  final AudioTrack? currentAudioTrack;
+  final void Function(AudioTrack)? onAudioTrackSelected;
 
   const NormalPlayerView({
     super.key,
@@ -58,6 +66,14 @@ class NormalPlayerView extends StatelessWidget {
     required this.onEnterFullscreen,
     required this.onExitFullscreen,
     this.onMiniPlayerPressed,
+    this.title,
+    this.episodes,
+    this.currentEpisode,
+    this.onEpisodeSelected,
+    this.onNextEpisode,
+    this.audioTracks,
+    this.currentAudioTrack,
+    this.onAudioTrackSelected,
   });
 
   @override
@@ -86,6 +102,14 @@ class NormalPlayerView extends StatelessWidget {
       onEnterFullscreen: onEnterFullscreen,
       onExitFullscreen: onExitFullscreen,
       onMiniPlayerPressed: onMiniPlayerPressed,
+      title: title,
+      episodes: episodes,
+      currentEpisode: currentEpisode,
+      onEpisodeSelected: onEpisodeSelected,
+      onNextEpisode: onNextEpisode,
+      audioTracks: audioTracks,
+      currentAudioTrack: currentAudioTrack,
+      onAudioTrackSelected: onAudioTrackSelected,
     );
   }
 }

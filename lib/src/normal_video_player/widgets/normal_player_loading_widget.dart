@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../../youtube_player/models/youtube_player_config.dart';
+import '../utils/video_player_web_safe.dart';
+import 'adaptive_circular_percentage_loader.dart';
 
 /// Loading indicator widget for normal video player.
 class NormalPlayerLoadingWidget extends StatelessWidget {
   final PlayerStyleConfig? styling;
   final Widget Function(BuildContext context)? customBuilder;
+  final double? progress;
+  final VideoPlayerController? controller;
 
   const NormalPlayerLoadingWidget({
     super.key,
     this.styling,
     this.customBuilder,
+    this.progress,
+    this.controller,
   });
 
   @override
@@ -18,21 +24,6 @@ class NormalPlayerLoadingWidget extends StatelessWidget {
     final builder = customBuilder ?? styling?.loadingIndicatorBuilder;
     if (builder != null) {
       return builder(context);
-    }
-
-    final indicatorSize = styling?.loadingIndicatorSize;
-    Widget indicator = CircularProgressIndicator(
-      color: styling?.loadingIndicatorColor ??
-          const Color.fromRGBO(255, 0, 0, 0.7),
-      strokeWidth: styling?.loadingIndicatorStrokeWidth ?? 4.0,
-      strokeCap: StrokeCap.round,
-    );
-    if (indicatorSize != null) {
-      indicator = SizedBox(
-        width: indicatorSize,
-        height: indicatorSize,
-        child: indicator,
-      );
     }
 
     return Container(
@@ -43,9 +34,14 @@ class NormalPlayerLoadingWidget extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Center(
-          child: indicator,
+          child: AdaptiveCircularPercentageLoader(
+            progress: progress,
+            controller: controller,
+            styling: styling,
+          ),
         ),
       ),
     );
   }
 }
+

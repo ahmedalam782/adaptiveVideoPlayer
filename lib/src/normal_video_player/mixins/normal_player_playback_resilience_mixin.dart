@@ -9,6 +9,7 @@ mixin NormalPlayerPlaybackResilienceMixin on State<NormalVideoPlayer> {
   Duration? heldPosition;
   bool heldPlaying = false;
   int holdGeneration = 0;
+  int ensureGeneration = 0;
 
   /// The active controller to observe and restore.
   VideoPlayerController? get resilienceController;
@@ -18,6 +19,12 @@ mixin NormalPlayerPlaybackResilienceMixin on State<NormalVideoPlayer> {
     if (ctrl == null || !ctrl.value.isInitialized) return;
     heldPosition = ctrl.value.position;
     heldPlaying = ctrl.value.isPlaying;
+  }
+
+  /// Cancels any scheduled playback restorations or auto-continuation tasks.
+  void cancelPlaybackResilience() {
+    holdGeneration++;
+    ensureGeneration++;
   }
 
   void resumeHeldPlayback() {
@@ -46,30 +53,24 @@ mixin NormalPlayerPlaybackResilienceMixin on State<NormalVideoPlayer> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) => restore());
-    for (final delay in const [120, 350, 700, 1200]) {
+    for (final delay in const [120, 350, 700]) {
       Future.delayed(Duration(milliseconds: delay), restore);
     }
   }
 
   void ensurePlaybackContinues(bool wasPlaying) {
     if (!wasPlaying) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    final generation = ++ensureGeneration;
+
+    void tryPlay() {
+      if (!mounted || generation != ensureGeneration) return;
       final ctrl = resilienceController;
-      if (ctrl != null && !ctrl.value.isPlaying) {
+      if (ctrl != null && ctrl.value.isInitialized && !ctrl.value.isPlaying) {
         ctrl.play();
       }
-    });
-    Future.delayed(const Duration(milliseconds: 120), () {
-      final ctrl = resilienceController;
-      if (ctrl != null && !ctrl.value.isPlaying) {
-        ctrl.play();
-      }
-    });
-    Future.delayed(const Duration(milliseconds: 300), () {
-      final ctrl = resilienceController;
-      if (ctrl != null && !ctrl.value.isPlaying) {
-        ctrl.play();
-      }
-    });
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => tryPlay());
+    Future.delayed(const Duration(milliseconds: 150), tryPlay);
   }
 }

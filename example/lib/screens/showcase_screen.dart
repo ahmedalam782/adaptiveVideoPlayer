@@ -5,6 +5,7 @@ import 'package:adaptive_video_player/adaptive_video_player.dart';
 import '../data/demo_catalog.dart';
 import '../models/demo_showcase_item.dart';
 import '../widgets/language_picker_sheet.dart';
+import 'full_features_example_screen.dart';
 import 'studio_player_page.dart';
 
 /// One studio screen: pick a source, keep the same player and features.
@@ -29,6 +30,7 @@ class ShowcaseScreen extends StatefulWidget {
 class _ShowcaseScreenState extends State<ShowcaseScreen> {
   late final List<StudioSource> _sources;
   final GlobalKey _stageKey = GlobalKey();
+  final ScrollController _chipsScrollController = ScrollController();
   int _selected = 0;
 
   @override
@@ -38,14 +40,121 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
     NativePipService.isInPip.addListener(_onPipChanged);
   }
 
+  void _scrollChips(double offsetDelta) {
+    if (!_chipsScrollController.hasClients) return;
+    final target = (_chipsScrollController.offset + offsetDelta).clamp(
+      0.0,
+      _chipsScrollController.position.maxScrollExtent,
+    );
+    _chipsScrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _onSelectSource(int index) {
+    if (_selected == index) return;
+    setState(() => _selected = index);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_chipsScrollController.hasClients) return;
+      final target = (index * 170.0 - 100.0).clamp(
+        0.0,
+        _chipsScrollController.position.maxScrollExtent,
+      );
+      _chipsScrollController.animateTo(
+        target,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
   @override
   void dispose() {
+    _chipsScrollController.dispose();
     NativePipService.isInPip.removeListener(_onPipChanged);
     super.dispose();
   }
 
   void _onPipChanged() {
     if (mounted) setState(() {});
+  }
+
+  void _showCustomUrlDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.add_link_rounded, color: Colors.indigoAccent),
+              SizedBox(width: 8),
+              Text('Play Custom Video URL', style: TextStyle(fontSize: 18)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter any direct stream URL (MP4, HLS .m3u8, DASH .mpd) or YouTube URL:',
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'https://...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  prefixIcon: const Icon(Icons.link_rounded),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton.icon(
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: const Text('Play'),
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isEmpty) return;
+                Navigator.pop(ctx);
+                setState(() {
+                  final isYt = text.contains('youtube.com') || text.contains('youtu.be');
+                  final isHls = text.contains('.m3u8');
+                  final customSource = StudioSource(
+                    id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                    label: isYt ? 'Custom YouTube' : (isHls ? 'Custom HLS' : 'Custom Video'),
+                    description: text,
+                    icon: isYt
+                        ? Icons.smart_display_rounded
+                        : (isHls ? Icons.sensors_rounded : Icons.play_circle_filled_rounded),
+                    accentColor: isYt
+                        ? Colors.redAccent
+                        : (isHls ? Colors.pinkAccent : Colors.tealAccent),
+                    features: const ['Custom URL', 'Adaptive Controls', 'PiP & Fullscreen'],
+                    config: VideoConfig(
+                      videoUrl: text,
+                      title: 'Custom User Stream',
+                      extension: isHls ? VideoFileExtension.hls : null,
+                    ),
+                  );
+                  _sources.insert(0, customSource);
+                  _selected = 0;
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -83,6 +192,70 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
             backgroundColor: theme.scaffoldBackgroundColor,
             elevation: 0,
             actions: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FullFeaturesExampleScreen(),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.10)
+                            : Colors.white.withValues(alpha: 0.60),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.18)
+                              : Colors.black.withValues(alpha: 0.08),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black
+                                .withValues(alpha: isDark ? 0.25 : 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 15,
+                            color: Colors.pinkAccent,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'All Features',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                              color: isDark
+                                  ? Colors.pinkAccent
+                                  : Colors.purple,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: BackdropFilter(
@@ -251,16 +424,60 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(
-                20,
-                isCompact ? 8 : 16,
-                20,
-                isCompact ? 8 : 14,
+                8,
+                isCompact ? 6 : 14,
+                8,
+                isCompact ? 6 : 12,
               ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: [
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left_rounded, size: 24),
+                    tooltip: 'Scroll left',
+                    splashRadius: 18,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _scrollChips(-260),
+                  ),
+                  Expanded(
+                    child: Scrollbar(
+                      controller: _chipsScrollController,
+                      thumbVisibility: true,
+                      thickness: 4,
+                      radius: const Radius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: SingleChildScrollView(
+                          controller: _chipsScrollController,
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          child: Row(
+                            children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ActionChip(
+                        avatar: const Icon(
+                          Icons.add_link_rounded,
+                          size: 16,
+                          color: Colors.cyanAccent,
+                        ),
+                        label: const Text('+ Custom URL'),
+                        labelStyle: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.cyanAccent : Colors.teal.shade800,
+                        ),
+                        backgroundColor: isDark
+                            ? Colors.cyanAccent.withValues(alpha: 0.12)
+                            : Colors.cyan.withValues(alpha: 0.15),
+                        side: BorderSide(
+                          color: Colors.cyanAccent.withValues(alpha: 0.35),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        onPressed: _showCustomUrlDialog,
+                      ),
+                    ),
                     for (var i = 0; i < _sources.length; i++)
                       Padding(
                         padding: const EdgeInsets.only(right: 8),
@@ -302,7 +519,7 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
                                         ? Colors.white.withValues(alpha: 0.15)
                                         : Colors.black.withValues(alpha: 0.08)),
                               ),
-                              onSelected: (_) => setState(() => _selected = i),
+                              onSelected: (_) => _onSelectSource(i),
                             ),
                           ),
                         ),
@@ -312,6 +529,18 @@ class _ShowcaseScreenState extends State<ShowcaseScreen> {
               ),
             ),
           ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.chevron_right_rounded, size: 24),
+          tooltip: 'Scroll right',
+          splashRadius: 18,
+          visualDensity: VisualDensity.compact,
+          onPressed: () => _scrollChips(260),
+        ),
+      ],
+    ),
+  ),
+),
           SliverToBoxAdapter(child: stage),
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
         ],

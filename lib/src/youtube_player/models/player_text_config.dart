@@ -122,6 +122,24 @@ class PlayerTextConfig {
   /// Tooltip / label for volume slider / button
   final String volumeText;
 
+  /// Tooltip / label for episodes button & menu
+  final String episodesText;
+
+  /// Tooltip / label for next episode button
+  final String nextEpisodeText;
+
+  /// Label for audio track menu
+  final String audioText;
+
+  /// Badge text for currently active / playing episode
+  final String nowPlayingText;
+
+  /// Label for audio description
+  final String audioDescriptionText;
+
+  /// Label for audio & subtitles button
+  final String audioAndSubtitlesText;
+
   /// Creates a player text configuration with default English labels.
   const PlayerTextConfig({
     this.languageCode,
@@ -163,6 +181,12 @@ class PlayerTextConfig {
     this.speed2xText = '2x',
     this.backText = 'Back',
     this.volumeText = PlayerStrings.volume,
+    this.episodesText = 'Episodes',
+    this.nextEpisodeText = 'Next Episode',
+    this.audioText = 'Audio',
+    this.nowPlayingText = 'Now Playing',
+    this.audioDescriptionText = 'Audio Description',
+    this.audioAndSubtitlesText = 'Audio & Subtitles',
   });
 
   /// Explicit English (LTR) localization constructor.
@@ -291,6 +315,12 @@ class PlayerTextConfig {
     String speed2xText = '2x',
     String backText = 'رجوع',
     String volumeText = 'مستوى الصوت',
+    String episodesText = 'الحلقات',
+    String nextEpisodeText = 'الحلقة التالية',
+    String audioText = 'الصوت',
+    String nowPlayingText = 'يعرض الآن',
+    String audioDescriptionText = 'الوصف الصوتي',
+    String audioAndSubtitlesText = 'الصوت والترجمة',
   }) : this(
           languageCode: languageCode,
           textDirection: textDirection,
@@ -330,6 +360,12 @@ class PlayerTextConfig {
           speed2xText: speed2xText,
           backText: backText,
           volumeText: volumeText,
+          episodesText: episodesText,
+          nextEpisodeText: nextEpisodeText,
+          audioText: audioText,
+          nowPlayingText: nowPlayingText,
+          audioDescriptionText: audioDescriptionText,
+          audioAndSubtitlesText: audioAndSubtitlesText,
         );
 
   /// Deprecated convenience constructor.
@@ -374,6 +410,12 @@ class PlayerTextConfig {
     String speed2xText = '2x',
     String backText = 'Atrás',
     String volumeText = 'Volumen',
+    String episodesText = 'Episodios',
+    String nextEpisodeText = 'Siguiente episodio',
+    String audioText = 'Audio',
+    String nowPlayingText = 'En reproducción',
+    String audioDescriptionText = 'Audiodescripción',
+    String audioAndSubtitlesText = 'Audio y subtítulos',
   }) : this(
           languageCode: languageCode,
           textDirection: textDirection,
@@ -413,6 +455,12 @@ class PlayerTextConfig {
           speed2xText: speed2xText,
           backText: backText,
           volumeText: volumeText,
+          episodesText: episodesText,
+          nextEpisodeText: nextEpisodeText,
+          audioText: audioText,
+          nowPlayingText: nowPlayingText,
+          audioDescriptionText: audioDescriptionText,
+          audioAndSubtitlesText: audioAndSubtitlesText,
         );
 
   /// Deprecated convenience constructor.
@@ -457,6 +505,12 @@ class PlayerTextConfig {
     String speed2xText = '2x',
     String backText = 'Retour',
     String volumeText = 'Volume',
+    String episodesText = 'Épisodes',
+    String nextEpisodeText = 'Épisode suivant',
+    String audioText = 'Audio',
+    String nowPlayingText = 'En cours de lecture',
+    String audioDescriptionText = 'Audiodescription',
+    String audioAndSubtitlesText = 'Audio et sous-titres',
   }) : this(
           languageCode: languageCode,
           textDirection: textDirection,
@@ -496,6 +550,12 @@ class PlayerTextConfig {
           speed2xText: speed2xText,
           backText: backText,
           volumeText: volumeText,
+          episodesText: episodesText,
+          nextEpisodeText: nextEpisodeText,
+          audioText: audioText,
+          nowPlayingText: nowPlayingText,
+          audioDescriptionText: audioDescriptionText,
+          audioAndSubtitlesText: audioAndSubtitlesText,
         );
 
   /// Deprecated convenience constructor.
@@ -540,6 +600,12 @@ class PlayerTextConfig {
     String speed2xText = '2x',
     String backText = 'Zurück',
     String volumeText = 'Lautstärke',
+    String episodesText = 'Folgen',
+    String nextEpisodeText = 'Nächste Folge',
+    String audioText = 'Audio',
+    String nowPlayingText = 'Wird jetzt abgespielt',
+    String audioDescriptionText = 'Audiobeschreibung',
+    String audioAndSubtitlesText = 'Audio und Untertitel',
   }) : this(
           languageCode: languageCode,
           textDirection: textDirection,
@@ -579,6 +645,12 @@ class PlayerTextConfig {
           speed2xText: speed2xText,
           backText: backText,
           volumeText: volumeText,
+          episodesText: episodesText,
+          nextEpisodeText: nextEpisodeText,
+          audioText: audioText,
+          nowPlayingText: nowPlayingText,
+          audioDescriptionText: audioDescriptionText,
+          audioAndSubtitlesText: audioAndSubtitlesText,
         );
 
   /// Deprecated convenience constructor.
@@ -623,6 +695,12 @@ class PlayerTextConfig {
     String speed2xText = '2x',
     String backText = 'Geri',
     String volumeText = 'Ses Seviyesi',
+    String episodesText = 'Bölümler',
+    String nextEpisodeText = 'Sonraki Bölüm',
+    String audioText = 'Ses',
+    String nowPlayingText = 'Şimdi Oynatılıyor',
+    String audioDescriptionText = 'Sesli Betimleme',
+    String audioAndSubtitlesText = 'Ses ve Altyazılar',
   }) : this(
           languageCode: languageCode,
           textDirection: textDirection,
@@ -662,6 +740,12 @@ class PlayerTextConfig {
           speed2xText: speed2xText,
           backText: backText,
           volumeText: volumeText,
+          episodesText: episodesText,
+          nextEpisodeText: nextEpisodeText,
+          audioText: audioText,
+          nowPlayingText: nowPlayingText,
+          audioDescriptionText: audioDescriptionText,
+          audioAndSubtitlesText: audioAndSubtitlesText,
         );
 
   /// Factory setting language code and resolving default text direction.
@@ -743,6 +827,14 @@ class PlayerTextConfig {
       speed2xText: map['speed_2x'] ?? def.speed2xText,
       backText: map['back'] ?? def.backText,
       volumeText: map['volume'] ?? def.volumeText,
+      episodesText: map['episodes'] ?? def.episodesText,
+      nextEpisodeText: map['next_episode'] ?? def.nextEpisodeText,
+      audioText: map['audio'] ?? def.audioText,
+      nowPlayingText: map['now_playing'] ?? def.nowPlayingText,
+      audioDescriptionText:
+          map['audio_description'] ?? def.audioDescriptionText,
+      audioAndSubtitlesText:
+          map['audio_and_subtitles'] ?? def.audioAndSubtitlesText,
     );
   }
 
@@ -784,6 +876,12 @@ class PlayerTextConfig {
       'speed_2x': speed2xText,
       'back': backText,
       'volume': volumeText,
+      'episodes': episodesText,
+      'next_episode': nextEpisodeText,
+      'audio': audioText,
+      'now_playing': nowPlayingText,
+      'audio_description': audioDescriptionText,
+      'audio_and_subtitles': audioAndSubtitlesText,
     };
   }
 
@@ -826,6 +924,12 @@ class PlayerTextConfig {
     'speed_2x': '2x',
     'back': 'Back',
     'volume': 'Volume',
+    'episodes': 'Episodes',
+    'next_episode': 'Next Episode',
+    'audio': 'Audio',
+    'now_playing': 'Now Playing',
+    'audio_description': 'Audio Description',
+    'audio_and_subtitles': 'Audio & Subtitles',
   };
 
   /// Factory creating dynamic localization configuration using a custom translator callback
@@ -907,6 +1011,14 @@ class PlayerTextConfig {
       speed2xText: resolveKey('speed_2x', def.speed2xText),
       backText: resolveKey('back', def.backText),
       volumeText: resolveKey('volume', def.volumeText),
+      episodesText: resolveKey('episodes', def.episodesText),
+      nextEpisodeText: resolveKey('next_episode', def.nextEpisodeText),
+      audioText: resolveKey('audio', def.audioText),
+      nowPlayingText: resolveKey('now_playing', def.nowPlayingText),
+      audioDescriptionText:
+          resolveKey('audio_description', def.audioDescriptionText),
+      audioAndSubtitlesText:
+          resolveKey('audio_and_subtitles', def.audioAndSubtitlesText),
     );
   }
 
@@ -979,6 +1091,14 @@ class PlayerTextConfig {
       speed2xText: translate('speed_2x', def.speed2xText),
       backText: translate('back', def.backText),
       volumeText: translate('volume', def.volumeText),
+      episodesText: translate('episodes', def.episodesText),
+      nextEpisodeText: translate('next_episode', def.nextEpisodeText),
+      audioText: translate('audio', def.audioText),
+      nowPlayingText: translate('now_playing', def.nowPlayingText),
+      audioDescriptionText:
+          translate('audio_description', def.audioDescriptionText),
+      audioAndSubtitlesText:
+          translate('audio_and_subtitles', def.audioAndSubtitlesText),
     );
   }
 
@@ -1124,6 +1244,12 @@ class PlayerTextConfig {
     String? speed2xText,
     String? backText,
     String? volumeText,
+    String? episodesText,
+    String? nextEpisodeText,
+    String? audioText,
+    String? nowPlayingText,
+    String? audioDescriptionText,
+    String? audioAndSubtitlesText,
   }) {
     return PlayerTextConfig(
       languageCode: languageCode ?? this.languageCode,
@@ -1170,6 +1296,13 @@ class PlayerTextConfig {
       speed2xText: speed2xText ?? this.speed2xText,
       backText: backText ?? this.backText,
       volumeText: volumeText ?? this.volumeText,
+      episodesText: episodesText ?? this.episodesText,
+      nextEpisodeText: nextEpisodeText ?? this.nextEpisodeText,
+      audioText: audioText ?? this.audioText,
+      nowPlayingText: nowPlayingText ?? this.nowPlayingText,
+      audioDescriptionText: audioDescriptionText ?? this.audioDescriptionText,
+      audioAndSubtitlesText:
+          audioAndSubtitlesText ?? this.audioAndSubtitlesText,
     );
   }
 }

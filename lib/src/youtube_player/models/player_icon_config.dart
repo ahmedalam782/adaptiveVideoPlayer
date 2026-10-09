@@ -225,6 +225,15 @@ class PlayerIconConfig {
   /// Drag handle indicator icon in dialogs (default: Icons.drag_indicator_rounded)
   final PlayerIcon? dragIndicatorIcon;
 
+  /// Next episode icon (default: Icons.skip_next_rounded)
+  final PlayerIcon? nextEpisodeIcon;
+
+  /// Episodes drawer icon (default: Icons.video_library_outlined)
+  final PlayerIcon? episodesIcon;
+
+  /// Audio and Subtitles popup icon (default: Icons.subtitles_outlined)
+  final PlayerIcon? audioSubtitlesIcon;
+
   const PlayerIconConfig({
     this.playIcon,
     this.pauseIcon,
@@ -249,6 +258,9 @@ class PlayerIconConfig {
     this.checkIcon,
     this.closeIcon,
     this.dragIndicatorIcon,
+    this.nextEpisodeIcon,
+    this.episodesIcon,
+    this.audioSubtitlesIcon,
   });
 
   /// Creates a copy with the given fields replaced by the new values
@@ -276,6 +288,9 @@ class PlayerIconConfig {
     PlayerIcon? checkIcon,
     PlayerIcon? closeIcon,
     PlayerIcon? dragIndicatorIcon,
+    PlayerIcon? nextEpisodeIcon,
+    PlayerIcon? episodesIcon,
+    PlayerIcon? audioSubtitlesIcon,
   }) {
     return PlayerIconConfig(
       playIcon: playIcon ?? this.playIcon,
@@ -301,6 +316,9 @@ class PlayerIconConfig {
       checkIcon: checkIcon ?? this.checkIcon,
       closeIcon: closeIcon ?? this.closeIcon,
       dragIndicatorIcon: dragIndicatorIcon ?? this.dragIndicatorIcon,
+      nextEpisodeIcon: nextEpisodeIcon ?? this.nextEpisodeIcon,
+      episodesIcon: episodesIcon ?? this.episodesIcon,
+      audioSubtitlesIcon: audioSubtitlesIcon ?? this.audioSubtitlesIcon,
     );
   }
 }

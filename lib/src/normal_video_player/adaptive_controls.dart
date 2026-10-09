@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../youtube_player/models/youtube_player_config.dart';
@@ -42,6 +45,14 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
   final VoidCallback? onExitFullscreen;
   final VoidCallback? onMiniPlayerPressed;
   final PlayerPlaybackConfig? playback;
+  final String? title;
+  final List<VideoEpisode>? episodes;
+  final VideoEpisode? currentEpisode;
+  final void Function(VideoEpisode)? onEpisodeSelected;
+  final VoidCallback? onNextEpisode;
+  final List<AudioTrack>? audioTracks;
+  final AudioTrack? currentAudioTrack;
+  final void Function(AudioTrack)? onAudioTrackSelected;
 
   const BaseAdaptiveVideoPlayer({
     super.key,
@@ -68,6 +79,14 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
     this.onEnterFullscreen,
     this.onExitFullscreen,
     this.onMiniPlayerPressed,
+    this.title,
+    this.episodes,
+    this.currentEpisode,
+    this.onEpisodeSelected,
+    this.onNextEpisode,
+    this.audioTracks,
+    this.currentAudioTrack,
+    this.onAudioTrackSelected,
   });
 
   @override
@@ -124,6 +143,78 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
     startHideTimer();
   }
 
+  TapDownDetails? _lastTapDownDetails;
+
+  void _handleSingleTap() {
+    _focusNode.requestFocus();
+    final enableClickToPlay =
+        widget.visibility?.clickToPlayPause ?? true;
+
+    if (!enableClickToPlay) {
+      toggleControls();
+      return;
+    }
+
+    final isMouse = _lastTapDownDetails?.kind == PointerDeviceKind.mouse ||
+        _lastTapDownDetails?.kind == PointerDeviceKind.trackpad ||
+        (_lastTapDownDetails?.kind != PointerDeviceKind.touch &&
+            _lastTapDownDetails?.kind != PointerDeviceKind.stylus &&
+            (kIsWeb ||
+                defaultTargetPlatform == TargetPlatform.windows ||
+                defaultTargetPlatform == TargetPlatform.macOS ||
+                defaultTargetPlatform == TargetPlatform.linux));
+
+    final isPlaying = widget.controller.value.isPlaying;
+
+    if (isMouse) {
+      // With mouse (web & desktop): 1 click plays if paused, closes/pauses if open (playing).
+      if (isPlaying) {
+        widget.controller.pause();
+        widget.onAnalyticsEvent?.call('video_paused',
+            {'position': widget.controller.value.position.inSeconds});
+        setState(() => controlsVisible = true);
+        hideTimer?.cancel();
+      } else {
+        final pos = widget.controller.value.position;
+        final dur = widget.controller.value.duration;
+        if (pos >= dur && dur > Duration.zero) {
+          widget.controller.seekTo(Duration.zero);
+        }
+        widget.controller.play();
+        widget.onAnalyticsEvent?.call('video_played',
+            {'position': widget.controller.value.position.inSeconds});
+        startHideTimer();
+      }
+      return;
+    }
+
+    // On touch screens (mobile/tablet):
+    if (isPlaying) {
+      if (controlsVisible) {
+        // If controls were already open, 1 tap closes (pauses) video playback
+        widget.controller.pause();
+        widget.onAnalyticsEvent?.call('video_paused',
+            {'position': widget.controller.value.position.inSeconds});
+        hideTimer?.cancel();
+      } else {
+        // If controls were hidden, 1 tap opens controls
+        setState(() => controlsVisible = true);
+        startHideTimer();
+      }
+    } else {
+      // If video is paused, 1 tap plays video and closes controls
+      final pos = widget.controller.value.position;
+      final dur = widget.controller.value.duration;
+      if (pos >= dur && dur > Duration.zero) {
+        widget.controller.seekTo(Duration.zero);
+      }
+      widget.controller.play();
+      widget.onAnalyticsEvent?.call('video_played',
+          {'position': widget.controller.value.position.inSeconds});
+      startHideTimer();
+    }
+  }
+
   void _videoListener() {
     if (widget.isLive) return;
     final position = widget.controller.value.position;
@@ -145,15 +236,21 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
   void didUpdateWidget(BaseAdaptiveVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_videoListener);
-      widget.controller.addListener(_videoListener);
+      try {
+        oldWidget.controller.removeListener(_videoListener);
+      } catch (_) {}
+      try {
+        widget.controller.addListener(_videoListener);
+      } catch (_) {}
       _videoEndedEventSent = false;
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_videoListener);
+    try {
+      widget.controller.removeListener(_videoListener);
+    } catch (_) {}
     disposeVisibilityTimer();
     disposeGesturesTimers();
     _focusNode.dispose();
@@ -260,12 +357,11 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                 children: [
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      _focusNode.requestFocus();
-                      toggleControls();
-                    },
+                    onTapDown: (details) => _lastTapDownDetails = details,
+                    onTap: _handleSingleTap,
                     onDoubleTapDown: (details) =>
                         handleDoubleTap(details, startHideTimer),
+                    onDoubleTap: () {},
                     onLongPressStart: handleLongPressStart,
                     onLongPressEnd: handleLongPressEnd,
                     onLongPressCancel: stopHold2xSpeed,
@@ -301,6 +397,14 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                               onEnterFullscreen: widget.onEnterFullscreen,
                               onExitFullscreen: widget.onExitFullscreen,
                               onMiniPlayerPressed: widget.onMiniPlayerPressed,
+                              title: widget.title,
+                              episodes: widget.episodes,
+                              currentEpisode: widget.currentEpisode,
+                              onEpisodeSelected: widget.onEpisodeSelected,
+                              onNextEpisode: widget.onNextEpisode,
+                              audioTracks: widget.audioTracks,
+                              currentAudioTrack: widget.currentAudioTrack,
+                              onAudioTrackSelected: widget.onAudioTrackSelected,
                             ),
                     ),
                   ),

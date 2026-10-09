@@ -5,14 +5,16 @@ import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 import '../utils/video_player_web_safe.dart';
 import 'adaptive_fullscreen_button.dart';
+import 'adaptive_loop_toggle.dart';
 import 'adaptive_settings_button.dart';
+import 'adaptive_subtitles_button.dart';
 import 'adaptive_volume_control.dart';
 import 'buffer_slider.dart';
 
 /// Single-row unified floating capsule bottom control bar.
 ///
 /// Features play/pause, timestamp, inline progress slider, volume,
-/// and fullscreen inside a single rounded pill container.
+/// streaming controls (episodes, next, audio/subs, speed), and fullscreen.
 class AdaptiveInlineBottomBar extends StatelessWidget {
   final VideoPlayerController controller;
   final bool isFullScreen;
@@ -37,6 +39,27 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
   final double? dragPosition;
   final ValueChanged<double>? onDragChanged;
   final ValueChanged<double>? onDragEnd;
+
+  /// Optional video/episode title
+  final String? title;
+
+  /// Optional episodes list
+  final List<VideoEpisode>? episodes;
+
+  /// Callback when Next Episode button is pressed
+  final VoidCallback? onNextEpisode;
+
+  /// Callback when Episodes button is pressed
+  final VoidCallback? onEpisodesPressed;
+
+  /// Optional audio tracks
+  final List<AudioTrack>? audioTracks;
+
+  /// Callback when Audio & Subtitles button is pressed
+  final VoidCallback? onAudioSubtitlesPressed;
+
+  /// Callback when Speed button is pressed
+  final VoidCallback? onSpeedPressed;
 
   const AdaptiveInlineBottomBar({
     super.key,
@@ -63,6 +86,13 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
     this.dragPosition,
     this.onDragChanged,
     this.onDragEnd,
+    this.title,
+    this.episodes,
+    this.onNextEpisode,
+    this.onEpisodesPressed,
+    this.audioTracks,
+    this.onAudioSubtitlesPressed,
+    this.onSpeedPressed,
   });
 
   String _formatDuration(Duration duration) {
@@ -106,20 +136,24 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isCompact = constraints.maxWidth < 500;
-          final isUltraCompact = constraints.maxWidth < 320;
+          final isUltraCompact = constraints.maxWidth < 380;
           final canShowSkip = showSkipButtons &&
               effectiveVisibility.showSkipButtons &&
               !isLive &&
-              constraints.maxWidth > 580;
+              constraints.maxWidth > 720;
 
+          final inTopBar = effectiveVisibility.showActionsInTopBar;
           final showVolume = effectiveVisibility.showVolumeButton;
           final showTime = effectiveVisibility.showTimeDisplay && !isLive;
           final showFullscreen = effectiveVisibility.showFullscreenButton;
-          final showMiniPlayer = effectiveVisibility.showMiniPlayerButton &&
+          final showMiniPlayer = !inTopBar &&
+              effectiveVisibility.showMiniPlayerButton &&
               onMiniPlayerPressed != null &&
-              !isFullScreen;
-          final showSettings = effectiveVisibility.showSettingsButton &&
-              constraints.maxWidth > 300;
+              !isFullScreen &&
+              constraints.maxWidth > 460;
+          final showSettings = !inTopBar &&
+              effectiveVisibility.showSettingsButton &&
+              constraints.maxWidth > 280;
           final showProgressBar = effectiveVisibility.showProgressBar && !isLive;
 
           final dynamicHeight =
@@ -235,6 +269,30 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                 context,
                                 icon: styling?.icons.stopIcon,
                                 fallbackIcon: Icons.stop_rounded,
+                                defaultColor: iconColor,
+                                defaultSize: 22,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      // Optional Next Episode Button (>|)
+                      if (effectiveVisibility.showNextEpisodeButton &&
+                          onNextEpisode != null &&
+                          constraints.maxWidth > 480) ...[
+                        Tooltip(
+                          message: messages?.nextEpisodeText ?? 'Next Episode',
+                          waitDuration: const Duration(milliseconds: 500),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onNextEpisode,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: PlayerIcon.resolve(
+                                context,
+                                icon: styling?.icons.nextEpisodeIcon,
+                                fallbackIcon: Icons.skip_next_rounded,
                                 defaultColor: iconColor,
                                 defaultSize: 22,
                               ),
@@ -394,7 +452,154 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                           controller: controller,
                           styling: styling,
                           messages: messages,
-                          allowExpand: constraints.maxWidth > 380,
+                          allowExpand: constraints.maxWidth > 420,
+                        ),
+                      ],
+
+                      // Optional Centered/Inline Title (if wide enough)
+                      if (effectiveVisibility.showCenteredTitle &&
+                          title != null &&
+                          title!.isNotEmpty &&
+                          constraints.maxWidth > 700) ...[
+                        SizedBox(width: isCompact ? 2.0 : 4.0),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: constraints.maxWidth > 950 ? 150 : 80,
+                          ),
+                          child: Tooltip(
+                            message: title!,
+                            child: Text(
+                              title!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: textColor.withValues(alpha: 0.85),
+                                fontSize: isCompact ? 11 : 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      // Optional Loop Toggle
+                      if (!inTopBar &&
+                          effectiveVisibility.showLoopSetting &&
+                          !isLive &&
+                          constraints.maxWidth > 760) ...[
+                        SizedBox(width: isCompact ? 2.0 : 4.0),
+                        AdaptiveLoopToggle(
+                          controller: controller,
+                          isLooping: value.isLooping,
+                          styling: styling,
+                          messages: messages,
+                        ),
+                      ],
+
+                      // Optional Quick Subtitles Toggle
+                      if (!inTopBar &&
+                          effectiveVisibility.showCaptionsSetting &&
+                          constraints.maxWidth > 780) ...[
+                        SizedBox(width: isCompact ? 2.0 : 4.0),
+                        AdaptiveSubtitlesButton(
+                          subtitles: subtitles,
+                          currentSubtitleTrack: currentSubtitleTrack,
+                          onSubtitleSelected: onSubtitleSelected,
+                          onSettingsPressed: onSettingsPressed,
+                          styling: styling,
+                          messages: messages,
+                        ),
+                      ],
+
+                      // Discrete Playback Speed Button
+                      if (!inTopBar &&
+                          effectiveVisibility.showSpeedButton &&
+                          onSpeedPressed != null &&
+                          constraints.maxWidth > 540) ...[
+                        SizedBox(width: isCompact ? 2.0 : 4.0),
+                        Tooltip(
+                          message: messages?.playbackSpeedText ?? 'Playback Speed',
+                          waitDuration: const Duration(milliseconds: 500),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onSpeedPressed,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isCompact ? 2.0 : 4.0,
+                                vertical: 4.0,
+                              ),
+                              child: PlayerIcon.resolve(
+                                context,
+                                icon: styling?.icons.speedIcon,
+                                fallbackIcon: Icons.speed_rounded,
+                                defaultColor: iconColor,
+                                defaultSize: isCompact ? 18 : 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      // Dual-Column Audio & Subtitles Button
+                      if (!inTopBar &&
+                          effectiveVisibility.showAudioSubtitlesButton &&
+                          onAudioSubtitlesPressed != null &&
+                          ((audioTracks != null && audioTracks!.isNotEmpty) ||
+                              (subtitles != null && subtitles!.isNotEmpty)) &&
+                          constraints.maxWidth > 620) ...[
+                        SizedBox(width: isCompact ? 2.0 : 4.0),
+                        Tooltip(
+                          message: messages?.audioAndSubtitlesText ??
+                              'Audio & Subtitles',
+                          waitDuration: const Duration(milliseconds: 500),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onAudioSubtitlesPressed,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isCompact ? 2.0 : 4.0,
+                                vertical: 4.0,
+                              ),
+                              child: PlayerIcon.resolve(
+                                context,
+                                icon: styling?.icons.audioSubtitlesIcon,
+                                fallbackIcon: Icons.subtitles_outlined,
+                                defaultColor: iconColor,
+                                defaultSize: isCompact ? 18 : 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      // Episodes Drawer Button
+                      if (!inTopBar &&
+                          effectiveVisibility.showEpisodesButton &&
+                          episodes != null &&
+                          episodes!.isNotEmpty &&
+                          onEpisodesPressed != null &&
+                          constraints.maxWidth > 680) ...[
+                        SizedBox(width: isCompact ? 2.0 : 4.0),
+                        Tooltip(
+                          message: messages?.episodesText ?? 'Episodes',
+                          waitDuration: const Duration(milliseconds: 500),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onEpisodesPressed,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isCompact ? 2.0 : 4.0,
+                                vertical: 4.0,
+                              ),
+                              child: PlayerIcon.resolve(
+                                context,
+                                icon: styling?.icons.episodesIcon,
+                                fallbackIcon: Icons.video_library_outlined,
+                                defaultColor: iconColor,
+                                defaultSize: isCompact ? 18 : 20,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
 

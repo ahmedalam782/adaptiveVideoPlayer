@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../youtube_player/models/player_text_config.dart';
@@ -58,6 +60,29 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
 
   void handleDoubleTap(
       TapDownDetails details, VoidCallback onRestartHideTimer) {
+    final allowDoubleClickFullscreen =
+        widget.visibility?.doubleClickToggleFullscreen ?? true;
+
+    final isMouse = details.kind == PointerDeviceKind.mouse ||
+        details.kind == PointerDeviceKind.trackpad ||
+        (details.kind != PointerDeviceKind.touch &&
+            details.kind != PointerDeviceKind.stylus &&
+            (kIsWeb ||
+                defaultTargetPlatform == TargetPlatform.windows ||
+                defaultTargetPlatform == TargetPlatform.macOS ||
+                defaultTargetPlatform == TargetPlatform.linux));
+
+    // When clicking two times with a mouse (like on standard video websites),
+    // toggle fullscreen directly.
+    if (allowDoubleClickFullscreen && isMouse) {
+      if (widget.isFullScreen) {
+        widget.onExitFullscreen?.call();
+      } else {
+        widget.onEnterFullscreen?.call();
+      }
+      return;
+    }
+
     if (widget.isLive) return;
 
     final width = MediaQuery.of(context).size.width;

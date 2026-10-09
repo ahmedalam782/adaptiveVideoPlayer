@@ -219,7 +219,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
     if (widget.fullscreenManager.isInFullscreen) {
       widget.fullscreenManager.closeFullscreen();
     }
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isWindows)) {
       final entered = await NativePipService.enterPip();
       if (entered) return;
     }

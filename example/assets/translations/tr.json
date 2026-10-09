@@ -34,5 +34,11 @@
   "video_load_failed": "Video yüklenemedi",
   "video_unavailable": "Video kullanılamıyor",
   "video_not_compatible": "Video formatı uyumlu değil",
-  "video_security_policy_error": "Güvenlik politikası nedeniyle video yüklenemiyor"
+  "video_security_policy_error": "Güvenlik politikası nedeniyle video yüklenemiyor",
+  "episodes": "Bölümler",
+  "next_episode": "Sonraki Bölüm",
+  "audio": "Ses",
+  "now_playing": "Şimdi Oynatılıyor",
+  "audio_description": "Sesli Betimleme",
+  "audio_and_subtitles": "Ses ve Altyazılar"
 }

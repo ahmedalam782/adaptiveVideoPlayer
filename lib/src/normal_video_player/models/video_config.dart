@@ -7,14 +7,19 @@ import '../../core/mixins/volume_feedback_mixin.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../../youtube_player/utils/player_utils.dart';
 import '../adaptive_controls.dart';
+import 'audio_track.dart';
 import 'subtitle_track.dart';
 import 'video_chapter.dart';
+import 'video_episode.dart';
 import 'video_file_extension.dart';
 import 'video_quality.dart';
 import 'video_source_type.dart';
+import '../utils/video_player_web_safe.dart';
 
+export 'audio_track.dart';
 export 'subtitle_track.dart';
 export 'video_chapter.dart';
+export 'video_episode.dart';
 export 'video_file_extension.dart';
 export 'video_quality.dart';
 export 'video_source_type.dart';
@@ -86,6 +91,38 @@ class VideoConfig {
   /// If null, automatically uses the video's natural aspect ratio.
   final double? aspectRatio;
 
+  /// Optional title for the video/episode (displayed in bottom bar or top bar)
+  final String? title;
+
+  /// Optional list of episodes for series/season drawer
+  final List<VideoEpisode>? episodes;
+
+  /// Current active episode
+  final VideoEpisode? currentEpisode;
+
+  /// Callback when an episode is selected from the drawer
+  final void Function(VideoEpisode episode)? onEpisodeSelected;
+
+  /// Callback when the Next Episode button (>|) is tapped
+  final VoidCallback? onNextEpisode;
+
+  /// Optional list of available audio tracks (languages / audio descriptions)
+  final List<AudioTrack>? audioTracks;
+
+  /// Currently selected audio track
+  final AudioTrack? currentAudioTrack;
+
+  /// Callback when an audio track is selected
+  final void Function(AudioTrack audioTrack)? onAudioTrackSelected;
+
+  /// Optional preloaded controller for instant zero-latency playback startup
+  final VideoPlayerController? preloadedController;
+
+  /// Optional flag to enable local disk caching of network video files using
+  /// [CachedVideoPlayerPlus]. When enabled, videos are cached locally for
+  /// instant startup on subsequent playbacks and offline viewing. Defaults to `false`.
+  final bool enableCache;
+
   /// Complete player configuration using YouTube models
   final YouTubePlayerConfig playerConfig;
 
@@ -111,6 +148,16 @@ class VideoConfig {
     this.extension,
     this.sourceType,
     this.aspectRatio,
+    this.title,
+    this.episodes,
+    this.currentEpisode,
+    this.onEpisodeSelected,
+    this.onNextEpisode,
+    this.audioTracks,
+    this.currentAudioTrack,
+    this.onAudioTrackSelected,
+    this.preloadedController,
+    this.enableCache = false,
     this.playerConfig = const YouTubePlayerConfig(),
   });
 
@@ -146,6 +193,16 @@ class VideoConfig {
     VideoFileExtension? extension,
     VideoSourceType? sourceType,
     double? aspectRatio,
+    String? title,
+    List<VideoEpisode>? episodes,
+    VideoEpisode? currentEpisode,
+    void Function(VideoEpisode episode)? onEpisodeSelected,
+    VoidCallback? onNextEpisode,
+    List<AudioTrack>? audioTracks,
+    AudioTrack? currentAudioTrack,
+    void Function(AudioTrack audioTrack)? onAudioTrackSelected,
+    VideoPlayerController? preloadedController,
+    bool? enableCache,
     YouTubePlayerConfig? playerConfig,
   }) {
     return VideoConfig(
@@ -171,6 +228,16 @@ class VideoConfig {
       extension: extension ?? this.extension,
       sourceType: sourceType ?? this.sourceType,
       aspectRatio: aspectRatio ?? this.aspectRatio,
+      title: title ?? this.title,
+      episodes: episodes ?? this.episodes,
+      currentEpisode: currentEpisode ?? this.currentEpisode,
+      onEpisodeSelected: onEpisodeSelected ?? this.onEpisodeSelected,
+      onNextEpisode: onNextEpisode ?? this.onNextEpisode,
+      audioTracks: audioTracks ?? this.audioTracks,
+      currentAudioTrack: currentAudioTrack ?? this.currentAudioTrack,
+      onAudioTrackSelected: onAudioTrackSelected ?? this.onAudioTrackSelected,
+      preloadedController: preloadedController ?? this.preloadedController,
+      enableCache: enableCache ?? this.enableCache,
       playerConfig: playerConfig ?? this.playerConfig,
     );
   }

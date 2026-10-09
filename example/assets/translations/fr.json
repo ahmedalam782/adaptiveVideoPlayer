@@ -34,5 +34,11 @@
   "video_load_failed": "Échec du chargement de la vidéo",
   "video_unavailable": "Vidéo non disponible",
   "video_not_compatible": "Format vidéo non compatible",
-  "video_security_policy_error": "La vidéo ne peut pas être chargée en raison de la politique de sécurité"
+  "video_security_policy_error": "La vidéo ne peut pas être chargée en raison de la politique de sécurité",
+  "episodes": "Épisodes",
+  "next_episode": "Épisode suivant",
+  "audio": "Audio",
+  "now_playing": "En cours de lecture",
+  "audio_description": "Audiodescription",
+  "audio_and_subtitles": "Audio et sous-titres"
 }

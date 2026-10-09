@@ -93,9 +93,6 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
   Widget build(BuildContext context) {
     final effectiveDir = widget.config.text.resolveTextDirection(context);
     final isFullscreenNow = widget.isInFullscreen || isYoutubeWebFullscreen();
-    final showMini = widget.config.visibility.showControls &&
-        widget.config.visibility.showMiniPlayerButton;
-    // Before full, show only PiP (YouTube Web already provides native fullscreen).
     // In fullscreen mode, show the exit fullscreen button.
     final showFullscreen = widget.config.visibility.showControls &&
         widget.config.visibility.showFullscreenButton &&
@@ -165,7 +162,7 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                               textColor: widget.config.style.textColor,
                             ),
                       ),
-                    if (showMini || showFullscreen)
+                    if (showFullscreen)
                       PositionedDirectional(
                         top: 14,
                         end: 14,
@@ -194,26 +191,15 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (showMini)
-                                  YouTubeDesktopStyleButton(
-                                    playerIcon: widget
-                                        .config.style.icons.miniPlayerIcon,
-                                    fallbackIcon:
-                                        Icons.picture_in_picture_alt_rounded,
-                                    tooltip: widget.config.text.miniPlayerText,
-                                    onTap: widget.onOpenPip,
-                                    size: 20,
-                                  ),
-                                if (showFullscreen)
-                                  YouTubeDesktopStyleButton(
-                                    playerIcon: widget
-                                        .config.style.icons.exitFullscreenIcon,
-                                    fallbackIcon: Icons.fullscreen_exit_rounded,
-                                    tooltip:
-                                        widget.config.text.exitFullscreenText,
-                                    onTap: widget.onToggleFullscreen,
-                                    size: 21,
-                                  ),
+                                YouTubeDesktopStyleButton(
+                                  playerIcon: widget
+                                      .config.style.icons.exitFullscreenIcon,
+                                  fallbackIcon: Icons.fullscreen_exit_rounded,
+                                  tooltip:
+                                      widget.config.text.exitFullscreenText,
+                                  onTap: widget.onToggleFullscreen,
+                                  size: 21,
+                                ),
                               ],
                             ),
                           ),

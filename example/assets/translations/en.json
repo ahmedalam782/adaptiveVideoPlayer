@@ -34,5 +34,11 @@
   "video_load_failed": "Failed to load video",
   "video_unavailable": "Video unavailable",
   "video_not_compatible": "Video format not compatible",
-  "video_security_policy_error": "Video cannot be loaded due to security policy"
+  "video_security_policy_error": "Video cannot be loaded due to security policy",
+  "episodes": "Episodes",
+  "next_episode": "Next Episode",
+  "audio": "Audio",
+  "now_playing": "Now Playing",
+  "audio_description": "Audio Description",
+  "audio_and_subtitles": "Audio & Subtitles"
 }

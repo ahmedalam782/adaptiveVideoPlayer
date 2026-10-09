@@ -32,20 +32,36 @@ class _VideoPlayerState extends State<VideoPlayer> {
   void initState() {
     super.initState();
     _playerId = widget.controller.playerId;
-    widget.controller.addListener(_controllerDidUpdateValue);
+    if (!widget.controller.isDisposed) {
+      try {
+        widget.controller.addListener(_controllerDidUpdateValue);
+      } catch (_) {}
+    }
   }
 
   @override
   void didUpdateWidget(VideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    oldWidget.controller.removeListener(_controllerDidUpdateValue);
+    if (!oldWidget.controller.isDisposed) {
+      try {
+        oldWidget.controller.removeListener(_controllerDidUpdateValue);
+      } catch (_) {}
+    }
     _playerId = widget.controller.playerId;
-    widget.controller.addListener(_controllerDidUpdateValue);
+    if (!widget.controller.isDisposed) {
+      try {
+        widget.controller.addListener(_controllerDidUpdateValue);
+      } catch (_) {}
+    }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_controllerDidUpdateValue);
+    if (!widget.controller.isDisposed) {
+      try {
+        widget.controller.removeListener(_controllerDidUpdateValue);
+      } catch (_) {}
+    }
     super.dispose();
   }
 

@@ -45,6 +45,21 @@ class AdaptiveVideoPlayerPlatform {
         setEnvironmentVariable(name, value);
         calloc.free(name);
         calloc.free(value);
+
+        // Set dedicated user data folder in LocalAppData/Temp to prevent locks on Hot Restart
+        // and avoid write permission issues in application directory.
+        final localAppData = Platform.environment['LOCALAPPDATA'] ??
+            Platform.environment['TEMP'] ??
+            Directory.systemTemp.path;
+        final userDataDir = '$localAppData\\AdaptiveVideoPlayer_WebView2';
+        try {
+          Directory(userDataDir).createSync(recursive: true);
+        } catch (_) {}
+        final uName = 'WEBVIEW2_USER_DATA_FOLDER'.toNativeUtf16();
+        final uValue = userDataDir.toNativeUtf16();
+        setEnvironmentVariable(uName, uValue);
+        calloc.free(uName);
+        calloc.free(uValue);
       } catch (_) {}
     }
 

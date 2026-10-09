@@ -89,5 +89,13 @@ void main() {
       expect(config.isFile, true);
       expect(config.videoUrl, '/path/to/local/video.mp4');
     });
+
+    test('enableCache defaults to false and copyWith updates it', () {
+      const config = VideoConfig(videoUrl: 'https://example.com/video.mp4');
+      expect(config.enableCache, false);
+
+      final withCache = config.copyWith(enableCache: true);
+      expect(withCache.enableCache, true);
+    });
   });
 }

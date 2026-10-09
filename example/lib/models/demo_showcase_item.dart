@@ -23,4 +23,7 @@ class StudioSource {
     required this.features,
     required this.config,
   });
+
+  bool get isYouTube => config.isYouTube;
+  String get videoUrl => config.videoUrl;
 }

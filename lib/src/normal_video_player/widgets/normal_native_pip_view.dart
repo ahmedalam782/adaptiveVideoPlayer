@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../youtube_player/models/player_text_config.dart';
+import '../utils/fullscreen_utils_export.dart';
 import '../utils/video_player_web_safe.dart';
 import 'pip_playback_chrome.dart';
 
@@ -52,6 +53,10 @@ class NormalNativePipView extends StatelessWidget {
               onPlayPause: onPlayPause,
               onSeekBackward: onSeekBackward,
               onSeekForward: onSeekForward,
+              onDragUpdate: (details) => moveDesktopPipWindow(
+                details.delta.dx.round(),
+                details.delta.dy.round(),
+              ),
             ),
           ],
         );

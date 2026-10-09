@@ -34,5 +34,11 @@
   "video_load_failed": "Fehler beim Laden des Videos",
   "video_unavailable": "Video nicht verfügbar",
   "video_not_compatible": "Videoformat nicht kompatibel",
-  "video_security_policy_error": "Video kann aufgrund von Sicherheitsrichtlinien nicht geladen werden"
+  "video_security_policy_error": "Video kann aufgrund von Sicherheitsrichtlinien nicht geladen werden",
+  "episodes": "Folgen",
+  "next_episode": "Nächste Folge",
+  "audio": "Audio",
+  "now_playing": "Wird jetzt abgespielt",
+  "audio_description": "Audiobeschreibung",
+  "audio_and_subtitles": "Audio und Untertitel"
 }

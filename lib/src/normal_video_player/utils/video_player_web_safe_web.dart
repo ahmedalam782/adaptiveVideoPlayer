@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart'
     as platform_interface;
 import 'hls_web_helper.dart';
+import 'playback_error_utils.dart';
 import 'web/web_video_player_models.dart';
 
 export 'package:video_player_platform_interface/video_player_platform_interface.dart'
@@ -42,9 +43,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   bool _isDisposed = false;
   StreamSubscription<dynamic>? _eventSubscription;
   Timer? _timer;
+  Future<void>? _pendingPlayOperation;
+  int _playPauseSequence = 0;
 
   /// The texture / player ID on the platform backend.
   int get playerId => _playerId;
+
+  /// Whether this controller has been disposed.
+  bool get isDisposed => _isDisposed;
 
   /// Construct a controller for network URLs.
   VideoPlayerController.networkUrl(
@@ -151,7 +157,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           }
           _applyLooping();
           _applyVolume();
-          _applyPlayPause();
+          if (value.isPlaying) {
+            _applyPlayPause();
+          }
           break;
         case platform_interface.VideoEventType.completed:
           pause().then((_) => seekTo(value.duration));
@@ -183,6 +191,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     void errorListener(Object obj) {
       final message = obj is PlatformException ? obj.message : obj.toString();
+      if (isBenignPlaybackError(message)) {
+        return;
+      }
       value = VideoPlayerValue.erroneous(message ?? 'Unknown error');
       _timer?.cancel();
       if (!initializingCompleter.isCompleted) {
@@ -195,6 +206,24 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         .listen(eventListener, onError: errorListener);
 
     return initializingCompleter.future;
+  }
+
+  @override
+  void addListener(VoidCallback listener) {
+    if (_isDisposed) return;
+    super.addListener(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    if (_isDisposed) return;
+    super.removeListener(listener);
+  }
+
+  @override
+  void notifyListeners() {
+    if (_isDisposed) return;
+    super.notifyListeners();
   }
 
   @override
@@ -224,12 +253,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyPlayPause();
   }
 
-  /// Seeks to a position in the video.
+  /// Seeks to a position in the video safely clamped within valid bounds.
   Future<void> seekTo(Duration position) async {
     if (_playerId == -1) return;
+    Duration target = position.isNegative ? Duration.zero : position;
+    if (value.isInitialized && value.duration > Duration.zero && target > value.duration) {
+      target = value.duration;
+    }
     await platform_interface.VideoPlayerPlatform.instance
-        .seekTo(_playerId, position);
-    _updatePosition(position);
+        .seekTo(_playerId, target);
+    _updatePosition(target);
   }
 
   /// Sets video playback volume.
@@ -266,9 +299,27 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   Future<void> _applyPlayPause() async {
-    if (_playerId == -1) return;
+    if (_playerId == -1 || _isDisposed) return;
+    final int currentSeq = ++_playPauseSequence;
+
     if (value.isPlaying) {
-      await platform_interface.VideoPlayerPlatform.instance.play(_playerId);
+      try {
+        final playFuture =
+            platform_interface.VideoPlayerPlatform.instance.play(_playerId);
+        _pendingPlayOperation = playFuture;
+        await playFuture;
+      } catch (e) {
+        if (!isBenignPlaybackError(e.toString())) {
+          rethrow;
+        }
+      } finally {
+        _pendingPlayOperation = null;
+      }
+
+      if (_isDisposed || currentSeq != _playPauseSequence || !value.isPlaying) {
+        return;
+      }
+
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
         if (_isDisposed) return;
@@ -280,7 +331,29 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           .setPlaybackSpeed(_playerId, value.playbackSpeed);
     } else {
       _timer?.cancel();
-      await platform_interface.VideoPlayerPlatform.instance.pause(_playerId);
+
+      // If a play() request is currently in-flight, await its completion before pausing.
+      // This is the official Chrome-recommended pattern to prevent
+      // "The play() request was interrupted by a call to pause()".
+      if (_pendingPlayOperation != null) {
+        try {
+          await _pendingPlayOperation;
+        } catch (_) {
+          // Play was interrupted or failed; video is already stopped.
+        }
+      }
+
+      if (_isDisposed || currentSeq != _playPauseSequence || value.isPlaying) {
+        return;
+      }
+
+      try {
+        await platform_interface.VideoPlayerPlatform.instance.pause(_playerId);
+      } catch (e) {
+        if (!isBenignPlaybackError(e.toString())) {
+          rethrow;
+        }
+      }
     }
   }
 

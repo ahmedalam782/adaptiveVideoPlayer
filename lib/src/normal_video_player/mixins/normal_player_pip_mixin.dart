@@ -99,7 +99,7 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
   }
 
   void openMiniPlayer() async {
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isWindows)) {
       final entered = await NativePipService.enterPip();
       if (entered) return;
     }

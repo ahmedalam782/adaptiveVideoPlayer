@@ -22,17 +22,23 @@ class HlsJsConstants {
         var videos = document.querySelectorAll('video');
         for (var i = 0; i < videos.length; i++) {
           var v = videos[i];
-          if (v.getAttribute('$hlsAttachedAttribute') === 'true') continue;
-          
+          if (v._hlsSource === sourceUrl) continue;
+
           // Safari supports HLS natively; do not attach hls.js
-          if (v.canPlayType && v.canPlayType('application/vnd.apple.mpegurl')) {
+          if (v.canPlayType && (v.canPlayType('application/vnd.apple.mpegurl') === 'probably' || v.canPlayType('application/vnd.apple.mpegurl') === 'maybe')) {
+            v._hlsSource = sourceUrl;
             v.setAttribute('$hlsAttachedAttribute', 'native');
             return;
           }
-          
+
           // Non-Safari browsers (Chrome, Edge, Firefox): attach Hls.js
           if (window.Hls && window.Hls.isSupported()) {
             try {
+              if (v._hlsInstance) {
+                try { v._hlsInstance.destroy(); } catch (_) {}
+                v._hlsInstance = null;
+              }
+              v.removeAttribute('src');
               var hls = new window.Hls({
                 enableWorker: true,
                 lowLatencyMode: true,
@@ -42,13 +48,14 @@ class HlsJsConstants {
               hls.attachMedia(v);
               v.setAttribute('$hlsAttachedAttribute', 'true');
               v._hlsInstance = hls;
+              v._hlsSource = sourceUrl;
               return;
             } catch(err) {
               console.warn('[AdaptiveVideoPlayer Web HLS] Error attaching Hls.js:', err);
             }
           }
         }
-        if (attempts++ < 40) {
+        if (attempts++ < 60) {
           setTimeout(tryAttachHls, 100);
         }
       }

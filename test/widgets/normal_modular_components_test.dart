@@ -2,7 +2,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_video_player/src/youtube_player/models/player_text_config.dart';
+import 'package:adaptive_video_player/src/youtube_player/models/player_visibility_config.dart';
 import 'package:adaptive_video_player/src/normal_video_player/coordinator/normal_fullscreen_coordinator.dart';
+import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_top_bar.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_bottom_bar.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_center_play_pause.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_player_settings_sheet.dart';
@@ -639,6 +641,39 @@ void main() {
       expect(receivedDetails!.primaryDelta, isNull);
 
       await gesture.up();
+    });
+
+    testWidgets('AdaptiveTopBar renders top-end actions when showActionsInTopBar is true', (tester) async {
+      bool settingsPressed = false;
+      bool speedPressed = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AdaptiveTopBar(
+              isFullScreen: false,
+              visibility: const PlayerVisibilityConfig(
+                showActionsInTopBar: true,
+                showSettingsButton: true,
+                showSpeedButton: true,
+              ),
+              onSettingsPressed: () => settingsPressed = true,
+              onSpeedPressed: () => speedPressed = true,
+            ),
+          ),
+        ),
+      );
+
+      // Verify that settings and speed circle pill buttons are found in the top bar
+      final settingsFinder = find.byTooltip('Player Settings');
+      expect(settingsFinder, findsOneWidget);
+      await tester.tap(settingsFinder);
+      expect(settingsPressed, isTrue);
+
+      final speedFinder = find.byTooltip('Playback Speed');
+      expect(speedFinder, findsOneWidget);
+      await tester.tap(speedFinder);
+      expect(speedPressed, isTrue);
     });
   });
 }
