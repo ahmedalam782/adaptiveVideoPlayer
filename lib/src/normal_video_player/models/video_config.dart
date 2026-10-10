@@ -123,6 +123,15 @@ class VideoConfig {
   /// instant startup on subsequent playbacks and offline viewing. Defaults to `false`.
   final bool enableCache;
 
+  /// Whether to prevent screen recording and screenshots.
+  ///
+  /// When set to `true`, native OS security protections are engaged (such as
+  /// Android `FLAG_SECURE` and Windows `SetWindowDisplayAffinity(WDA_MONITOR)`),
+  /// causing the window/player to appear as a black surface in screenshots and screen recordings.
+  /// When set to `false`, screen capturing functions normally.
+  /// Defaults to `false`.
+  final bool preventScreenCapture;
+
   /// Complete player configuration using YouTube models
   final YouTubePlayerConfig playerConfig;
 
@@ -158,6 +167,7 @@ class VideoConfig {
     this.onAudioTrackSelected,
     this.preloadedController,
     this.enableCache = false,
+    this.preventScreenCapture = false,
     this.playerConfig = const YouTubePlayerConfig(),
   });
 
@@ -203,6 +213,7 @@ class VideoConfig {
     void Function(AudioTrack audioTrack)? onAudioTrackSelected,
     VideoPlayerController? preloadedController,
     bool? enableCache,
+    bool? preventScreenCapture,
     YouTubePlayerConfig? playerConfig,
   }) {
     return VideoConfig(
@@ -238,6 +249,7 @@ class VideoConfig {
       onAudioTrackSelected: onAudioTrackSelected ?? this.onAudioTrackSelected,
       preloadedController: preloadedController ?? this.preloadedController,
       enableCache: enableCache ?? this.enableCache,
+      preventScreenCapture: preventScreenCapture ?? this.preventScreenCapture,
       playerConfig: playerConfig ?? this.playerConfig,
     );
   }

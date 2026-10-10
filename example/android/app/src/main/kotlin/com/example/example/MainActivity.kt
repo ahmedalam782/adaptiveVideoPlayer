@@ -1,11 +1,14 @@
 package com.example.example
 
+import android.app.PendingIntent
 import android.app.PictureInPictureParams
+import android.app.RemoteAction
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Rational
 import android.view.WindowManager
@@ -24,7 +27,8 @@ class MainActivity : FlutterActivity() {
     private val pipReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == ACTION_PIP_CONTROL) {
-                pipChannel?.invokeMethod("onPipAction", "toggle_play")
+                val action = intent.getStringExtra("action") ?: "toggle_play"
+                pipChannel?.invokeMethod("onPipAction", action)
             }
         }
     }
@@ -74,6 +78,22 @@ class MainActivity : FlutterActivity() {
             }
         }
 
+        val securityChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "adaptive_video_player/security")
+        securityChannel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setSecureMode" -> {
+                    val enabled = call.argument<Boolean>("enabled") ?: false
+                    if (enabled) {
+                        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    } else {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    }
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
         val filter = IntentFilter(ACTION_PIP_CONTROL)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(pipReceiver, filter, Context.RECEIVER_EXPORTED)
@@ -93,7 +113,54 @@ class MainActivity : FlutterActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val builder = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(16, 9))
-                .setActions(emptyList())
+
+            val actions = ArrayList<RemoteAction>()
+
+            // 1. Rewind 10s
+            val rewindIntent = Intent(ACTION_PIP_CONTROL).apply {
+                setPackage(packageName)
+                putExtra("action", "seek_backward")
+            }
+            val rewindPendingIntent = PendingIntent.getBroadcast(
+                this,
+                101,
+                rewindIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
+            )
+            val rewindIcon = Icon.createWithResource(this, android.R.drawable.ic_media_rew)
+            actions.add(RemoteAction(rewindIcon, "Rewind 10s", "Rewind 10s", rewindPendingIntent))
+
+            // 2. Play / Pause
+            val playPauseIntent = Intent(ACTION_PIP_CONTROL).apply {
+                setPackage(packageName)
+                putExtra("action", "toggle_play")
+            }
+            val playPausePendingIntent = PendingIntent.getBroadcast(
+                this,
+                102,
+                playPauseIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
+            )
+            val iconRes = if (isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+            val title = if (isPlaying) "Pause" else "Play"
+            val playPauseIcon = Icon.createWithResource(this, iconRes)
+            actions.add(RemoteAction(playPauseIcon, title, title, playPausePendingIntent))
+
+            // 3. Fast Forward 10s
+            val forwardIntent = Intent(ACTION_PIP_CONTROL).apply {
+                setPackage(packageName)
+                putExtra("action", "seek_forward")
+            }
+            val forwardPendingIntent = PendingIntent.getBroadcast(
+                this,
+                103,
+                forwardIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
+            )
+            val forwardIcon = Icon.createWithResource(this, android.R.drawable.ic_media_ff)
+            actions.add(RemoteAction(forwardIcon, "Forward 10s", "Forward 10s", forwardPendingIntent))
+
+            builder.setActions(actions)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 builder.setAutoEnterEnabled(pipEnabled)

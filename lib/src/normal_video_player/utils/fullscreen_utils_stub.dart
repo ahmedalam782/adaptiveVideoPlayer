@@ -9,4 +9,5 @@ void moveDesktopPipWindow(int deltaX, int deltaY) {}
 void exitDesktopPipMode() {}
 bool isDesktopPipMode() => false;
 void restoreDesktopWindowIfStuckInPip() {}
+void applyDesktopScreenProtection(bool enabled) {}
 

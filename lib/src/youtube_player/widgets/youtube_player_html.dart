@@ -133,6 +133,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         var autoplayFlag = 0;
         var muteFlag = 0;
         var startAtFlag = 0;
+        var controlsFlag = 1;
         var langFlag = 'en';
         var dirFlag = 'ltr';
         var timeUpdateInterval = null;
@@ -147,7 +148,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                     if (!existing) {
                         var st = document.createElement('style');
                         st.id = styleId;
-                        st.innerHTML = '.ytp-progress-bar-container, .ytp-progress-bar { transform: scaleX(-1) !important; }';
+                        st.textContent = '.ytp-progress-bar-container, .ytp-progress-bar { transform: scaleX(-1) !important; }';
                         (document.head || document.documentElement).appendChild(st);
                     }
                 } else if (existing) {
@@ -202,11 +203,14 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             timeUpdateInterval = setInterval(sendTimeUpdate, 500);
         }
 
-        function initPlayer(vid, autoplay, mute, startSeconds, lang, dir) {
+        function initPlayer(vid, autoplay, mute, startSeconds, lang, dir, controls) {
             videoId = vid;
             autoplayFlag = autoplay;
             muteFlag = mute;
             startAtFlag = startSeconds || 0;
+            if (controls !== undefined && controls !== null) {
+                controlsFlag = controls;
+            }
             if (lang) {
                 langFlag = (typeof lang === 'string' && lang.trim().length > 0) ? lang.trim() : 'en';
                 dirFlag = (dir === 'rtl' || langFlag === 'ar' || langFlag === 'he' || langFlag === 'fa' || langFlag === 'ur') ? 'rtl' : 'ltr';
@@ -238,7 +242,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 'autoplay': autoplayFlag,
                 'mute': muteFlag,
                 'playsinline': 1,
-                'controls': 1,
+                'controls': controlsFlag,
                 'fs': 0,
                 'rel': 0,
                 'cc_load_policy': 0,

@@ -7,6 +7,7 @@ import 'src/core/di/player_scope.dart';
 import 'src/core/factory/player_controller_factory.dart';
 import 'src/core/services/analytics_service.dart';
 import 'src/core/services/fullscreen_service.dart';
+import 'src/core/services/screen_protection_service.dart';
 import 'src/normal_video_player/models/video_config.dart';
 import 'src/normal_video_player/normal_video_player.dart';
 import 'src/youtube_player/utils/player_utils.dart';
@@ -36,6 +37,7 @@ export 'src/core/services/analytics_service.dart';
 export 'src/core/services/fullscreen_service.dart';
 export 'src/core/services/native_pip_service.dart';
 export 'src/core/services/adaptive_video_preloader.dart';
+export 'src/core/services/screen_protection_service.dart';
 export 'src/normal_video_player/adaptive_controls.dart'
     show AdaptiveControlsBuilder, SubtitleBuilder;
 export 'src/normal_video_player/models/video_config.dart';
@@ -121,10 +123,24 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
         widget.config.analyticsService ??
         CallbackAnalyticsService(widget.config.onAnalyticsEvent);
     _detectVideoType();
+    if (widget.config.preventScreenCapture) {
+      ScreenProtectionService.registerOwner(this);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AdaptiveVideoPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.config.preventScreenCapture !=
+        widget.config.preventScreenCapture) {
+      ScreenProtectionService.setEnabledFor(
+          this, widget.config.preventScreenCapture);
+    }
   }
 
   @override
   void dispose() {
+    ScreenProtectionService.unregisterOwner(this);
     _fullscreenService.dispose();
     super.dispose();
   }

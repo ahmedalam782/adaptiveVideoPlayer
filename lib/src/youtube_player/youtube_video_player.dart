@@ -387,6 +387,7 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
         videoId: _videoId!,
         config: effectiveConfig,
         fullscreenManager: _desktopFullscreenManager,
+        aspectRatio: widget.aspectRatio,
         isLive: widget.isLive,
         viewerCount: widget.viewerCount,
         liveBadgeBuilder: widget.liveBadgeBuilder,

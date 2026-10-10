@@ -1,5 +1,9 @@
+import 'dart:developer';
+import 'dart:io';
+
 import 'win32_desktop_pip_service.dart';
 import 'win32_fullscreen_service.dart';
+import 'win32_window_ffi.dart';
 
 export 'win32_desktop_pip_service.dart';
 export 'win32_fullscreen_service.dart';
@@ -36,3 +40,19 @@ bool isDesktopPipMode() => Win32DesktopPipService.isPipMode;
 /// Restores the desktop window if it was left in a compact PiP state across Hot Restarts.
 void restoreDesktopWindowIfStuckInPip() =>
     Win32DesktopPipService.restoreIfStuckInPip();
+
+/// Applies or removes native Win32 screen protection (SetWindowDisplayAffinity).
+void applyDesktopScreenProtection(bool enabled) {
+  if (!Platform.isWindows) return;
+  try {
+    final user32 = getUser32();
+    if (user32 == null) return;
+    final hwnd = findFlutterWindow(user32);
+    if (hwnd == 0) return;
+    final affinity = enabled ? wdaMonitor : wdaNone;
+    setDisplayAffinity(user32, hwnd, affinity);
+  } catch (e) {
+    log('applyDesktopScreenProtection error: $e');
+  }
+}
+

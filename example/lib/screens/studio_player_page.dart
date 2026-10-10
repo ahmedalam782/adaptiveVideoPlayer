@@ -35,6 +35,7 @@ class _StudioStageState extends State<StudioStage> {
   bool _loop = false;
   bool _mute = false;
   bool _enableCache = true;
+  bool _preventScreenCapture = false;
   Color _background = const Color(0xFF000000);
   Color _topColor = const Color(0xCC000000);
   Color _barColor = const Color(0xCC1B313F);
@@ -104,8 +105,9 @@ class _StudioStageState extends State<StudioStage> {
       _ => source.viewerCount,
     };
 
-    final isYouTube =
-        widget.source.id.startsWith('youtube') || source.isYouTube;
+    final isYouTube = widget.source.id.startsWith('youtube') ||
+        widget.source.id.startsWith('yt_') ||
+        source.isYouTube;
     final effectiveControlsBg = isYouTube ? const Color(0x6C000000) : _barColor;
     final effectiveTextColor = isYouTube ? Colors.white : _iconColor;
     final effectiveIconColor = isYouTube ? Colors.white : _iconColor;
@@ -115,6 +117,7 @@ class _StudioStageState extends State<StudioStage> {
       isFile: source.isFile,
       isLive: source.isLive,
       enableCache: _enableCache,
+      preventScreenCapture: _preventScreenCapture,
       videoBytes: source.videoBytes,
       qualities: source.qualities,
       initialQuality: source.initialQuality,
@@ -166,7 +169,8 @@ class _StudioStageState extends State<StudioStage> {
     final source = widget.source;
     final lang = LanguagePickerSheet.getLanguage(widget.currentLanguageCode);
     final config = _buildConfig(lang.isRtl);
-    final identity = '${source.id}|$_autoPlay|$_loop|$_mute|$_videoFit';
+    final identity =
+        '${source.id}|$_autoPlay|$_loop|$_mute|$_videoFit|${_visibility.showControls}';
     if (identity != _playerIdentity) {
       _playerIdentity = identity;
       _playerKey = GlobalKey();
@@ -217,6 +221,50 @@ class _StudioStageState extends State<StudioStage> {
             ],
           ),
         ),
+        if (source.id.startsWith('yt_') || source.config.isYouTube) ...[
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0x1DEF4444),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0x35EF4444)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.play_circle_outline_rounded,
+                      color: Color(0xFFEF4444), size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _autoPlay
+                          ? 'YouTube Autoplay is active. Playing automatically.'
+                          : 'Tap video to play, or tap "Autoplay ON" for zero-click start.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: widget.isDark ? Colors.white70 : const Color(0xFF334155),
+                      ),
+                    ),
+                  ),
+                  if (!_autoPlay)
+                    FilledButton.tonal(
+                      style: FilledButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        backgroundColor: const Color(0xFFEF4444),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => setState(() => _autoPlay = true),
+                      child: const Text('Autoplay ON',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         _Panel(
           isDark: widget.isDark,
@@ -500,6 +548,26 @@ class _StudioStageState extends State<StudioStage> {
                     isDark: widget.isDark,
                     onTap: () => setState(() => _enableCache = !_enableCache),
                   ),
+                  _Choice(
+                    label: 'Anti-capture shield',
+                    selected: _preventScreenCapture,
+                    accent: source.accentColor,
+                    isDark: widget.isDark,
+                    onTap: () => setState(
+                        () => _preventScreenCapture = !_preventScreenCapture),
+                  ),
+                  if (widget.source.id.startsWith('yt_') || source.isYouTube)
+                    _Choice(
+                      label: _visibility.showControls
+                          ? 'YouTube Controls: Web'
+                          : 'YouTube Controls: Clean',
+                      selected: !_visibility.showControls,
+                      accent: source.accentColor,
+                      isDark: widget.isDark,
+                      onTap: () => setState(() => _visibility = _visibility.copyWith(
+                            showControls: !_visibility.showControls,
+                          )),
+                    ),
                 ],
               ),
             ],

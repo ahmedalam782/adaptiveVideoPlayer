@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -78,6 +79,9 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final inNativePip = NativePipService.isInPip.value;
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
     final showPipButton = !inNativePip && (isHovered || !isPlaying);
     final showMini = !fullscreenManager.isInPip &&
         !inNativePip &&
@@ -148,35 +152,83 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                   final baseBottom = config.style.bottomBarMargin != null &&
                           config.style.bottomBarMargin is EdgeInsets
                       ? (config.style.bottomBarMargin as EdgeInsets).bottom
-                      : (fullscreenManager.isInFullscreen ? 85.0 : 85.0);
+                      : (isMobile
+                          ? 12.0
+                          : (fullscreenManager.isInFullscreen ? 24.0 : 45.0));
 
                   final responsiveBottom = letterboxBottom + baseBottom;
-                  final responsiveRight = pillarboxSide + 6.0;
+                  final responsiveRight =
+                      pillarboxSide + (isMobile ? 12.0 : 12.0);
                   return Stack(
                     alignment: Alignment.center,
                     children: [
-                      IgnorePointer(
-                        ignoring: inNativePip,
-                        child: YouTubeWebViewPlayer(
-                          key: desktopWebViewKey,
-                          videoId: videoId,
-                          config: config,
-                          startAt: fullscreenManager.currentPositionSeconds,
-                          autoPlay: (fullscreenManager.wasPlaying == true ||
-                              fullscreenManager.isInPip),
-                          onPositionUpdate: onPositionUpdate,
-                          onPlayingStateChanged: onPlayingStateChanged,
-                          onReady: onReady,
-                          onEnded: onEnded,
-                          onEnterFullscreen: onOpenFullscreen,
-                          onExitFullscreen: fullscreenManager.closeFullscreen,
-                          onSeekForward: () => onTriggerSeekFeedback(1),
-                          onSeekBackward: () => onTriggerSeekFeedback(-1),
-                          onToggleFullscreen: onToggleFullscreen,
-                          onTouchActivity: onMouseActivity,
-                          onControlsVisibilityChanged:
-                              onControlsVisibilityChanged,
-                        ),
+                      Center(
+                        child: (isCover ||
+                                (!constraints.maxWidth.isFinite &&
+                                    !constraints.maxHeight.isFinite))
+                            ? SizedBox.expand(
+                                child: IgnorePointer(
+                                  ignoring: inNativePip,
+                                  child: YouTubeWebViewPlayer(
+                                    key: desktopWebViewKey,
+                                    videoId: videoId,
+                                    config: config,
+                                    startAt: fullscreenManager
+                                        .currentPositionSeconds,
+                                    autoPlay: (fullscreenManager.wasPlaying ==
+                                            true ||
+                                        fullscreenManager.isInPip),
+                                    onPositionUpdate: onPositionUpdate,
+                                    onPlayingStateChanged:
+                                        onPlayingStateChanged,
+                                    onReady: onReady,
+                                    onEnded: onEnded,
+                                    onEnterFullscreen: onOpenFullscreen,
+                                    onExitFullscreen:
+                                        fullscreenManager.closeFullscreen,
+                                    onSeekForward: () =>
+                                        onTriggerSeekFeedback(1),
+                                    onSeekBackward: () =>
+                                        onTriggerSeekFeedback(-1),
+                                    onToggleFullscreen: onToggleFullscreen,
+                                    onTouchActivity: onMouseActivity,
+                                    onControlsVisibilityChanged:
+                                        onControlsVisibilityChanged,
+                                  ),
+                                ),
+                              )
+                            : AspectRatio(
+                                aspectRatio: targetAspect,
+                                child: IgnorePointer(
+                                  ignoring: inNativePip,
+                                  child: YouTubeWebViewPlayer(
+                                    key: desktopWebViewKey,
+                                    videoId: videoId,
+                                    config: config,
+                                    startAt: fullscreenManager
+                                        .currentPositionSeconds,
+                                    autoPlay: (fullscreenManager.wasPlaying ==
+                                            true ||
+                                        fullscreenManager.isInPip),
+                                    onPositionUpdate: onPositionUpdate,
+                                    onPlayingStateChanged:
+                                        onPlayingStateChanged,
+                                    onReady: onReady,
+                                    onEnded: onEnded,
+                                    onEnterFullscreen: onOpenFullscreen,
+                                    onExitFullscreen:
+                                        fullscreenManager.closeFullscreen,
+                                    onSeekForward: () =>
+                                        onTriggerSeekFeedback(1),
+                                    onSeekBackward: () =>
+                                        onTriggerSeekFeedback(-1),
+                                    onToggleFullscreen: onToggleFullscreen,
+                                    onTouchActivity: onMouseActivity,
+                                    onControlsVisibilityChanged:
+                                        onControlsVisibilityChanged,
+                                  ),
+                                ),
+                              ),
                       ),
                       AdaptiveSeekFeedbackOverlay(
                         seekDirection: seekDirection,
@@ -214,14 +266,16 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                               child: Directionality(
                                 textDirection: effectiveDir,
                                 child: Container(
-                                  height: 36,
+                                  height: 38,
                                   margin: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
-                                  padding: const EdgeInsets.symmetric(
                                       horizontal: 4.0),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6.0),
                                   decoration: BoxDecoration(
-                                    color: const Color(0x6C000000),
-                                    borderRadius: BorderRadius.circular(18),
+                                    color: const Color(0xCC000000),
+                                    borderRadius: BorderRadius.circular(19),
+                                    border: Border.all(
+                                        color: Colors.white24, width: 0.8),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -262,7 +316,7 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                             ),
                           ),
                         ),
-                      if (inNativePip)
+                      if (inNativePip && !isMobile)
                         Positioned.fill(
                           child: PipPlaybackChrome(
                             isPlaying: isPlaying,

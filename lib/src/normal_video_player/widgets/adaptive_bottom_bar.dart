@@ -135,7 +135,6 @@ class AdaptiveBottomBar extends StatelessWidget {
       textDirection: textDirection,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 640;
           final isCompact = constraints.maxWidth < 460;
           final defaultStartEnd = isCompact ? 14.0 : 20.0;
           final defaultBottom = isCompact ? 8.0 : 12.0;
@@ -148,6 +147,12 @@ class AdaptiveBottomBar extends StatelessWidget {
               );
           final dynamicMargin = styling?.bottomBarMargin;
 
+          final horizontalPadding =
+              dynamicPadding.resolve(textDirection).horizontal;
+          final availableWidth = (constraints.maxWidth - horizontalPadding)
+              .clamp(0.0, double.infinity);
+          final isWide = availableWidth > 760;
+
           Widget barContent = Padding(
             padding: dynamicPadding,
             child: ValueListenableBuilder(
@@ -159,64 +164,70 @@ class AdaptiveBottomBar extends StatelessWidget {
                 final canShowSkip = showSkipButtons &&
                     effectiveVisibility.showSkipButtons &&
                     !isLive &&
-                    constraints.maxWidth > 650;
+                    availableWidth > 680;
 
                 final canShowVolume = effectiveVisibility.showVolumeButton &&
-                    constraints.maxWidth > 520;
+                    availableWidth > 520;
                 final showTime = showTimestamp &&
                     effectiveVisibility.showTimeDisplay &&
                     !isLive;
                 final inTopBar = effectiveVisibility.showActionsInTopBar;
                 final showFullscreen = showFullscreenHere &&
                     effectiveVisibility.showFullscreenButton;
-                final showSettings = !inTopBar && effectiveVisibility.showSettingsButton;
+                final showSettings =
+                    !inTopBar && effectiveVisibility.showSettingsButton;
                 final canShowMiniPlayer = !inTopBar &&
                     showMiniPlayerHere &&
                     effectiveVisibility.showMiniPlayerButton &&
                     onMiniPlayerPressed != null &&
                     !isFullScreen &&
-                    constraints.maxWidth > 480;
-                final showLoop = !inTopBar && effectiveVisibility.showLoopSetting;
+                    availableWidth > 560;
+                final showLoop = !inTopBar &&
+                    effectiveVisibility.showLoopSetting &&
+                    availableWidth > 860;
                 final showSubtitlesQuick = !inTopBar &&
-                    effectiveVisibility.showCaptionsSetting;
+                    effectiveVisibility.showCaptionsSetting &&
+                    availableWidth > 860;
 
-                final canShowCenteredTitle = effectiveVisibility.showCenteredTitle &&
-                    title != null &&
-                    title!.isNotEmpty &&
-                    constraints.maxWidth > 720;
+                final canShowCenteredTitle =
+                    effectiveVisibility.showCenteredTitle &&
+                        title != null &&
+                        title!.isNotEmpty &&
+                        availableWidth > 750;
 
                 final canShowNextEpisode =
                     effectiveVisibility.showNextEpisodeButton &&
-                    onNextEpisode != null &&
-                    constraints.maxWidth > 450;
+                        onNextEpisode != null &&
+                        availableWidth > 480;
 
                 final canShowEpisodes = !inTopBar &&
                     effectiveVisibility.showEpisodesButton &&
                     episodes != null &&
                     episodes!.isNotEmpty &&
                     onEpisodesPressed != null &&
-                    constraints.maxWidth > 600;
+                    availableWidth > 820;
 
                 final canShowAudioSubtitles = !inTopBar &&
                     effectiveVisibility.showAudioSubtitlesButton &&
                     onAudioSubtitlesPressed != null &&
                     ((audioTracks != null && audioTracks!.isNotEmpty) ||
                         (subtitles != null && subtitles!.isNotEmpty)) &&
-                    constraints.maxWidth > 620;
+                    availableWidth > 780;
 
                 final canShowSpeed = !inTopBar &&
                     effectiveVisibility.showSpeedButton &&
                     onSpeedPressed != null &&
-                    constraints.maxWidth > 560;
+                    availableWidth > 740;
 
-                final hasRightActions = (isWide && (showLoop || showSubtitlesQuick)) ||
-                    canShowNextEpisode ||
-                    canShowEpisodes ||
-                    canShowAudioSubtitles ||
-                    canShowSpeed ||
-                    showSettings ||
-                    canShowMiniPlayer ||
-                    showFullscreen;
+                final hasRightActions =
+                    (isWide && (showLoop || showSubtitlesQuick)) ||
+                        canShowNextEpisode ||
+                        canShowEpisodes ||
+                        canShowAudioSubtitles ||
+                        canShowSpeed ||
+                        showSettings ||
+                        canShowMiniPlayer ||
+                        showFullscreen;
 
                 return Row(
                   children: [
@@ -284,23 +295,26 @@ class AdaptiveBottomBar extends StatelessWidget {
 
                         if (showTime) ...[
                           SizedBox(width: isCompact ? 4 : 8),
-                          // Glassmorphic Time Pill
-                          AdaptiveGlassmorphicContainer(
-                            height: 38,
-                            borderRadius: 24,
-                            blur: 10,
-                            color: _pillColor,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isCompact ? 10.0 : 14.0,
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: (availableWidth * 0.35).clamp(60.0, 180.0),
                             ),
-                            alignment: Alignment.center,
-                            child: AdaptiveDurationDisplay(
-                              position: position,
-                              duration: duration,
-                              isWide: isWide,
-                              styling: styling,
-                              visibility: effectiveVisibility,
-                              chapters: chapters,
+                            child: AdaptiveGlassmorphicContainer(
+                              height: 38,
+                              borderRadius: 24,
+                              blur: 10,
+                              color: _pillColor,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isCompact ? 10.0 : 14.0,
+                              ),
+                              child: AdaptiveDurationDisplay(
+                                position: position,
+                                duration: duration,
+                                isWide: availableWidth > 820,
+                                styling: styling,
+                                visibility: effectiveVisibility,
+                                chapters: chapters,
+                              ),
                             ),
                           ),
                         ],
@@ -327,9 +341,7 @@ class AdaptiveBottomBar extends StatelessWidget {
                     else
                       const Spacer(),
 
-                    if (hasRightActions) ...[
-                      SizedBox(width: isCompact ? 4 : 6),
-
+                    if (hasRightActions)
                       // Glassmorphic Right Action Pill
                       AdaptiveGlassmorphicContainer(
                         height: 38,
@@ -487,7 +499,6 @@ class AdaptiveBottomBar extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ],
                   ],
                 );
               },

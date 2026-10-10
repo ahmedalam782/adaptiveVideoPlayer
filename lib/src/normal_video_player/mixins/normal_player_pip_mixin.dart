@@ -75,6 +75,19 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
         NativePipService.updatePlaybackState(isPlaying: !isPlaying);
         if (mounted) setState(() {});
       }
+    } else if (action == 'seek_backward') {
+      final ctrl = activePipController;
+      if (ctrl != null) {
+        final target = ctrl.value.position - const Duration(seconds: 10);
+        ctrl.seekTo(target < Duration.zero ? Duration.zero : target);
+      }
+    } else if (action == 'seek_forward') {
+      final ctrl = activePipController;
+      if (ctrl != null) {
+        final target = ctrl.value.position + const Duration(seconds: 10);
+        final dur = ctrl.value.duration;
+        ctrl.seekTo(target > dur ? dur : target);
+      }
     }
   }
 

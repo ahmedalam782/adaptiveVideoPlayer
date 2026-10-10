@@ -67,6 +67,10 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
     final action = NativePipService.pipAction.value;
     if (action == 'toggle_play') {
       _togglePlayPause();
+    } else if (action == 'seek_backward') {
+      _seekBy(-10);
+    } else if (action == 'seek_forward') {
+      _seekBy(10);
     }
   }
 

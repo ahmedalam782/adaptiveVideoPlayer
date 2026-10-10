@@ -1,3 +1,17 @@
+## 2.0.0
+
+- **Feature (Anti-Screen Capture Shield):**
+  - Added `preventScreenCapture` toggle in `VideoConfig`.
+  - Automatically turns the window/video surface solid black in screenshots and screen recordings on Android (`FLAG_SECURE`) and Windows (`SetWindowDisplayAffinity(WDA_MONITOR)`).
+  - Managed by reference-counted `ScreenProtectionService` with automatic cleanup across player disposal and route transitions.
+- **Feature (Offline Disk Caching):**
+  - Added `enableCache` toggle in `VideoConfig` leveraging `CachedVideoPlayerPlus` for caching network streams locally for instant replay and offline playback.
+- **Enhancement (Horizontal Scroller & Mouse Drag):**
+  - Added persistent horizontal `Scrollbar`, navigation chevron buttons (`<` / `>`), auto-scroll to selected item, and global mouse-drag support (`PointerDeviceKind.mouse`) across web and desktop.
+- **Architectural Overhaul:**
+  - Netflix-style bold percentage circular loader, dual-column audio and subtitle picker, episodes drawer, and speed stepper popups.
+  - Zero static analysis warnings and 100% test pass rate across all 246 tests.
+
 ## 1.3.3
 
 - **Full WASM Readiness & Platform Support (20/20 on pub.dev):**

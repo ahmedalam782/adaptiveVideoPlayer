@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../youtube_player/models/player_text_config.dart';
@@ -30,6 +31,13 @@ class NormalNativePipView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+    if (isMobile) {
+      return playerView;
+    }
+
     return ValueListenableBuilder<VideoPlayerValue>(
       valueListenable: controller,
       builder: (context, value, _) {

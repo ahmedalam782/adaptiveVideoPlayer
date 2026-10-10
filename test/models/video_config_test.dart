@@ -97,5 +97,14 @@ void main() {
       final withCache = config.copyWith(enableCache: true);
       expect(withCache.enableCache, true);
     });
+
+    test('preventScreenCapture defaults to false and copyWith updates it', () {
+      const config = VideoConfig(videoUrl: 'https://example.com/video.mp4');
+      expect(config.preventScreenCapture, false);
+
+      final withShield = config.copyWith(preventScreenCapture: true);
+      expect(withShield.preventScreenCapture, true);
+    });
   });
+
 }

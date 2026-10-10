@@ -61,6 +61,9 @@ const int hwndTopMost = -1;
 const int hwndNoTopMost = -2;
 const int monitorDefaultToPrimary = 1;
 const int gaRoot = 2;
+const int wdaNone = 0x00000000;
+const int wdaMonitor = 0x00000001;
+const int wdaExcludeFromCapture = 0x00000011;
 
 DynamicLibrary? _user32;
 
@@ -183,5 +186,17 @@ void runWhenSchedulerIdle(void Function() action) {
     }
   } catch (_) {
     action();
+  }
+}
+
+int setDisplayAffinity(DynamicLibrary user32, int hwnd, int affinity) {
+  try {
+    final fn = user32.lookupFunction<
+        Int32 Function(IntPtr, Uint32),
+        int Function(int, int)>('SetWindowDisplayAffinity');
+    return fn(hwnd, affinity);
+  } catch (e) {
+    log('SetWindowDisplayAffinity error: $e');
+    return 0;
   }
 }

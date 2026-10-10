@@ -76,7 +76,11 @@ class YouTubeJsCommands {
     required int startAt,
     required String lang,
     required String dir,
+    int? controls,
   }) {
+    if (controls != null) {
+      return "initPlayer('$videoId', $autoPlay, $mute, $startAt, '$lang', '$dir', $controls);";
+    }
     return "initPlayer('$videoId', $autoPlay, $mute, $startAt, '$lang', '$dir');";
   }
 }
@@ -158,6 +162,8 @@ class YouTubeJsScripts {
           label.indexOf('watch later') !== -1 ||
           label.indexOf('full screen') !== -1 ||
           label.indexOf('fullscreen') !== -1 ||
+          label.indexOf('ملء الشاشة') !== -1 ||
+          label.indexOf('شاشة كاملة') !== -1 ||
           rawHtml.indexOf('copylink') !== -1 ||
           rawHtml.indexOf('copy-link') !== -1 ||
           rawHtml.indexOf('share-button') !== -1 ||
@@ -220,10 +226,10 @@ class YouTubeJsScripts {
       if (!existing) {
         var st = document.createElement('style');
         st.id = styleId;
-        st.innerHTML = css;
+        st.textContent = css;
         (document.head || document.documentElement).appendChild(st);
-      } else if (existing.innerHTML !== css) {
-        existing.innerHTML = css;
+      } else if (existing.textContent !== css) {
+        existing.textContent = css;
       }
     } catch(e) {}
   }

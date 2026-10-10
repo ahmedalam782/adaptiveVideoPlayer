@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../core/services/native_pip_service.dart';
+import '../core/services/screen_protection_service.dart';
 import '../youtube_player/models/youtube_player_config.dart';
 import 'adaptive_controls.dart';
 import 'mixins/normal_player_controller_mixin.dart';
@@ -181,6 +182,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
     );
     initSubtitles();
     initFullscreenCoordinator();
+    if (widget.config.preventScreenCapture) {
+      ScreenProtectionService.registerOwner(this);
+    }
   }
 
   void _initStreamingState() {
@@ -274,6 +278,11 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
     syncQualityOnUpdate(oldWidget);
     syncSubtitlesOnUpdate(oldWidget);
     _syncStreamingStateOnUpdate(oldWidget);
+    if (oldWidget.config.preventScreenCapture !=
+        widget.config.preventScreenCapture) {
+      ScreenProtectionService.setEnabledFor(
+          this, widget.config.preventScreenCapture);
+    }
 
     if (isInFullscreen || isInMiniPlayer) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -298,6 +307,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
 
   @override
   void dispose() {
+    ScreenProtectionService.unregisterOwner(this);
     disposeFullscreenCoordinator();
     handlePipDisposal(() {
       videoPlayerController?.removeListener(_handlePlayerControllerUpdate);

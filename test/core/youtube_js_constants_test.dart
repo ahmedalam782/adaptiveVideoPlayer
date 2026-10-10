@@ -47,6 +47,17 @@ void main() {
         dir: 'ltr',
       );
       expect(init, "initPlayer('abc123xyz', 1, 0, 15, 'en', 'ltr');");
+
+      final initWithControls = YouTubeJsCommands.initPlayer(
+        videoId: 'abc123xyz',
+        autoPlay: 1,
+        mute: 0,
+        startAt: 15,
+        lang: 'en',
+        dir: 'ltr',
+        controls: 0,
+      );
+      expect(initWithControls, "initPlayer('abc123xyz', 1, 0, 15, 'en', 'ltr', 0);");
     });
   });
 

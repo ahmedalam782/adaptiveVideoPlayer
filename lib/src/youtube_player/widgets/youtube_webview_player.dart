@@ -253,8 +253,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         thirdPartyCookiesEnabled: true,
         domStorageEnabled: true,
         allowsPictureInPictureMediaPlayback: false,
-        isElementFullscreenEnabled: false,
-        iframeAllowFullscreen: false,
+        isElementFullscreenEnabled: true,
+        iframeAllowFullscreen: true,
         iframeAllow: YouTubeJsScripts.iframeAllowPermissions,
         userAgent: _usesDesktopUserAgent
             ? YouTubeJsScripts.desktopUserAgent
@@ -403,7 +403,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         final startAt = widget.startAt;
         final (lang, dir) = _resolveLangAndDir(context);
         _currentLang = lang;
-        _currentDir = dir;
+        final showControls = widget.config.visibility.showControls ? 1 : 0;
         controller.evaluateJavascript(
           source: YouTubeJsCommands.initPlayer(
             videoId: widget.videoId,
@@ -412,6 +412,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
             startAt: startAt,
             lang: _currentLang,
             dir: _currentDir,
+            controls: showControls,
           ),
         );
       },

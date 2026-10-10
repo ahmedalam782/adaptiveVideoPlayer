@@ -58,6 +58,8 @@ AdaptiveVideoPlayer(
 - **Timeline Hover & Scrub Timestamp Pill** — shows timestamp and active chapter title above the cursor/thumb with smooth track expansion
 - **Video Chapters (`VideoChapter`)** — segmented progress bar with chapter gap markers and active chapter titles
 - **Hold-to-2x Speed Gesture (`2x ⏩`)** — long-press anywhere on the video to play at `2.0x` speed and release to restore
+- **Anti-Screen Capture & Privacy Shield (`preventScreenCapture: true`)** — prevents screenshots and screen recordings by rendering the window black on Android (`FLAG_SECURE`) and Windows (`SetWindowDisplayAffinity`)
+- **Disk Caching for Offline Playback (`enableCache: true`)** — caches network video streams locally via `CachedVideoPlayerPlus` for instant replay
 - **Picture-in-Picture (PiP) & Background Mini-Player** — native always-on-top OS PiP window on Windows (`HWND_TOPMOST`), native browser PiP on Web (`requestPictureInPicture()`), and persistent draggable in-app Miniplayer across routes with background playback (`allowBackgroundPlayback: true`)
 - **Draggable Floating Settings Dialog** — quality/resolution picker and SRT/VTT subtitle selector
 - **Built-in Arabic (`ar`) & English (`en`) Localization** — automatic settings sheet RTL/LTR localization while preserving standard LTR video timeline and controls
@@ -177,6 +179,43 @@ void main() {
 
 ### 🌐 Web
 No extra permission files needed. Native HTML5 Fullscreen and `requestPictureInPicture()` work out of the box. Ensure direct video hosts have CORS enabled. Fully WASM-compatible.
+
+### 🛡️ Screenshot & Screen Recording Prevention (Anti-Capture Shield)
+To prevent screenshots and screen recordings (rendering the video/window black for DRM or user privacy):
+
+Enable `preventScreenCapture: true`:
+```dart
+AdaptiveVideoPlayer(
+  config: VideoConfig(
+    videoUrl: 'https://example.com/movie.mp4',
+    preventScreenCapture: true, // Black screen on screenshots & recording
+  ),
+);
+```
+
+#### Platform Requirements & Setup:
+- **🪟 Windows Desktop**: **Zero setup and zero permissions needed**. Calls Win32 native `SetWindowDisplayAffinity(hwnd, WDA_MONITOR)` via FFI automatically. Any snipping tool, OBS, or screenshot tool captures a solid black window.
+- **🤖 Android**: **No permissions needed** in `AndroidManifest.xml`. If using custom embedding in `MainActivity.kt`, wire the security channel:
+  ```kotlin
+  // In android/app/src/main/kotlin/.../MainActivity.kt:
+  val securityChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "adaptive_video_player/security")
+  securityChannel.setMethodCallHandler { call, result ->
+      if (call.method == "setSecureMode") {
+          val enabled = call.argument<Boolean>("enabled") ?: false
+          if (enabled) {
+              window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+          } else {
+              window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+          }
+          result.success(true)
+      } else {
+          result.notImplemented()
+      }
+  }
+  ```
+- **🍎 iOS**: **No permissions needed** in `Info.plist`. Optionally wire the method channel in `AppDelegate.swift` to toggle a secure textfield container layer.
+- **🌐 Web**: **Zero setup needed**. Injects a full-viewport DOM shield (`z-index: 2147483647`), binds window `blur` and `visibilitychange` listeners (turning the screen solid black whenever Snipping Tool or screenshot tools steal focus), intercepts `PrintScreen` / `Ctrl+Shift+S`, clears clipboard buffers, and activates `@media print` CSS rules.
+- **🍏 macOS / 🐧 Linux**: Safe graceful fallbacks with zero crashes.
 
 ---
 
@@ -358,6 +397,19 @@ AdaptiveVideoPlayer(
 );
 ```
 
+### 6. Anti-Screen Capture Shield & Offline Disk Cache
+```dart
+AdaptiveVideoPlayer(
+  config: VideoConfig(
+    videoUrl: 'https://example.com/premium_course.mp4',
+    // Prevents screen recording & screenshots (renders black surface on Android & Windows)
+    preventScreenCapture: true,
+    // Caches video stream locally on disk for zero-latency replay and offline viewing
+    enableCache: true,
+  ),
+);
+```
+
 ---
 
 ## 🎛️ Configuration Reference
@@ -378,6 +430,8 @@ AdaptiveVideoPlayer(
 | `chapters` | `List<VideoChapter>?` | `null` | Timeline chapters with gap markers and hover titles |
 | `controlsBuilder` | `AdaptiveControlsBuilder?` | `null` | Custom controls overlay builder |
 | `subtitleBuilder` | `SubtitleBuilder?` | `null` | Custom subtitles UI builder |
+| `enableCache` | `bool` | `false` | Enables disk caching for network videos via `CachedVideoPlayerPlus` |
+| `preventScreenCapture` | `bool` | `false` | When true, renders video/window black in screenshots & screen recordings (DRM/privacy shield) |
 | `onAnalyticsEvent` | `void Function(String, Map<String, dynamic>)?` | `null` | External analytics hook |
 | `playerConfig` | `YouTubePlayerConfig` | `const YouTubePlayerConfig()` | Player style, text, visibility, and playback config |
 

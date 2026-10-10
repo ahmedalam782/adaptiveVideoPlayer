@@ -125,6 +125,7 @@ class _FullFeaturesExampleScreenState extends State<FullFeaturesExampleScreen> {
   BottomBarLayout _bottomBarLayout = BottomBarLayout.inline;
   BoxFit _videoFit = BoxFit.contain;
   bool _enableCache = true;
+  bool _preventScreenCapture = false;
 
   // Active episodes list pointing to real videos
   final List<VideoEpisode> _episodes = const [
@@ -368,12 +369,16 @@ Featuring Netflix circular loader and top-end actions!
         aspectRatio: 16 / 9,
         isLive: active.isLive,
         viewerCount: active.viewerCount,
+        preventScreenCapture: _preventScreenCapture,
         playerConfig: YouTubePlayerConfig(
           style: PlayerStyleConfig(
             bottomBarLayout: _bottomBarLayout,
             videoFit: _videoFit,
             loadingIndicatorColor: const Color(0xFFE50914),
             showLoadingPercentage: true,
+          ),
+          playback: const PlayerPlaybackConfig(
+            autoPlay: true,
           ),
           visibility: PlayerVisibilityConfig(
             showActionsInTopBar: _showActionsInTopBar,
@@ -396,6 +401,7 @@ Featuring Netflix circular loader and top-end actions!
       isLive: active.isLive,
       viewerCount: active.viewerCount,
       enableCache: _enableCache,
+      preventScreenCapture: _preventScreenCapture,
       extension: isHls ? VideoFileExtension.hls : null,
       aspectRatio: 16 / 9,
       episodes: _selectedStreamIndex == 0 ? _episodes : null,
@@ -694,6 +700,24 @@ Featuring Netflix circular loader and top-end actions!
                             onSelected: (val) {
                               setState(() {
                                 _enableCache = val;
+                                _playerKey = UniqueKey();
+                              });
+                            },
+                          ),
+                          FilterChip(
+                            avatar: Icon(
+                              _preventScreenCapture
+                                  ? Icons.shield_rounded
+                                  : Icons.shield_outlined,
+                              size: 16,
+                            ),
+                            label: Text(_preventScreenCapture
+                                ? 'Anti-Capture Shield: ON'
+                                : 'Anti-Capture Shield: OFF'),
+                            selected: _preventScreenCapture,
+                            onSelected: (val) {
+                              setState(() {
+                                _preventScreenCapture = val;
                                 _playerKey = UniqueKey();
                               });
                             },
