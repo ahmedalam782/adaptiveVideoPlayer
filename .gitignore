@@ -44,12 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Root platform build directories
-/android/
-/ios/
-/linux/
-/macos/
-/windows/
+# Root platform build artifacts
+.gradle/
+**/android/.gradle/
+**/android/build/
+**/ios/Pods/
+**/ios/.symlinks/
 
 # Local user recordings & build artifacts
 *.mp4

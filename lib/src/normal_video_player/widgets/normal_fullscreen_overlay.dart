@@ -18,20 +18,27 @@ class NormalFullscreenOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveDirection =
         textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr;
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.escape): () {
-          onExitFullscreen?.call();
-        },
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        onExitFullscreen?.call();
       },
-      child: Focus(
-        autofocus: true,
-        child: Scaffold(
-          backgroundColor: Colors.black,
-          body: Directionality(
-            textDirection: effectiveDirection,
-            child: SizedBox.expand(
-              child: child,
+      child: CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.escape): () {
+            onExitFullscreen?.call();
+          },
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            body: Directionality(
+              textDirection: effectiveDirection,
+              child: SizedBox.expand(
+                child: child,
+              ),
             ),
           ),
         ),

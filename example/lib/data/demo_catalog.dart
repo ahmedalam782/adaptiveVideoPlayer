@@ -43,7 +43,28 @@ const _youtubeNasaLive =
 /// Rich real-world catalog for the studio player showcasing every feature.
 List<StudioSource> studioSources() {
   return [
-    // 0. Cached Stream (CachedVideoPlayerPlus)
+    // 0. Anti-Capture Privacy Shield (DRM & Screen Protection)
+    StudioSource(
+      id: 'anti_capture_shield',
+      label: 'Anti-Capture Shield (DRM)',
+      description:
+          'Hardware-enforced screenshot & screen recording blocking (FLAG_SECURE on Android, SetWindowDisplayAffinity on Windows, DOM focus shield on Web).',
+      icon: Icons.security_rounded,
+      accentColor: const Color(0xFFEF4444),
+      features: const [
+        'Hardware FLAG_SECURE',
+        'Windows WDA_MONITOR Shield',
+        'Blackout on Screenshots & OBS',
+        'Web DOM Focus Obfuscation',
+      ],
+      config: const VideoConfig(
+        videoUrl: _oceansTrailerUrl,
+        title: 'Confidential Stream (Protected by Anti-Capture Shield)',
+        preventScreenCapture: true,
+      ),
+    ),
+
+    // 1. Cached Stream (CachedVideoPlayerPlus)
     StudioSource(
       id: 'cached_bunny',
       label: 'Cached Stream (Disk Cache)',

@@ -47,3 +47,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  plugin:
+    platforms:
+      android:
+        package: com.adaptive.video.player
+        pluginClass: AdaptiveVideoPlayerPlugin
+      ios:
+        pluginClass: AdaptiveVideoPlayerPlugin

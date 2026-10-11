@@ -1,26 +1,25 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:adaptive_video_player/adaptive_video_player.dart';
+import '../widgets/language_picker_sheet.dart';
 
-/// Complete, production-grade example demonstrating EVERY feature in
+/// Complete, production-grade single screen demonstrating EVERY feature in
 /// `adaptive_video_player`.
-///
-/// Features demonstrated:
-/// 1. Unified Player Engine (MP4, HLS, DASH & YouTube)
-/// 2. Netflix-style circular percentage loader with bold percentage readout
-/// 3. Top-bar actions cluster (Settings, PiP, Episodes, Audio/Subs, Speed)
-/// 4. Netflix-style Episodes Drawer with watched progress
-/// 5. Dual-column Audio & Subtitles popup
-/// 6. Playback Speed Stepper with hold-to-2x speed boost
-/// 7. Chapter markers along the scrubbing timeline
-/// 8. Multi-resolution Quality selector
-/// 9. Double-tap gesture seeking (±10s, ±20s, ±30s)
-/// 10. Floating Miniplayer (in-app PiP) & OS-level PiP
-/// 11. Fullscreen toggle & mouse double-click to fullscreen
-/// 12. Real-time Analytics & event logging
 class FullFeaturesExampleScreen extends StatefulWidget {
-  const FullFeaturesExampleScreen({super.key});
+  final bool isDark;
+  final VoidCallback? onToggleTheme;
+  final String? currentLanguageCode;
+  final ValueChanged<String>? onSelectLanguage;
+
+  const FullFeaturesExampleScreen({
+    super.key,
+    this.isDark = true,
+    this.onToggleTheme,
+    this.currentLanguageCode,
+    this.onSelectLanguage,
+  });
 
   @override
   State<FullFeaturesExampleScreen> createState() =>
@@ -273,6 +272,7 @@ Featuring Netflix circular loader and top-end actions!
   @override
   void dispose() {
     _sampleStreamsScrollController.dispose();
+    NativePipService.isInPip.removeListener(_onPipChanged);
     super.dispose();
   }
 
@@ -283,6 +283,11 @@ Featuring Netflix circular loader and top-end actions!
     _currentAudioTrack = _audioTracks.first;
     _currentSubtitleTrack = _subtitles.last;
     _currentQuality = _qualities.first;
+    NativePipService.isInPip.addListener(_onPipChanged);
+  }
+
+  void _onPipChanged() {
+    if (mounted) setState(() {});
   }
 
   void _recordEvent(String event, Map<String, dynamic> data) {
@@ -362,6 +367,14 @@ Featuring Netflix circular loader and top-end actions!
           )
         : _sampleStreams[_selectedStreamIndex];
 
+    final langCode = widget.currentLanguageCode ?? (context.mounted ? context.locale.languageCode : 'en');
+    final isRtl = langCode == 'ar' || langCode == 'ur';
+    final playerText = PlayerTextConfig.tr(
+      (key) => key.tr(),
+      languageCode: langCode,
+      textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+    );
+
     if (active.isYouTube) {
       return VideoConfig(
         videoUrl: active.url,
@@ -371,6 +384,7 @@ Featuring Netflix circular loader and top-end actions!
         viewerCount: active.viewerCount,
         preventScreenCapture: _preventScreenCapture,
         playerConfig: YouTubePlayerConfig(
+          text: playerText,
           style: PlayerStyleConfig(
             bottomBarLayout: _bottomBarLayout,
             videoFit: _videoFit,
@@ -434,6 +448,7 @@ Featuring Netflix circular loader and top-end actions!
       chapters: _chapters,
       onAnalyticsEvent: _recordEvent,
       playerConfig: YouTubePlayerConfig(
+        text: playerText,
         style: PlayerStyleConfig(
           // Netflix Red Arc & Bold Percentage Loader
           loadingIndicatorColor: const Color(0xFFE50914),
@@ -464,13 +479,30 @@ Featuring Netflix circular loader and top-end actions!
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = widget.onToggleTheme != null
+        ? widget.isDark
+        : (theme.brightness == Brightness.dark);
+    final currentLang = LanguagePickerSheet.getLanguage(
+      widget.currentLanguageCode ?? (context.mounted ? context.locale.languageCode : 'en'),
+    );
+
+    if (NativePipService.isInPip.value) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: SizedBox.expand(
+          child: AdaptiveVideoPlayer(
+            key: _playerKey,
+            config: _createVideoConfig(),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'All Features Real Example',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          'Adaptive Video Player',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         elevation: 0,
         actions: [
@@ -487,6 +519,29 @@ Featuring Netflix circular loader and top-end actions!
               );
             },
           ),
+          if (widget.onSelectLanguage != null)
+            IconButton(
+              tooltip: 'Language (${currentLang.code.toUpperCase()})',
+              icon: const Icon(Icons.translate_rounded),
+              onPressed: () {
+                LanguagePickerSheet.show(
+                  context,
+                  currentLanguageCode: currentLang.code,
+                  onLanguageSelected: (lang) =>
+                      widget.onSelectLanguage!(lang.code),
+                );
+              },
+            ),
+          if (widget.onToggleTheme != null)
+            IconButton(
+              tooltip: isDark ? 'Light Theme' : 'Dark Theme',
+              icon: Icon(
+                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                color: isDark ? Colors.amberAccent : Colors.indigo,
+              ),
+              onPressed: widget.onToggleTheme,
+            ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
@@ -537,11 +592,13 @@ Featuring Netflix circular loader and top-end actions!
                             color: theme.colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
-                          const Text(
-                            'Select Video Stream / Preset',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          const Expanded(
+                            child: Text(
+                              'Select Video Stream / Preset',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -636,11 +693,13 @@ Featuring Netflix circular loader and top-end actions!
                             color: theme.colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
-                          const Text(
-                            'Live Configuration Toggles',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          const Expanded(
+                            child: Text(
+                              'Live Configuration Toggles',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -845,11 +904,13 @@ Featuring Netflix circular loader and top-end actions!
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Real-Time Telemetry & Event Logs',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                          const Expanded(
+                            child: Text(
+                              'Real-Time Telemetry & Event Logs',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           if (_eventLogs.isNotEmpty)

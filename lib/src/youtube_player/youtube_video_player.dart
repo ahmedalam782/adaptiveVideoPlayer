@@ -272,36 +272,54 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
         return const SizedBox.shrink();
       }
 
-      return YouTubeWebPlayerView(
-        viewId: webIframeId!,
-        videoId: _videoId!,
-        config: effectiveConfig,
-        aspectRatio: widget.aspectRatio,
-        isLive: widget.isLive,
-        viewerCount: widget.viewerCount,
-        liveBadgeBuilder: widget.liveBadgeBuilder,
-        onOpenPip: openPip,
-        onToggleFullscreen: enterFullScreen,
-        isInFullscreen: isYoutubeWebFullscreen(),
-        onPlay: play,
-        onPause: pause,
-        onMute: mute,
-        onUnMute: unMute,
+      return PopScope(
+        canPop: !isYoutubeWebFullscreen(),
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (isYoutubeWebFullscreen() && webIframeId != null) {
+            toggleYoutubeWebFullscreen(webIframeId!);
+          }
+        },
+        child: YouTubeWebPlayerView(
+          viewId: webIframeId!,
+          videoId: _videoId!,
+          config: effectiveConfig,
+          aspectRatio: widget.aspectRatio,
+          isLive: widget.isLive,
+          viewerCount: widget.viewerCount,
+          liveBadgeBuilder: widget.liveBadgeBuilder,
+          onOpenPip: openPip,
+          onToggleFullscreen: enterFullScreen,
+          isInFullscreen: isYoutubeWebFullscreen(),
+          onPlay: play,
+          onPause: pause,
+          onMute: mute,
+          onUnMute: unMute,
+        ),
       );
     }
 
     // Unified native WebView player on Android, iOS, Windows, macOS, Linux
-    return YouTubeDesktopPlayerView(
-      desktopWebViewKey: _desktopWebViewKey,
-      videoId: _videoId!,
-      config: effectiveConfig,
-      fullscreenManager: _desktopFullscreenManager,
-      aspectRatio: widget.aspectRatio,
-      isLive: widget.isLive,
-      viewerCount: widget.viewerCount,
-      liveBadgeBuilder: widget.liveBadgeBuilder,
-      onReady: () => log('Native YouTube player ready'),
-      onEnded: () => widget.onEnded?.call(),
+    return PopScope(
+      canPop: !_desktopFullscreenManager.isInFullscreen,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_desktopFullscreenManager.isInFullscreen) {
+          _desktopFullscreenManager.closeFullscreen();
+        }
+      },
+      child: YouTubeDesktopPlayerView(
+        desktopWebViewKey: _desktopWebViewKey,
+        videoId: _videoId!,
+        config: effectiveConfig,
+        fullscreenManager: _desktopFullscreenManager,
+        aspectRatio: widget.aspectRatio,
+        isLive: widget.isLive,
+        viewerCount: widget.viewerCount,
+        liveBadgeBuilder: widget.liveBadgeBuilder,
+        onReady: () => log('Native YouTube player ready'),
+        onEnded: () => widget.onEnded?.call(),
+      ),
     );
   }
 

@@ -542,13 +542,22 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       NormalPlayerDisplayMode.normal => playerView,
     };
 
-    return ClipRRect(
-      borderRadius: inNativePip ? BorderRadius.zero : BorderRadius.circular(8),
-      child: Directionality(
-        textDirection: effectiveMessages.resolveTextDirection(context),
-        child: AspectRatio(
-          aspectRatio: resolvedAspectRatio,
-          child: contentChild,
+    return PopScope(
+      canPop: !isInFullscreen,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (isInFullscreen) {
+          _handleCloseFullscreen();
+        }
+      },
+      child: ClipRRect(
+        borderRadius: inNativePip ? BorderRadius.zero : BorderRadius.circular(8),
+        child: Directionality(
+          textDirection: effectiveMessages.resolveTextDirection(context),
+          child: AspectRatio(
+            aspectRatio: resolvedAspectRatio,
+            child: contentChild,
+          ),
         ),
       ),
     );

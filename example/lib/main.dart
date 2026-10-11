@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:adaptive_video_player/adaptive_video_player.dart';
 
-import 'screens/showcase_screen.dart';
+import 'screens/full_features_example_screen.dart';
 import 'widgets/language_picker_sheet.dart';
 
 void main() async {
@@ -89,7 +89,7 @@ class _MyAppState extends State<MyApp> {
           child: child ?? const SizedBox(),
         );
       },
-      home: ShowcaseScreen(
+      home: FullFeaturesExampleScreen(
         isDark: _themeMode == ThemeMode.dark,
         onToggleTheme: _toggleTheme,
         currentLanguageCode: context.locale.languageCode,

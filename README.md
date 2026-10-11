@@ -24,47 +24,64 @@ AdaptiveVideoPlayer(
 
 ---
 
-## 🎥 Demo
+---
+
+## 📸 Visual Showcase & Mockups Gallery
+
+### 📱 Mobile Experience (Android & iOS)
+
+| 🎛️ Studio Player Controls | 🎬 Netflix-Style Showcase | 💬 Dual Audio & Subtitles | 📑 Episodes & Stepper |
+|:---:|:---:|:---:|:---:|
+| <img src="assets/screenshots/android/1.png" width="220" alt="Studio Controls" /> | <img src="assets/screenshots/android/2.png" width="220" alt="Full Streaming" /> | <img src="assets/screenshots/android/3.png" width="220" alt="Dual Audio Subtitles" /> | <img src="assets/screenshots/android/4.png" width="220" alt="Episodes Drawer" /> |
+| *Adaptive capsule pills, quick toggles & speed* | *Rich streaming mode with live telemetry* | *Dual-column audio dubs & subtitle picker* | *Netflix-style episode drawer & progress bars* |
+
+### 💻 Desktop & Fullscreen Experience (Windows, macOS, Web)
+
+| 🪟 Immersive Fullscreen | 📌 Always-On-Top OS PiP | ⏱️ Hover Chapters Preview | ⚙️ Resolution & Settings |
+|:---:|:---:|:---:|:---:|
+| <img src="assets/screenshots/windows/2.png" width="220" alt="Fullscreen Mode" /> | <img src="assets/screenshots/windows/3.png" width="220" alt="Always-On-Top PiP" /> | <img src="assets/screenshots/windows/4.png" width="220" alt="Hover Chapters" /> | <img src="assets/screenshots/windows/5.png" width="220" alt="Settings Dialog" /> |
+| *True borderless display with auto-hiding UI* | *Native Win32 topmost floating window* | *Scrub thumb with chapter marker tooltip* | *Multi-quality HLS/MP4 resolution selector* |
+
+### 🎬 Animated Platform Demos
 
 | Android | iOS | Windows | macOS | Web |
 |:---:|:---:|:---:|:---:|:---:|
-| ![Android Demo](assets/demo/android.gif) | ![iOS Demo](assets/demo/ios.gif) | ![Windows Demo](assets/demo/windows.gif) | ![macOS Demo](assets/demo/macos.gif) | ![Web Demo](assets/demo/web.gif) |
+| <img src="assets/demo/android.gif" width="140" alt="Android Demo" /> | <img src="assets/demo/ios.gif" width="140" alt="iOS Demo" /> | <img src="assets/demo/windows.gif" width="140" alt="Windows Demo" /> | <img src="assets/demo/macos.gif" width="140" alt="macOS Demo" /> | <img src="assets/demo/web.gif" width="140" alt="Web Demo" /> |
 
 ---
 
 ## ✨ Features
 
-### 🎬 Adaptive Video Player
-- **Smart Detection** — automatically detects YouTube vs. direct video URLs
-- **Unified API** — a single `AdaptiveVideoPlayer` widget for all video types
-- **Cross-Platform** — runs on Android, iOS, macOS, Windows, Linux, and Web
+### 🎬 Adaptive Video Player Engine
+- **Smart Source Detection** — Automatically differentiates YouTube (video IDs, short URLs, embeds) from direct streams (MP4, HLS, DASH).
+- **Single Widget API** — Just drop `AdaptiveVideoPlayer(config: VideoConfig(...))` anywhere.
+- **Cross-Platform Parity** — Unified design and controls across Android, iOS, Windows, macOS, Linux, and Web.
 
-### 📺 YouTube Player
-- Full YouTube video support with a native-like experience
-- Custom controls on mobile (seek, settings, miniplayer/PiP, fullscreen)
-- Native YouTube controls on Desktop & Web with top-right Miniplayer (`i`) button
-- **Picture-in-Picture (PiP) & Floating Miniplayer** — always-on-top borderless OS PiP window on Windows (`HWND_TOPMOST`) and draggable floating Miniplayer on Mobile/Desktop
-- Auto-play, loop, captions, mute, force HD
-- Force Desktop Mode on mobile (`forceDesktopMode: true` to use WebViews on Android/iOS)
-- Settings panel with runtime toggles (localized in Arabic & English)
-- Fullscreen mode with state preservation
-- Safe external link handling (opens YouTube URLs in the system browser)
-- Live stream support with a "LIVE" indicator and viewer count
+### 🛡️ Anti-Screen Capture Shield (`preventScreenCapture: true`)
+- **Hardware-Enforced Privacy** — Renders the window solid black during screenshot captures or screen recordings.
+- **Android (`FLAG_SECURE`)** — Blocks screenshots, screen recorders, and app switcher preview leaks.
+- **Windows (`SetWindowDisplayAffinity`)** — Win32 hardware display affinity (`WDA_MONITOR`) blacks out Snipping Tool, OBS, and print screens.
+- **Web DOM Shield** — Focus blur detection, clipboard flushing, and print media obscuration.
 
-### 🎞️ Normal Video Player
-- Supports MP4, MOV, AVI, MKV, WebM, M4V, 3GP, HLS (`.m3u8`), DASH (`.mpd`), and more
-- Network streaming, local file, and in-memory bytes playback
-- **YouTube Capsule/Pill Controls Design** — circular `-10s`, `Play/Pause`, `+10s` pills, hover-expanding Volume slider pill, Time + Chapter pill, and Right Action pill (`Loop`, `CC`, `Settings`, `Miniplayer`, `Fullscreen`)
-- **Timeline Hover & Scrub Timestamp Pill** — shows timestamp and active chapter title above the cursor/thumb with smooth track expansion
-- **Video Chapters (`VideoChapter`)** — segmented progress bar with chapter gap markers and active chapter titles
-- **Hold-to-2x Speed Gesture (`2x ⏩`)** — long-press anywhere on the video to play at `2.0x` speed and release to restore
-- **Anti-Screen Capture & Privacy Shield (`preventScreenCapture: true`)** — prevents screenshots and screen recordings by rendering the window black on Android (`FLAG_SECURE`) and Windows (`SetWindowDisplayAffinity`)
-- **Disk Caching for Offline Playback (`enableCache: true`)** — caches network video streams locally via `CachedVideoPlayerPlus` for instant replay
-- **Picture-in-Picture (PiP) & Background Mini-Player** — native always-on-top OS PiP window on Windows (`HWND_TOPMOST`), native browser PiP on Web (`requestPictureInPicture()`), and persistent draggable in-app Miniplayer across routes with background playback (`allowBackgroundPlayback: true`)
-- **Draggable Floating Settings Dialog** — quality/resolution picker and SRT/VTT subtitle selector
-- **Built-in Arabic (`ar`) & English (`en`) Localization** — automatic settings sheet RTL/LTR localization while preserving standard LTR video timeline and controls
-- **Desktop Keyboard Shortcuts** — `Space` (Play/Pause), `←`/`→` (Seek ±10s), `↑`/`↓` (Volume), `M` (Mute), `F` / `Esc` (Fullscreen)
-- Analytics callback hook (`onAnalyticsEvent`)
+### 📺 YouTube Player with Unified Native Architecture
+- **Error 150/153 Bypass** — Serves embedded player via localized `http://localhost` origin for unrestricted embedding.
+- **Unified Controls Pill** — Single clean control pill `[ ⧉ PiP | ⛶ Fullscreen ]` with auto-fading timer and no duplicate fullscreen icons.
+- **Picture-in-Picture (PiP)** — Android native PiP with notification actions, Windows always-on-top window (`HWND_TOPMOST`), and in-app draggable miniplayer.
+- **Live Stream Ready** — Automatic `LIVE` indicator, viewer count, and live sync.
+- **Custom Gestures** — Double-tap seek (±10s, ±20s, ±30s) and touch-to-reveal overlay.
+
+### 🎞️ Normal Video Player (HLS, DASH, MP4, Offline Bytes)
+- **YouTube Capsule/Pill Controls** — Modern circular `-10s`, `Play/Pause`, `+10s` pills, hover-expanding Volume slider, and Time + Chapter pill.
+- **Timeline Hover & Scrub Timestamp Pill** — Shows active chapter title and preview timestamp above the cursor/thumb with track expansion.
+- **Video Chapters (`VideoChapter`)** — Segmented progress bar with chapter gap markers and active chapter indicators.
+- **Hold-to-2x Speed Gesture (`2x ⏩`)** — Long-press anywhere on the video to boost playback to `2.0x` and release to restore.
+- **Speed Stepper Popup (`AdaptiveSpeedStepperPopup`)** — Granular speed steps (`0.25x`, `0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`, `1.75x`, `2.0x`).
+- **Netflix-Style Episodes Drawer** — Next episode queue, thumbnail watched progress bar, and active episode indicator.
+- **Dual-Column Audio & Subtitles Modal** — High-fidelity sheet for selecting multi-language audio dubs and SRT/VTT subtitles.
+- **Persistent Disk Caching (`enableCache: true`)** — Local storage caching via `CachedVideoPlayerPlus` for instant zero-buffering replays.
+- **In-Memory Bytes Playback (`videoBytes`)** — Direct encrypted/in-memory playback without writing video files to disk.
+- **Built-in Arabic (`ar`) & English (`en`) Localization** — Full RTL layout support with standard LTR timeline preservation.
+- **Desktop Keyboard Shortcuts** — `Space` (Play/Pause), `←`/`→` (Seek ±10s), `↑`/`↓` (Volume), `M` (Mute), `F` / `Esc` (Fullscreen).
 
 ---
 
@@ -82,20 +99,23 @@ AdaptiveVideoPlayer(
 
 ---
 
-## 🆚 Comparison
+## 🆚 Feature Comparison
 
 | Feature | `adaptive_video_player` | `youtube_player_flutter` | `chewie` | `video_player` |
-|---|---|---|---|---|
-| YouTube + direct URLs in one widget | ✅ | ❌ | ❌ | ❌ |
-| Desktop support (Windows, macOS, Linux) | ✅ | ❌ | ⚠️ | ⚠️ |
-| YouTube capsule pill controls (`-10s` / `+10s`) | ✅ | ❌ | ❌ | ❌ |
-| Timeline hover timestamp & Video Chapters | ✅ | ❌ | ❌ | ❌ |
-| Hold-to-2x speed gesture (`2x ⏩`) | ✅ | ❌ | ❌ | ❌ |
-| Picture-in-Picture (PiP) & Background playback | ✅ | ❌ | ❌ | ❌ |
-| Live stream indicator & viewer count | ✅ | ❌ | ❌ | ❌ |
-| Quality selection & SRT/VTT Subtitles | ✅ | ❌ | ✅ | ❌ |
-| Built-in Arabic & English localization | ✅ | ❌ | ❌ | ❌ |
-| External link safety | ✅ | ❌ | ❌ | ❌ |
+|---|:---:|:---:|:---:|:---:|
+| 🎯 Universal Player (YouTube + Direct Streams) | ✅ | ❌ | ❌ | ❌ |
+| 🛡️ Hardware Anti-Screen Capture Shield | ✅ | ❌ | ❌ | ❌ |
+| 🪟 Full Desktop Support (Windows, macOS, Linux) | ✅ | ❌ | ⚠️ | ⚠️ |
+| 🎛️ YouTube-Style Capsule Pill Controls | ✅ | ❌ | ❌ | ❌ |
+| ⏱️ Timeline Chapter Scrubbing & Tooltip | ✅ | ❌ | ❌ | ❌ |
+| ⏩ Hold-to-2x Speed Boost (`2x ⏩`) | ✅ | ❌ | ❌ | ❌ |
+| 📺 Native & In-App Picture-in-Picture (PiP) | ✅ | ❌ | ❌ | ❌ |
+| 🔴 YouTube Live Stream Badge & Viewers | ✅ | ❌ | ❌ | ❌ |
+| ⚙️ Multi-Quality Switcher & Subtitle Dubs | ✅ | ❌ | ✅ | ❌ |
+| 📑 Netflix-Style Episodes Queue Drawer | ✅ | ❌ | ❌ | ❌ |
+| 💾 Persistent Disk Caching (Zero Buffering) | ✅ | ❌ | ❌ | ❌ |
+| 🌍 Arabic & English RTL/LTR Localization | ✅ | ❌ | ❌ | ❌ |
+| 🚀 Zero Native Setup Required | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
@@ -181,41 +201,23 @@ void main() {
 No extra permission files needed. Native HTML5 Fullscreen and `requestPictureInPicture()` work out of the box. Ensure direct video hosts have CORS enabled. Fully WASM-compatible.
 
 ### 🛡️ Screenshot & Screen Recording Prevention (Anti-Capture Shield)
-To prevent screenshots and screen recordings (rendering the video/window black for DRM or user privacy):
+Protect premium DRM content and sensitive media from being recorded or screenshotted. When enabled, screenshots, screen recordings, and app switcher snapshots render as a **solid black window**:
 
-Enable `preventScreenCapture: true`:
 ```dart
 AdaptiveVideoPlayer(
   config: VideoConfig(
     videoUrl: 'https://example.com/movie.mp4',
-    preventScreenCapture: true, // Black screen on screenshots & recording
+    preventScreenCapture: true, // 100% hardware-enforced black screen on captures
   ),
 );
 ```
 
-#### Platform Requirements & Setup:
-- **🪟 Windows Desktop**: **Zero setup and zero permissions needed**. Calls Win32 native `SetWindowDisplayAffinity(hwnd, WDA_MONITOR)` via FFI automatically. Any snipping tool, OBS, or screenshot tool captures a solid black window.
-- **🤖 Android**: **No permissions needed** in `AndroidManifest.xml`. If using custom embedding in `MainActivity.kt`, wire the security channel:
-  ```kotlin
-  // In android/app/src/main/kotlin/.../MainActivity.kt:
-  val securityChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "adaptive_video_player/security")
-  securityChannel.setMethodCallHandler { call, result ->
-      if (call.method == "setSecureMode") {
-          val enabled = call.argument<Boolean>("enabled") ?: false
-          if (enabled) {
-              window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-          } else {
-              window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-          }
-          result.success(true)
-      } else {
-          result.notImplemented()
-      }
-  }
-  ```
-- **🍎 iOS**: **No permissions needed** in `Info.plist`. Optionally wire the method channel in `AppDelegate.swift` to toggle a secure textfield container layer.
-- **🌐 Web**: **Zero setup needed**. Injects a full-viewport DOM shield (`z-index: 2147483647`), binds window `blur` and `visibilitychange` listeners (turning the screen solid black whenever Snipping Tool or screenshot tools steal focus), intercepts `PrintScreen` / `Ctrl+Shift+S`, clears clipboard buffers, and activates `@media print` CSS rules.
-- **🍏 macOS / 🐧 Linux**: Safe graceful fallbacks with zero crashes.
+#### 🚀 Zero Native Setup Required:
+- **🤖 Android**: **100% Automatic** — Zero Kotlin/Java setup. Handled by `AdaptiveVideoPlayerPlugin` via `WindowManager.LayoutParams.FLAG_SECURE`. Screen recordings, screenshots, and task switcher preview thumbnails are blocked out.
+- **🍎 iOS**: **100% Automatic** — Zero Swift/Obj-C setup. Handled by `AdaptiveVideoPlayerPlugin` via secure window sublayer containment.
+- **🪟 Windows Desktop**: **100% Automatic** — Zero permissions needed. Invokes Win32 native `SetWindowDisplayAffinity(hwnd, WDA_MONITOR)` via FFI. Snipping Tool, OBS, and Print Screen capture a black rectangle.
+- **🌐 Web**: **100% Automatic** — Full-viewport DOM obscuration shield (`z-index: 2147483647`), automatic focus loss/blur detection, clipboard flushing on `PrintScreen`/`Ctrl+Shift+S`, and `@media print` blackouts.
+- **🍏 macOS & 🐧 Linux**: Safe, graceful fallback protections with zero crashes.
 
 ---
 
@@ -502,35 +504,30 @@ Defaults strictly to English (`PlayerTextConfig()`), allowing host applications 
 
 ```text
 lib/
-├── adaptive_video_player.dart              # Package exports & Smart YouTube/direct video detection
+├── adaptive_video_player.dart                  # Public library exports & Smart YouTube/VOD detection
 └── src/
-    ├── platform_init.dart                  # Desktop platform initialization
-    ├── normal_video_player/
-    │   ├── normal_video_player.dart        # Native video player component
-    │   ├── adaptive_controls.dart          # Core UI controls overlay builder (double-tap seek, UI)
-    │   └── model/
-    │       └── video_config.dart           # Video configuration model
-    └── youtube_player/
-        ├── youtube_video_player.dart       # Main YouTube player (platform-aware)
-        ├── cubit/
-        │   ├── youtube_player_cubit.dart   # ValueNotifier state management
-        │   └── youtube_player_state.dart
-        ├── models/
-        │   └── player_config.dart          # YouTube player config models
-        ├── utils/
-        │   ├── player_utils.dart           # Player utility functions
-        │   ├── youtube_web_actual.dart     # Web iframe implementation
-        │   ├── youtube_web_export.dart     # Conditional export
-        │   └── youtube_web_stub.dart       # Stub for non-web
-        └── widgets/
-            ├── youtube_controls_overlay.dart # Controls overlay
-            ├── youtube_webview_player.dart   # Desktop WebView player (localhost)
-            ├── player_controls.dart          # Seek overlay, loading, error widgets
-            ├── player_bottom_actions.dart    # Bottom action bar builder
-            ├── player_settings_sheet.dart    # Settings bottom sheet
-            ├── player_settings_helper.dart   # Settings helper
-            ├── setting_item.dart             # Individual setting toggle
-            └── fullscreen_player_page.dart   # Fullscreen player page
+    ├── core/                                   # Domain contracts, DI, constants & platform services
+    │   ├── contracts/                          # Core interfaces (SRP / ISP)
+    │   │   ├── i_video_player_controller.dart
+    │   │   ├── i_fullscreen_service.dart
+    │   │   ├── i_playback_controls.dart
+    │   │   ├── i_quality_manageable.dart
+    │   │   ├── i_subtitle_manageable.dart
+    │   │   └── i_volume_controls.dart
+    │   ├── constants/                          # YouTube & HLS JS constants & strings
+    │   ├── models/                             # Shared enums, player state & display modes
+    │   └── services/                           # Screen protection, Native PiP & Fullscreen services
+    ├── normal_video_player/                    # Normal video player implementation
+    │   ├── coordinator/                        # Modular full-screen & PiP coordinators
+    │   ├── mixins/                             # State mixins (Controller, Subtitles, Resilience, PiP)
+    │   ├── models/                             # VideoConfig, VideoQuality, VideoChapter, VideoEpisode
+    │   ├── utils/                              # Win32 FFI & Web fullscreen helpers
+    │   └── widgets/                            # Adaptive bottom bar, timeline, popups, episodes drawer
+    └── youtube_player/                         # YouTube cross-platform player implementation
+        ├── models/                             # YouTubePlayerConfig, PlayerStyleConfig, PlayerVisibility
+        ├── utils/                              # Web iframe exports & platform stubs
+        ├── views/                              # Desktop & Web player views with unified overlay
+        └── widgets/                            # InAppWebView localhost server, buttons, live badge
 ```
 
 ---
@@ -539,40 +536,46 @@ lib/
 
 **YouTube URLs:** `youtube.com/watch?v=...` · `youtu.be/...` · `youtube.com/embed/...` · `m.youtube.com/watch?v=...` · direct video IDs
 
-**Video Files:** MP4 · MOV · AVI · MKV · WebM · M4V · 3GP · FLV · WMV
+**Video Files & Streams:** MP4 · MOV · AVI · MKV · WebM · M4V · 3GP · HLS (`.m3u8`) · DASH (`.mpd`) · In-Memory Bytes
 
 ---
 
 ## ❓ FAQ
 
-**Q: I get "Error 153" on Windows Desktop.**  
-A: Handled automatically — the package serves YouTube via `http://localhost` to bypass the restriction.
+**Q: I get "Error 153" or "Error 150" with YouTube embeds.**  
+A: Handled automatically — the package serves YouTube via an internal `http://localhost` origin that Google trusts, bypassing origin rejections across Android, iOS, Windows, macOS, and Linux.
 
-**Q: I get "NuGet is not installed" on Windows.**  
-A: Run `winget install Microsoft.NuGet` and restart your IDE.
+**Q: Why was there a duplicate fullscreen button in YouTube?**  
+A: Resolved in v2.0+ — the internal HTML5 button is hidden and replaced by a unified, luxury floating control pill `[ ⧉ PiP | ⛶ Fullscreen ]` where PiP is cleanly positioned right before Fullscreen.
 
-**Q: MP4 videos don't play on Linux.**  
-A: Add `AdaptiveVideoPlayerPlatform.ensureInitialized()` in your `main()` before `runApp()`.
+**Q: How does Anti-Screen Capture work?**  
+A: Simply set `preventScreenCapture: true`. Android activates `FLAG_SECURE`, Windows invokes native Win32 `SetWindowDisplayAffinity(WDA_MONITOR)` via FFI, and Web engages an active focus/blur obfuscation shield. Any screenshot or screen recording will capture a solid black frame.
 
-**Q: Does it work on macOS/Linux?**  
-A: Direct videos work out of the box on macOS via AVFoundation and on Linux via `media_kit`. YouTube WebView support on macOS/Linux relies on `flutter_inappwebview` platform coverage.
+**Q: How does Android Picture-in-Picture handle background controls?**  
+A: When entering native PiP on Android, the package registers native OS `RemoteAction`s (Play, Pause, Seek -10s, Seek +10s) in the system PiP window, and automatically suppresses unclickable Flutter UI overlays.
 
 ---
 
 ## 🔮 Roadmap
 
+- [x] Smart auto-detection of YouTube vs. direct streams
 - [x] Double-tap-to-seek gesture (±10s) and `-10s` / `+10s` capsule buttons
 - [x] Hold-to-2x speed gesture (`2x ⏩`) on long-press
+- [x] Granular Playback Speed Stepper (`AdaptiveSpeedStepperPopup`) (0.25x - 2.0x)
 - [x] Timeline hover & scrub timestamp preview pill
 - [x] Video Chapters (`VideoChapter`) with segmented progress bar markers
-- [x] Picture-in-Picture (PiP) & Background Mini-Player (Windows OS topmost PiP, Web native PiP, and in-app Miniplayer)
-- [x] Keyboard shortcuts on desktop (`Space`, `←`/`→`, `↑`/`↓`, `M`, `F`, `Esc`)
+- [x] Netflix-style Episodes Drawer with thumbnail progress bars
+- [x] Dual-column Audio Tracks & Subtitles modal
+- [x] Hardware Anti-Screen Capture Shield (`preventScreenCapture: true`)
+- [x] Persistent Disk Caching for offline replay (`CachedVideoPlayerPlus`)
+- [x] In-Memory Bytes Playback (`videoBytes`)
+- [x] True OS-Level Picture-in-Picture & Fullscreen (Android `RemoteAction`s, Windows `HWND_TOPMOST`, Web HTML5)
+- [x] YouTube Error 150/153 bypass via localhost origin
+- [x] Unified YouTube floating control pill `[ ⧉ PiP | ⛶ Fullscreen ]`
 - [x] Built-in Arabic (RTL) & English (LTR) localization (`PlayerTextConfig.arabic()`)
-- [ ] Playback speed selector in settings sheet
-- [ ] Custom HTTP headers for protected/authenticated video streams
-- [ ] Automatic quality selection from HLS (.m3u8) manifests
-- [ ] `AdaptiveVideoPlaylist(videos: [...])`
-- [ ] Poster/thumbnail before playback starts
+- [ ] Custom HTTP headers for authenticated/tokenized video streams
+- [ ] Automatic multi-bitrate track switcher directly from HLS manifests
+- [ ] Custom poster/thumbnail image before playback starts
 
 Got a feature request? [Open an issue](https://github.com/ahmedalam782/vidoes_player/issues).
 
@@ -596,7 +599,7 @@ Licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ## 👨‍💻 Author
 
-**Ahmed Mohamed Alam** · GitHub: [@ahmedalam782](https://github.com/ahmedalam782)
+**Ahmed Mohamed Osman** · GitHub: [@ahmedalam782](https://github.com/ahmedalam782)
 
 ## 🙏 Dependencies
 

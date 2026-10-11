@@ -548,6 +548,24 @@ class _StudioStageState extends State<StudioStage> {
                     isDark: widget.isDark,
                     onTap: () => setState(() => _enableCache = !_enableCache),
                   ),
+                  if (_enableCache)
+                    _Choice(
+                      label: 'Clear Cache 🗑️',
+                      selected: false,
+                      accent: Colors.orangeAccent,
+                      isDark: widget.isDark,
+                      onTap: () async {
+                        await clearVideoDiskCache();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Video disk cache cleared successfully.'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   _Choice(
                     label: 'Anti-capture shield',
                     selected: _preventScreenCapture,

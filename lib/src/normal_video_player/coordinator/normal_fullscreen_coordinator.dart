@@ -39,9 +39,16 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
 
     _fullscreenOverlay = OverlayEntry(
       builder: (context) {
-        return ListenableBuilder(
-          listenable: this,
-          builder: (context, _) => builder(context),
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            closeFullscreen();
+          },
+          child: ListenableBuilder(
+            listenable: this,
+            builder: (context, _) => builder(context),
+          ),
         );
       },
     );

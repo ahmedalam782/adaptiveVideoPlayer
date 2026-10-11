@@ -98,155 +98,18 @@ class AdaptiveTopBar extends StatelessWidget {
 
     return Directionality(
       textDirection: textDirection,
-      child: Row(
-        children: [
-          if (_shouldShowBackButton)
-            Tooltip(
-              message: messages?.backText ??
-                  messages?.exitFullscreenText ??
-                  'Back',
-              child: GestureDetector(
-                onTap: onExitFullscreen,
-                child: ClipOval(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.20),
-                          width: 1.0,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.30),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: PlayerIcon.resolve(
-                        context,
-                        icon: styling?.icons.backIcon,
-                        fallbackIcon: isRtl
-                            ? Icons.arrow_forward_rounded
-                            : Icons.arrow_back_rounded,
-                        defaultColor: iconColor,
-                        defaultSize: 24,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          if (_shouldShowBackButton) const SizedBox(width: 8),
-          if (showLive)
-            AdaptiveLiveIndicator(
-              isLive: isLive,
-              qualities: qualities,
-              onQualitySelected: onQualitySelected,
-              onAnalyticsEvent: onAnalyticsEvent,
-              messages: messages,
-              styling: styling,
-            ),
-          if (title != null && title!.isNotEmpty) ...[
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.2,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withValues(alpha: 0.8),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (subtitle != null && subtitle!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 1.0),
-                      child: Text(
-                        subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: textColor.withValues(alpha: 0.75),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-          ] else
-            const Spacer(),
-          if (viewerCount != null) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      width: 1.0,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      PlayerIcon.resolve(
-                        context,
-                        icon: styling?.icons.viewerCountIcon,
-                        fallbackIcon: Icons.remove_red_eye_outlined,
-                        defaultColor: iconColor,
-                        defaultSize: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        viewerCount!,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxW = constraints.maxWidth;
+          final isCompact = maxW < 420;
+          final buttonSpacing = isCompact ? 6.0 : 8.0;
 
-          // Top-End Action Buttons (Episodes, Subtitles, Speed, Settings, MiniPlayer)
-          if (showActions ?? visibility?.showActionsInTopBar ?? false) ...[
-            // Episodes Drawer Button
+          // Trailing action buttons (Episodes, Subtitles, Speed, Settings, MiniPlayer)
+          final actionButtons = <Widget>[
             if ((visibility?.showEpisodesButton ?? true) &&
                 episodes != null &&
                 episodes!.isNotEmpty &&
-                onEpisodesPressed != null) ...[
-              const SizedBox(width: 8),
+                onEpisodesPressed != null)
               AdaptiveCirclePillButton(
                 playerIcon: styling?.icons.episodesIcon,
                 icon: Icons.video_library_outlined,
@@ -254,14 +117,10 @@ class AdaptiveTopBar extends StatelessWidget {
                 onTap: onEpisodesPressed!,
                 color: iconColor,
               ),
-            ],
-
-            // Dual-Column Audio & Subtitles Button
             if ((visibility?.showAudioSubtitlesButton ?? true) &&
                 onAudioSubtitlesPressed != null &&
                 ((audioTracks != null && audioTracks!.isNotEmpty) ||
-                    (subtitles != null && subtitles!.isNotEmpty))) ...[
-              const SizedBox(width: 8),
+                    (subtitles != null && subtitles!.isNotEmpty)))
               AdaptiveCirclePillButton(
                 playerIcon: styling?.icons.audioSubtitlesIcon,
                 icon: Icons.subtitles_outlined,
@@ -269,12 +128,8 @@ class AdaptiveTopBar extends StatelessWidget {
                 onTap: onAudioSubtitlesPressed!,
                 color: iconColor,
               ),
-            ],
-
-            // Playback Speed Button
             if ((visibility?.showSpeedButton ?? true) &&
-                onSpeedPressed != null) ...[
-              const SizedBox(width: 8),
+                onSpeedPressed != null)
               AdaptiveCirclePillButton(
                 playerIcon: styling?.icons.speedIcon,
                 icon: Icons.speed_rounded,
@@ -282,12 +137,8 @@ class AdaptiveTopBar extends StatelessWidget {
                 onTap: onSpeedPressed!,
                 color: iconColor,
               ),
-            ],
-
-            // Settings Button
             if ((visibility?.showSettingsButton ?? true) &&
-                onSettingsPressed != null) ...[
-              const SizedBox(width: 8),
+                onSettingsPressed != null)
               AdaptiveCirclePillButton(
                 playerIcon: styling?.icons.settingsIcon,
                 icon: Icons.settings_outlined,
@@ -296,12 +147,8 @@ class AdaptiveTopBar extends StatelessWidget {
                 onTap: onSettingsPressed!,
                 color: iconColor,
               ),
-            ],
-
-            // MiniPlayer / PiP Button
             if ((visibility?.showMiniPlayerButton ?? true) &&
-                onMiniPlayerPressed != null) ...[
-              const SizedBox(width: 8),
+                onMiniPlayerPressed != null)
               AdaptiveCirclePillButton(
                 playerIcon: styling?.icons.miniPlayerIcon,
                 icon: Icons.picture_in_picture_alt_rounded,
@@ -309,9 +156,190 @@ class AdaptiveTopBar extends StatelessWidget {
                 onTap: onMiniPlayerPressed!,
                 color: iconColor,
               ),
+          ];
+
+          final shouldShowActions =
+              (showActions ?? visibility?.showActionsInTopBar ?? false) &&
+                  actionButtons.isNotEmpty;
+
+          // Trailing cluster (viewerCount + action buttons)
+          final trailingWidgets = <Widget>[
+            if (viewerCount != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.18),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PlayerIcon.resolve(
+                          context,
+                          icon: styling?.icons.viewerCountIcon,
+                          fallbackIcon: Icons.remove_red_eye_outlined,
+                          defaultColor: iconColor,
+                          defaultSize: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          viewerCount!,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (shouldShowActions) ...actionButtons,
+          ];
+
+          // Compute safe space for trailing widgets so they never cause a RenderFlex overflow
+          final hasBackButton = _shouldShowBackButton;
+          final leadingWidth = (hasBackButton ? 52.0 : 0.0) +
+              (isLive ? 72.0 : 0.0);
+          final hasTitle = title != null && title!.isNotEmpty;
+          final reservedForTitle = hasTitle ? 48.0 : 0.0;
+          final maxAllowedTrailing =
+              (maxW - leadingWidth - reservedForTitle - 16.0)
+                  .clamp(0.0, maxW);
+
+          return Row(
+            children: [
+              if (hasBackButton) ...[
+                Tooltip(
+                  message: messages?.backText ??
+                      messages?.exitFullscreenText ??
+                      'Back',
+                  child: GestureDetector(
+                    onTap: onExitFullscreen,
+                    child: ClipOval(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.20),
+                              width: 1.0,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.30),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: PlayerIcon.resolve(
+                            context,
+                            icon: styling?.icons.backIcon,
+                            fallbackIcon: isRtl
+                                ? Icons.arrow_forward_rounded
+                                : Icons.arrow_back_rounded,
+                            defaultColor: iconColor,
+                            defaultSize: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              if (showLive)
+                AdaptiveLiveIndicator(
+                  isLive: isLive,
+                  qualities: qualities,
+                  onQualitySelected: onQualitySelected,
+                  onAnalyticsEvent: onAnalyticsEvent,
+                  messages: messages,
+                  styling: styling,
+                ),
+              if (hasTitle) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.8),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (subtitle != null &&
+                          subtitle!.isNotEmpty &&
+                          maxW >= 240)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 1.0),
+                          child: Text(
+                            subtitle!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor.withValues(alpha: 0.75),
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ] else
+                const Spacer(),
+              if (trailingWidgets.isNotEmpty)
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxAllowedTrailing),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (int i = 0; i < trailingWidgets.length; i++) ...[
+                          if (i > 0) SizedBox(width: buttonSpacing),
+                          trailingWidgets[i],
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
             ],
-          ],
-        ],
+          );
+        },
       ),
     );
   }
