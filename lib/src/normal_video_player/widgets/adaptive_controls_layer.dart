@@ -5,12 +5,16 @@ import '../../youtube_player/models/youtube_player_config.dart';
 import '../models/video_config.dart';
 import '../utils/subtitle_parser.dart';
 import '../utils/video_player_web_safe.dart';
+import '../utils/player_chrome_utils.dart';
+import '../utils/player_surface_tier.dart';
 import 'adaptive_audio_subtitles_popup.dart';
 import 'adaptive_bottom_bar.dart';
 import 'adaptive_center_play_pause.dart';
 import 'adaptive_episodes_drawer.dart';
 import 'adaptive_inline_bottom_bar.dart';
 import 'adaptive_player_settings_sheet.dart';
+import 'mobile/mobile_controls_surface.dart';
+import 'responsive/responsive_filled_panels.dart';
 import 'adaptive_progress_bar.dart';
 import 'adaptive_speed_stepper_popup.dart';
 import 'adaptive_top_bar.dart';
@@ -55,6 +59,11 @@ class AdaptiveControlsLayer extends StatefulWidget {
   final List<AudioTrack>? audioTracks;
   final AudioTrack? currentAudioTrack;
   final void Function(AudioTrack)? onAudioTrackSelected;
+  final ValueNotifier<double>? brightnessListenable;
+  final bool screenLocked;
+  final VoidCallback? onToggleScreenLock;
+  final VoidCallback? onHideControls;
+  final ValueChanged<bool>? onControlsPinnedChanged;
 
   const AdaptiveControlsLayer({
     super.key,
@@ -88,6 +97,11 @@ class AdaptiveControlsLayer extends StatefulWidget {
     this.audioTracks,
     this.currentAudioTrack,
     this.onAudioTrackSelected,
+    this.brightnessListenable,
+    this.screenLocked = false,
+    this.onToggleScreenLock,
+    this.onHideControls,
+    this.onControlsPinnedChanged,
   });
 
   @override
@@ -101,6 +115,20 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
   bool _showAudioSubtitlesPopup = false;
   bool _showSpeedStepperPopup = false;
   Offset _settingsMenuOffset = Offset.zero;
+  bool _lastPinned = false;
+
+  bool get _panelsOpen =>
+      _showSettingsMenu ||
+      _showEpisodesDrawer ||
+      _showAudioSubtitlesPopup ||
+      _showSpeedStepperPopup;
+
+  void _publishPinned() {
+    final pinned = _panelsOpen;
+    if (pinned == _lastPinned) return;
+    _lastPinned = pinned;
+    widget.onControlsPinnedChanged?.call(pinned);
+  }
 
   bool get _hasTopBarContent =>
       widget.isLive ||
@@ -131,10 +159,102 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
     });
   }
 
+  void _toggle(VoidCallback change) {
+    setState(change);
+    _publishPinned();
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final tier = playerSurfaceTierOf(
+          context,
+          Size(constraints.maxWidth, constraints.maxHeight),
+        );
+        if (tier == PlayerSurfaceTier.phone) {
+          final isRtl = (widget.messages ?? const PlayerTextConfig())
+                  .resolveTextDirection(context) ==
+              TextDirection.rtl;
+          return MobileControlsSurface(
+            controller: widget.controller,
+            isFullScreen: widget.isFullScreen,
+            isLive: widget.isLive,
+            screenLocked: widget.screenLocked,
+            isRtl: isRtl,
+            showAudioSubtitles: _showAudioSubtitlesPopup,
+            showEpisodes: _showEpisodesDrawer,
+            showSpeed: _showSpeedStepperPopup,
+            showSettings: _showSettingsMenu,
+            styling: widget.styling,
+            messages: widget.messages,
+            visibility: widget.visibility,
+            playback: widget.playback,
+            chapters: widget.chapters,
+            onAnalyticsEvent: widget.onAnalyticsEvent,
+            title: widget.title,
+            currentEpisode: widget.currentEpisode,
+            episodes: widget.episodes,
+            audioTracks: widget.audioTracks,
+            currentAudioTrack: widget.currentAudioTrack,
+            subtitles: widget.subtitles,
+            currentSubtitleTrack: widget.currentSubtitleTrack,
+            qualities: widget.qualities,
+            currentQuality: widget.currentQuality,
+            dragPosition: _dragPosition,
+            brightnessListenable: widget.brightnessListenable,
+            onDragChanged: (val) => setState(() => _dragPosition = val),
+            onDragEnd: (val) {
+              widget.controller.seekTo(Duration(milliseconds: val.toInt()));
+              setState(() => _dragPosition = null);
+            },
+            onEnterFullscreen: widget.onEnterFullscreen,
+            onExitFullscreen: widget.onExitFullscreen,
+            onMiniPlayerPressed: widget.onMiniPlayerPressed,
+            onNextEpisode: widget.onNextEpisode,
+            onEpisodesPressed: () => _toggle(() {
+              _showEpisodesDrawer = !_showEpisodesDrawer;
+              _showAudioSubtitlesPopup = false;
+              _showSpeedStepperPopup = false;
+              _showSettingsMenu = false;
+            }),
+            onAudioSubtitlesPressed: () => _toggle(() {
+              _showAudioSubtitlesPopup = !_showAudioSubtitlesPopup;
+              _showEpisodesDrawer = false;
+              _showSpeedStepperPopup = false;
+              _showSettingsMenu = false;
+            }),
+            onSpeedPressed: () => _toggle(() {
+              _showSpeedStepperPopup = !_showSpeedStepperPopup;
+              _showEpisodesDrawer = false;
+              _showAudioSubtitlesPopup = false;
+              _showSettingsMenu = false;
+            }),
+            onSettingsPressed: () => _toggle(() {
+              _showSettingsMenu = !_showSettingsMenu;
+              _showEpisodesDrawer = false;
+              _showAudioSubtitlesPopup = false;
+              _showSpeedStepperPopup = false;
+            }),
+            onLockPressed: widget.onToggleScreenLock,
+            onUnlock: widget.onToggleScreenLock,
+            onHideControls: widget.onHideControls,
+            onAudioTrackSelected: widget.onAudioTrackSelected,
+            onSubtitleSelected: widget.onSubtitleSelected,
+            onEpisodeSelected: (episode) {
+              widget.onEpisodeSelected?.call(episode);
+              _toggle(() => _showEpisodesDrawer = false);
+            },
+            onQualitySelected: widget.onQualitySelected,
+            onCloseAudioSubtitles: () =>
+                _toggle(() => _showAudioSubtitlesPopup = false),
+            onCloseEpisodes: () => _toggle(() => _showEpisodesDrawer = false),
+            onCloseSpeed: () => _toggle(() => _showSpeedStepperPopup = false),
+            onCloseSettings: () => _toggle(() => _showSettingsMenu = false),
+          );
+        }
+        final tabletFit = tier == PlayerSurfaceTier.tablet;
+
         final bottomControls = Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -328,7 +448,10 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                       styling: widget.styling,
                       visibility: widget.visibility,
                       title: widget.title,
-                      subtitle: widget.currentEpisode?.title,
+                      subtitle: PlayerChromeUtils.episodeSubtitle(
+                        title: widget.title,
+                        episodeTitle: widget.currentEpisode?.title,
+                      ),
                       episodes: widget.episodes,
                       onEpisodesPressed: () => setState(() {
                         _showEpisodesDrawer = !_showEpisodesDrawer;
@@ -384,8 +507,43 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
           ),
         ),
 
-        // YouTube-style Floating Settings Dialog (rendered directly inside the player above the gear button)
-        if (_showSettingsMenu) ...[
+        if (tabletFit && _panelsOpen)
+          Positioned.fill(
+            child: ResponsiveFilledPanels(
+              showAudioSubtitles: _showAudioSubtitlesPopup,
+              showEpisodes: _showEpisodesDrawer,
+              showSpeed: _showSpeedStepperPopup,
+              showSettings: _showSettingsMenu,
+              controller: widget.controller,
+              audioTracks: widget.audioTracks,
+              currentAudioTrack: widget.currentAudioTrack,
+              onAudioTrackSelected: widget.onAudioTrackSelected,
+              subtitles: widget.subtitles,
+              currentSubtitleTrack: widget.currentSubtitleTrack,
+              onSubtitleSelected: widget.onSubtitleSelected,
+              episodes: widget.episodes,
+              currentEpisode: widget.currentEpisode,
+              onEpisodeSelected: (episode) {
+                widget.onEpisodeSelected?.call(episode);
+                _toggle(() => _showEpisodesDrawer = false);
+              },
+              qualities: widget.qualities,
+              currentQuality: widget.currentQuality,
+              onQualitySelected: widget.onQualitySelected,
+              styling: widget.styling,
+              messages: widget.messages,
+              visibility: widget.visibility,
+              onAnalyticsEvent: widget.onAnalyticsEvent,
+              onCloseAudioSubtitles: () =>
+                  _toggle(() => _showAudioSubtitlesPopup = false),
+              onCloseEpisodes: () => _toggle(() => _showEpisodesDrawer = false),
+              onCloseSpeed: () =>
+                  _toggle(() => _showSpeedStepperPopup = false),
+              onCloseSettings: () => _toggle(() => _showSettingsMenu = false),
+            ),
+          ),
+
+        if (!tabletFit && _showSettingsMenu) ...[
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -411,9 +569,10 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                         widget.isFullScreen ? 330.0 : 300.0,
                         constraints.maxWidth - 24.0),
                     constraints: BoxConstraints(
-                      maxHeight: widget.isFullScreen
-                          ? math.min(380.0, (constraints.maxHeight - 64).clamp(240.0, 380.0))
-                          : math.min(280.0, (constraints.maxHeight - 56).clamp(180.0, 280.0)),
+                      maxHeight: math.min(
+                        widget.isFullScreen ? 380.0 : 280.0,
+                        math.max(140.0, constraints.maxHeight - 64),
+                      ),
                     ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -497,7 +656,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
         ],
 
         // Netflix-style Speed Stepper Popup (Image 3)
-        if (_showSpeedStepperPopup) ...[
+        if (!tabletFit && _showSpeedStepperPopup) ...[
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -506,29 +665,31 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
             ),
           ),
           PositionedDirectional(
-            bottom: widget.isFullScreen ? 60 : 52,
-            end: 20,
-            child: CallbackShortcuts(
-              bindings: {
-                const SingleActivator(LogicalKeyboardKey.escape): () {
-                  setState(() => _showSpeedStepperPopup = false);
+              bottom: widget.isFullScreen ? 60 : 52,
+              end: 20,
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.escape): () {
+                    setState(() => _showSpeedStepperPopup = false);
+                  },
                 },
-              },
-              child: Focus(
-                autofocus: true,
-                child: AdaptiveSpeedStepperPopup(
-                  controller: widget.controller,
-                  styling: widget.styling,
-                  messages: widget.messages,
-                  onClose: () => setState(() => _showSpeedStepperPopup = false),
+                child: Focus(
+                  autofocus: true,
+                  child: AdaptiveSpeedStepperPopup(
+                    controller: widget.controller,
+                    styling: widget.styling,
+                    messages: widget.messages,
+                    maxWidth: math.min(420, constraints.maxWidth - 32),
+                    onClose: () =>
+                        setState(() => _showSpeedStepperPopup = false),
+                  ),
                 ),
               ),
             ),
-          ),
         ],
 
         // Netflix-style Dual-Column Audio & Subtitles Popup (Image 1)
-        if (_showAudioSubtitlesPopup) ...[
+        if (!tabletFit && _showAudioSubtitlesPopup) ...[
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -537,41 +698,46 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
             ),
           ),
           PositionedDirectional(
-            bottom: widget.isFullScreen ? 60 : 52,
-            end: 20,
-            child: CallbackShortcuts(
-              bindings: {
-                const SingleActivator(LogicalKeyboardKey.escape): () {
-                  setState(() => _showAudioSubtitlesPopup = false);
+              bottom: widget.isFullScreen ? 60 : 52,
+              end: 20,
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.escape): () {
+                    setState(() => _showAudioSubtitlesPopup = false);
+                  },
                 },
-              },
-              child: Focus(
-                autofocus: true,
-                child: AdaptiveAudioSubtitlesPopup(
-                  audioTracks: widget.audioTracks,
-                  currentAudioTrack: widget.currentAudioTrack,
-                  onAudioTrackSelected: (track) {
-                    widget.onAudioTrackSelected?.call(track);
-                    setState(() => _showAudioSubtitlesPopup = false);
-                  },
-                  subtitles: widget.subtitles,
-                  currentSubtitleTrack: widget.currentSubtitleTrack,
-                  onSubtitleSelected: (track) {
-                    widget.onSubtitleSelected?.call(track);
-                    setState(() => _showAudioSubtitlesPopup = false);
-                  },
-                  styling: widget.styling,
-                  messages: widget.messages,
-                  onClose: () =>
-                      setState(() => _showAudioSubtitlesPopup = false),
+                child: Focus(
+                  autofocus: true,
+                  child: AdaptiveAudioSubtitlesPopup(
+                    maxWidth: math.min(520, constraints.maxWidth - 32),
+                    maxHeight: math.min(
+                      380,
+                      math.max(160, constraints.maxHeight - 80),
+                    ),
+                    audioTracks: widget.audioTracks,
+                    currentAudioTrack: widget.currentAudioTrack,
+                    onAudioTrackSelected: (track) {
+                      widget.onAudioTrackSelected?.call(track);
+                      setState(() => _showAudioSubtitlesPopup = false);
+                    },
+                    subtitles: widget.subtitles,
+                    currentSubtitleTrack: widget.currentSubtitleTrack,
+                    onSubtitleSelected: (track) {
+                      widget.onSubtitleSelected?.call(track);
+                      setState(() => _showAudioSubtitlesPopup = false);
+                    },
+                    styling: widget.styling,
+                    messages: widget.messages,
+                    onClose: () =>
+                        setState(() => _showAudioSubtitlesPopup = false),
+                  ),
                 ),
               ),
             ),
-          ),
         ],
 
         // Netflix-style Episodes Drawer (Image 5)
-        if (_showEpisodesDrawer && widget.episodes != null) ...[
+        if (!tabletFit && _showEpisodesDrawer && widget.episodes != null) ...[
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -580,30 +746,35 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
             ),
           ),
           PositionedDirectional(
-            bottom: widget.isFullScreen ? 60 : 52,
-            end: 20,
-            child: CallbackShortcuts(
-              bindings: {
-                const SingleActivator(LogicalKeyboardKey.escape): () {
-                  setState(() => _showEpisodesDrawer = false);
-                },
-              },
-              child: Focus(
-                autofocus: true,
-                child: AdaptiveEpisodesDrawer(
-                  episodes: widget.episodes!,
-                  currentEpisode: widget.currentEpisode,
-                  onEpisodeSelected: (ep) {
-                    widget.onEpisodeSelected?.call(ep);
+              bottom: widget.isFullScreen ? 60 : 52,
+              end: 20,
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.escape): () {
                     setState(() => _showEpisodesDrawer = false);
                   },
-                  styling: widget.styling,
-                  messages: widget.messages,
-                  onClose: () => setState(() => _showEpisodesDrawer = false),
+                },
+                child: Focus(
+                  autofocus: true,
+                  child: AdaptiveEpisodesDrawer(
+                    maxWidth: math.min(440, constraints.maxWidth - 32),
+                    maxHeight: math.min(
+                      520,
+                      math.max(180, constraints.maxHeight - 80),
+                    ),
+                    episodes: widget.episodes!,
+                    currentEpisode: widget.currentEpisode,
+                    onEpisodeSelected: (ep) {
+                      widget.onEpisodeSelected?.call(ep);
+                      setState(() => _showEpisodesDrawer = false);
+                    },
+                    styling: widget.styling,
+                    messages: widget.messages,
+                    onClose: () => setState(() => _showEpisodesDrawer = false),
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ],
     );

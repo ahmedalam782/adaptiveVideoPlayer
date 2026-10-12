@@ -148,143 +148,142 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
     final showQuality = visibility?.showQualitySetting ?? true;
     final showSubtitles = visibility?.showSubtitlesSetting ?? true;
 
-    return SingleChildScrollView(
+    return ListView(
       key: const ValueKey('main_menu'),
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (showQuality)
-            ListTile(
-              dense: true,
-              visualDensity: VisualDensity.compact,
-              leading: PlayerIcon.resolve(
-                context,
-                icon: styling?.icons.qualityIcon,
-                fallbackIcon: Icons.hd,
-                defaultColor: styling?.iconColor ?? Colors.white,
-                defaultSize: 20,
-              ),
-              title: Text(
-                messages?.qualityText ?? 'Quality (Resolution)',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: styling?.settingItemTextStyle ??
-                    const TextStyle(color: Colors.white),
-              ),
-              trailing: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 130),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        currentQuality?.title ?? (messages?.autoText ?? 'Auto'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: styling?.iconColor.withValues(alpha: 0.7) ??
-                              Colors.white70,
-                        ),
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      children: [
+        if (showQuality)
+          ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
+            leading: PlayerIcon.resolve(
+              context,
+              icon: styling?.icons.qualityIcon,
+              fallbackIcon: Icons.hd,
+              defaultColor: styling?.iconColor ?? Colors.white,
+              defaultSize: 20,
+            ),
+            title: Text(
+              messages?.qualityText ?? 'Quality (Resolution)',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: styling?.settingItemTextStyle ??
+                  const TextStyle(color: Colors.white),
+            ),
+            trailing: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 130),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      currentQuality?.title ?? (messages?.autoText ?? 'Auto'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: styling?.iconColor.withValues(alpha: 0.7) ??
+                            Colors.white70,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right,
-                      color: styling?.iconColor.withValues(alpha: 0.7) ??
-                          Colors.white70,
-                      size: 20,
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
+                    color: styling?.iconColor.withValues(alpha: 0.7) ??
+                        Colors.white70,
+                    size: 20,
+                  ),
+                ],
               ),
-              onTap: () {
-                onAnalyticsEvent?.call(PlayerEvents.resolutionSettingsClicked, {});
-                if (qualities != null && qualities!.isNotEmpty) {
-                  onOpenQualities();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: styling?.settingsBackgroundColor ??
-                        const Color(0xFF212121),
-                    behavior: SnackBarBehavior.floating,
-                    content: Text(
-                      messages?.noQualitiesAvailableText ??
-                          PlayerStrings.noQualitiesAvailable,
-                      style: styling?.settingItemTextStyle ??
-                          const TextStyle(color: Colors.white),
-                    ),
-                  ));
-                }
-              },
             ),
-          if (showSubtitles)
-            ListTile(
-              dense: true,
-              visualDensity: VisualDensity.compact,
-              leading: PlayerIcon.resolve(
-                context,
-                icon: styling?.icons.subtitlesIcon,
-                fallbackIcon: Icons.closed_caption,
-                defaultColor: styling?.iconColor ?? Colors.white,
-                defaultSize: 20,
-              ),
-              title: Text(
-                messages?.subtitlesText ?? PlayerStrings.subtitles,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: styling?.settingItemTextStyle ??
-                    const TextStyle(color: Colors.white),
-              ),
-              trailing: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 130),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        currentSubtitleTrack?.title ??
-                            (messages?.offText ?? PlayerStrings.off),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: styling?.iconColor.withValues(alpha: 0.7) ??
-                              Colors.white70,
-                        ),
+            onTap: () {
+              onAnalyticsEvent
+                  ?.call(PlayerEvents.resolutionSettingsClicked, {});
+              if (qualities != null && qualities!.isNotEmpty) {
+                onOpenQualities();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: styling?.settingsBackgroundColor ??
+                      const Color(0xFF212121),
+                  behavior: SnackBarBehavior.floating,
+                  content: Text(
+                    messages?.noQualitiesAvailableText ??
+                        PlayerStrings.noQualitiesAvailable,
+                    style: styling?.settingItemTextStyle ??
+                        const TextStyle(color: Colors.white),
+                  ),
+                ));
+              }
+            },
+          ),
+        if (showSubtitles)
+          ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
+            leading: PlayerIcon.resolve(
+              context,
+              icon: styling?.icons.subtitlesIcon,
+              fallbackIcon: Icons.closed_caption,
+              defaultColor: styling?.iconColor ?? Colors.white,
+              defaultSize: 20,
+            ),
+            title: Text(
+              messages?.subtitlesText ?? PlayerStrings.subtitles,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: styling?.settingItemTextStyle ??
+                  const TextStyle(color: Colors.white),
+            ),
+            trailing: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 130),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      currentSubtitleTrack?.title ??
+                          (messages?.offText ?? PlayerStrings.off),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: styling?.iconColor.withValues(alpha: 0.7) ??
+                            Colors.white70,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right,
-                      color: styling?.iconColor.withValues(alpha: 0.7) ??
-                          Colors.white70,
-                      size: 20,
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
+                    color: styling?.iconColor.withValues(alpha: 0.7) ??
+                        Colors.white70,
+                    size: 20,
+                  ),
+                ],
               ),
-              onTap: () {
-                onAnalyticsEvent?.call(PlayerEvents.subtitleSettingsClicked, {});
-                if (subtitles != null && subtitles!.isNotEmpty) {
-                  onOpenSubtitles();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    backgroundColor: styling?.settingsBackgroundColor ??
-                        const Color(0xFF212121),
-                    behavior: SnackBarBehavior.floating,
-                    content: Text(
-                      messages?.noSubtitlesAvailableText ??
-                          PlayerStrings.noSubtitlesAvailable,
-                      style: styling?.settingItemTextStyle ??
-                          const TextStyle(color: Colors.white),
-                    ),
-                  ));
-                }
-              },
             ),
-        ],
-      ),
+            onTap: () {
+              onAnalyticsEvent?.call(PlayerEvents.subtitleSettingsClicked, {});
+              if (subtitles != null && subtitles!.isNotEmpty) {
+                onOpenSubtitles();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  backgroundColor: styling?.settingsBackgroundColor ??
+                      const Color(0xFF212121),
+                  behavior: SnackBarBehavior.floating,
+                  content: Text(
+                    messages?.noSubtitlesAvailableText ??
+                        PlayerStrings.noSubtitlesAvailable,
+                    style: styling?.settingItemTextStyle ??
+                        const TextStyle(color: Colors.white),
+                  ),
+                ));
+              }
+            },
+          ),
+      ],
     );
   }
 }
@@ -312,71 +311,34 @@ class AdaptiveSettingsQualitiesMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final color = styling?.iconColor ?? Colors.white;
+    return ListView(
       key: const ValueKey('qualities_menu'),
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: styling?.iconColor ?? Colors.white,
-              ),
-              onPressed: onBack,
-            ),
-            title: Text(
-              messages?.qualityText ?? 'Quality (Resolution)',
-              style: styling?.settingItemTextStyle?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ) ??
-                  const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const Divider(color: Colors.white24, height: 1),
-          Flexible(
-            child: ListView.builder(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              itemCount: qualities?.length ?? 0,
-              itemBuilder: (context, index) {
-                final quality = qualities![index];
-                final isSelected = currentQuality == quality;
-                return ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: Text(
-                    quality.title,
-                    style: styling?.settingItemTextStyle ??
-                        const TextStyle(color: Colors.white),
-                  ),
-                  trailing: isSelected
-                      ? PlayerIcon.resolve(
-                          context,
-                          icon: styling?.icons.checkIcon,
-                          fallbackIcon: Icons.check,
-                          defaultColor: styling?.iconColor ?? Colors.white,
-                          defaultSize: 18,
-                        )
-                      : null,
-                  onTap: () {
-                    if (onDismiss != null) {
-                      onDismiss!();
-                    } else if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    }
-                    onQualitySelected?.call(quality);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      shrinkWrap: true,
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+      children: [
+        ResponsiveSettingsBackHeader(
+          title: messages?.qualityText ?? 'Quality (Resolution)',
+          color: color,
+          onBack: onBack,
+        ),
+        const SizedBox(height: 12),
+        ...(qualities ?? const <VideoQuality>[]).map((quality) {
+          return ResponsiveSettingsChoice(
+            label: quality.title,
+            selected: currentQuality == quality,
+            color: color,
+            onTap: () {
+              if (onDismiss != null) {
+                onDismiss!();
+              } else if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+              onQualitySelected?.call(quality);
+            },
+          );
+        }),
+      ],
     );
   }
 }
@@ -404,100 +366,148 @@ class AdaptiveSettingsSubtitlesMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitlesCount = (subtitles?.length ?? 0) + 1;
-    return Padding(
+    final color = styling?.iconColor ?? Colors.white;
+    return ListView(
       key: const ValueKey('subtitles_menu'),
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            dense: true,
-            visualDensity: VisualDensity.compact,
-            leading: IconButton(
-              icon: PlayerIcon.resolve(
-                context,
-                icon: styling?.icons.backIcon,
-                fallbackIcon: Icons.arrow_back,
-                defaultColor: styling?.iconColor ?? Colors.white,
-                defaultSize: 20,
-              ),
-              onPressed: onBack,
-            ),
-            title: Text(
-              messages?.subtitlesText ?? 'Subtitles',
-              style: styling?.settingItemTextStyle?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ) ??
-                  const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const Divider(color: Colors.white24, height: 1),
-          Flexible(
-            child: ListView.builder(
-              shrinkWrap: true,
+      shrinkWrap: true,
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+      children: [
+        ResponsiveSettingsBackHeader(
+          title: messages?.subtitlesText ?? 'Subtitles',
+          color: color,
+          onBack: onBack,
+        ),
+        ResponsiveSettingsChoice(
+          label: messages?.offText ?? 'Off',
+          selected: currentSubtitleTrack == null,
+          color: color,
+          onTap: () {
+            if (onDismiss != null) {
+              onDismiss!();
+            } else if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+            onSubtitleSelected?.call(null);
+          },
+        ),
+        ...(subtitles ?? const <SubtitleTrack>[]).map((track) {
+          return ResponsiveSettingsChoice(
+            label: track.title,
+            selected: currentSubtitleTrack?.id == track.id,
+            color: color,
+            onTap: () {
+              if (onDismiss != null) {
+                onDismiss!();
+              } else if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+              onSubtitleSelected?.call(track);
+            },
+          );
+        }),
+      ],
+    );
+  }
+}
+
+/// Back control and title for a settings page.
+class ResponsiveSettingsBackHeader extends StatelessWidget {
+  final String title;
+  final Color color;
+  final VoidCallback onBack;
+
+  const ResponsiveSettingsBackHeader({
+    super.key,
+    required this.title,
+    required this.color,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            IconButton(
               padding: EdgeInsets.zero,
-              itemCount: subtitlesCount,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  final isSelected = currentSubtitleTrack == null;
-                  return ListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    title: Text(
-                      messages?.offText ?? 'Off',
-                      style: styling?.settingItemTextStyle ??
-                          const TextStyle(color: Colors.white),
-                    ),
-                    trailing: isSelected
-                        ? PlayerIcon.resolve(
-                            context,
-                            icon: styling?.icons.checkIcon,
-                            fallbackIcon: Icons.check,
-                            defaultColor: styling?.iconColor ?? Colors.white,
-                            defaultSize: 18,
-                          )
-                        : null,
-                    onTap: () {
-                      if (onDismiss != null) {
-                        onDismiss!();
-                      } else if (Navigator.of(context).canPop()) {
-                        Navigator.of(context).pop();
-                      }
-                      onSubtitleSelected?.call(null);
-                    },
-                  );
-                }
-                final track = subtitles![index - 1];
-                final isSelected = currentSubtitleTrack?.id == track.id;
-                return ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: Text(
-                    track.title,
-                    style: styling?.settingItemTextStyle ??
-                        const TextStyle(color: Colors.white),
-                  ),
-                  trailing: isSelected
-                      ? Icon(
-                          Icons.check,
-                          color: styling?.iconColor ?? Colors.white,
-                        )
-                      : null,
-                  onTap: () {
-                    if (onDismiss != null) {
-                      onDismiss!();
-                    } else if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    }
-                    onSubtitleSelected?.call(track);
-                  },
-                );
-              },
+              visualDensity: VisualDensity.compact,
+              onPressed: onBack,
+              icon: Icon(
+                Icons.arrow_back,
+                color: color,
+                size: 20,
+                textDirection: Directionality.of(context),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Divider(color: color.withValues(alpha: .5), height: .5),
+      ],
+    );
+  }
+}
+
+/// One centered choice in the quality or subtitle list.
+class ResponsiveSettingsChoice extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final Color color;
+  final VoidCallback onTap;
+
+  const ResponsiveSettingsChoice({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(width: 24),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 15,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+            if (selected) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.check_rounded, color: color, size: 18),
+            ],
+          ],
+        ),
       ),
     );
   }

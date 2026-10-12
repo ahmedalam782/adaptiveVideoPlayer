@@ -8,8 +8,12 @@ mixin AdaptivePlayerVisibilityMixin on State<BaseAdaptiveVideoPlayer> {
   bool controlsVisible = true;
   Timer? hideTimer;
 
+  /// Keeps the controls on screen while a phone/tablet panel is open.
+  bool holdControlsOpen = false;
+
   void startHideTimer() {
     hideTimer?.cancel();
+    if (holdControlsOpen) return;
     final timeout = widget.visibility?.controlsHideTimeout ??
         const Duration(seconds: 3);
     hideTimer = Timer(timeout, () {

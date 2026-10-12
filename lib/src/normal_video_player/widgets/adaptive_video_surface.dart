@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../adaptive_controls.dart';
@@ -13,13 +12,9 @@ class AdaptiveVideoSurface extends StatelessWidget {
   static final Expando<GlobalKey> _controllerKeys =
       Expando<GlobalKey>('AdaptiveVideoSurfaceKey');
 
-  /// Returns a persistent [GlobalKey] bound to [controller] on Flutter Web so reparenting
-  /// between inline, fullscreen, and mini-player overlays never detaches
-  /// the underlying HTML `<video>` DOM element.
-  /// On mobile/desktop (Android, iOS, Windows, macOS, Linux), returns null so
-  /// Flutter manages the native Texture/Surface without surface detachment or black screens.
-  static GlobalKey? keyForController(VideoPlayerController controller) {
-    if (!kIsWeb) return null;
+  /// Returns a persistent [GlobalKey] bound to [controller] so moving between
+  /// the inline player and fullscreen keeps the same picture.
+  static GlobalKey keyForController(VideoPlayerController controller) {
     return _controllerKeys[controller] ??= GlobalKey();
   }
 

@@ -159,6 +159,11 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                   final responsiveBottom = letterboxBottom + baseBottom;
                   final responsiveRight =
                       pillarboxSide + (isMobile ? 12.0 : 12.0);
+                  // wasPlaying is null until fullscreen or PiP has observed
+                  // playback. Until then, honor the configured autoPlay flag.
+                  final shouldAutoPlay = fullscreenManager.isInPip ||
+                      (fullscreenManager.wasPlaying ??
+                          config.playback.autoPlay);
                   return Stack(
                     alignment: Alignment.center,
                     children: [
@@ -175,9 +180,7 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                                     config: config,
                                     startAt: fullscreenManager
                                         .currentPositionSeconds,
-                                    autoPlay: (fullscreenManager.wasPlaying ==
-                                            true ||
-                                        fullscreenManager.isInPip),
+                                    autoPlay: shouldAutoPlay,
                                     onPositionUpdate: onPositionUpdate,
                                     onPlayingStateChanged:
                                         onPlayingStateChanged,
@@ -207,9 +210,7 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                                     config: config,
                                     startAt: fullscreenManager
                                         .currentPositionSeconds,
-                                    autoPlay: (fullscreenManager.wasPlaying ==
-                                            true ||
-                                        fullscreenManager.isInPip),
+                                    autoPlay: shouldAutoPlay,
                                     onPositionUpdate: onPositionUpdate,
                                     onPlayingStateChanged:
                                         onPlayingStateChanged,

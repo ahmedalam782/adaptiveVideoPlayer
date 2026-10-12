@@ -12,6 +12,7 @@ import 'mixins/normal_player_playback_resilience_mixin.dart';
 import 'mixins/normal_player_subtitles_mixin.dart';
 import 'models/normal_player_display_mode.dart';
 import 'models/video_config.dart';
+import 'utils/player_surface_tier.dart';
 import 'utils/video_player_web_safe.dart';
 import 'views/normal_player_view.dart';
 import 'widgets/normal_fullscreen_overlay.dart';
@@ -151,6 +152,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
   VideoEpisode? currentEpisode;
   AudioTrack? currentAudioTrack;
   String? currentTitle;
+  final OverlayPortalController _fullscreenPortal = OverlayPortalController();
+  PlayerSurfaceTier? _fullscreenTier;
 
   @override
   VideoPlayerController? get resilienceController =>
@@ -171,6 +174,14 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       ensurePlaybackContinues(wasPlaying);
 
   @override
+  bool onLeaveFullscreenForPip() {
+    if (!isInFullscreen) return false;
+    _fullscreenPortal.hide();
+    fullscreenCoordinator.abandonFullscreenForPip();
+    return true;
+  }
+
+  @override
   void initState() {
     super.initState();
     initPipListeners();
@@ -181,7 +192,11 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       onEnsurePlayback: ensurePlaybackContinues,
     );
     initSubtitles();
-    initFullscreenCoordinator();
+    initFullscreenCoordinator(
+      onFullscreenChanged: () {
+        if (!isInFullscreen) _fullscreenPortal.hide();
+      },
+    );
     if (widget.config.preventScreenCapture) {
       ScreenProtectionService.registerOwner(this);
     }
@@ -331,90 +346,29 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
   }
 
   void _handleOpenFullscreen() {
-    openFullscreenView(
-      builder: (overlayContext) {
-        final activeCtx = mounted ? context : overlayContext;
-        final effectiveMessages = resolveEffectiveMessages(activeCtx);
-        if (hasError) {
-          return NormalFullscreenOverlay(
-            textDirection: effectiveMessages.resolveTextDirection(activeCtx),
-            onExitFullscreen: _handleCloseFullscreen,
-            child: NormalPlayerErrorWidget(
-              errorMessage: errorMessage,
-              styling: widget.styling,
-              customBuilder: widget.errorBuilder,
-              onRetry: () {
-                setState(() {
-                  hasError = false;
-                  isInitialized = false;
-                });
-                initializeVideo(
-                  onPlaybackUpdate: _handlePlayerControllerUpdate,
-                  onEnsurePlayback: ensurePlaybackContinues,
-                );
-              },
-            ),
-          );
-        }
-
-        if (!isInitialized || videoPlayerController == null) {
-          return NormalFullscreenOverlay(
-            textDirection: effectiveMessages.resolveTextDirection(activeCtx),
-            onExitFullscreen: _handleCloseFullscreen,
-            child: NormalPlayerLoadingWidget(
-              styling: widget.styling,
-              customBuilder: widget.loadingBuilder,
-              controller: videoPlayerController,
-            ),
-          );
-        }
-
-        return NormalFullscreenOverlay(
-          textDirection: effectiveMessages.resolveTextDirection(activeCtx),
-          onExitFullscreen: _handleCloseFullscreen,
-          child: NormalPlayerView(
-            controller: videoPlayerController!,
-            showControls: widget.visibility.showControls,
-            isFullScreen: true,
-            isLive: effectiveIsLive,
-            controlsBuilder: widget.controlsBuilder,
-            subtitleBuilder: widget.subtitleBuilder,
-            styling: widget.styling,
-            messages: effectiveMessages,
-            visibility: widget.visibility,
-            onAnalyticsEvent: widget.onAnalyticsEvent,
-            qualities: widget.qualities,
-            currentQuality: currentQuality,
-            onQualitySelected: (q) => changeQuality(
-              q,
-              onPlaybackUpdate: _handlePlayerControllerUpdate,
-              onEnsurePlayback: ensurePlaybackContinues,
-            ),
-            subtitles: widget.subtitles,
-            currentSubtitleTrack: currentSubtitleTrack,
-            onSubtitleSelected: changeSubtitleTrack,
-            parsedSubtitles: parsedSubtitles,
-            chapters: widget.chapters,
-            viewerCount: widget.viewerCount,
-            onEnterFullscreen: () {},
-            onExitFullscreen: _handleCloseFullscreen,
-            title: currentTitle,
-            episodes: widget.episodes,
-            currentEpisode: currentEpisode,
-            onEpisodeSelected: _handleEpisodeSelected,
-            onNextEpisode: _handleNextEpisode,
-            audioTracks: widget.audioTracks,
-            currentAudioTrack: currentAudioTrack,
-            onAudioTrackSelected: _handleAudioTrackSelected,
-          ),
-        );
-      },
+    final window = MediaQuery.maybeSizeOf(context) ?? Size.zero;
+    final player = context.size ?? window;
+    _fullscreenTier = PlayerSurfaceScope.maybeOf(context) ??
+        resolvePlayerSurfaceTier(window: window, player: player);
+    _fullscreenPortal.show();
+    enterSystemFullscreenView(
       onBeforeOpen: holdPlayback,
-      onAfterOpen: resumeHeldPlayback,
+      onAfterOpen: () {
+        resumeHeldPlayback();
+        final ctrl = videoPlayerController;
+        final held = heldPosition;
+        if (ctrl != null &&
+            ctrl.value.isInitialized &&
+            held != null &&
+            held > Duration.zero) {
+          ctrl.seekTo(held);
+        }
+      },
     );
   }
 
   void _handleCloseFullscreen() {
+    _fullscreenPortal.hide();
     closeFullscreenView(
       onBeforeClose: holdPlayback,
       onAfterClose: resumeHeldPlayback,
@@ -534,6 +488,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
             lastReportedPipPlaying = !ctrl.value.isPlaying;
             NativePipService.updatePlaybackState(
               isPlaying: !ctrl.value.isPlaying,
+              url: ctrl.dataSource,
+              positionMs: ctrl.value.position.inMilliseconds,
             );
           },
           onSeekBackward: () => pipSeek(-10),
@@ -542,7 +498,31 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       NormalPlayerDisplayMode.normal => playerView,
     };
 
-    return PopScope(
+    return OverlayPortal(
+      controller: _fullscreenPortal,
+      overlayLocation: OverlayChildLocation.rootOverlay,
+      overlayChildBuilder: (overlayContext) {
+        if (!isInFullscreen) return const SizedBox.shrink();
+        return MediaQuery.removePadding(
+          context: overlayContext,
+          removeTop: true,
+          removeBottom: true,
+          removeLeft: true,
+          removeRight: true,
+          child: SizedBox.expand(
+            child: PlayerSurfaceScope(
+              tier: _fullscreenTier ?? PlayerSurfaceTier.desktop,
+              child: NormalFullscreenOverlay(
+                textDirection:
+                    effectiveMessages.resolveTextDirection(overlayContext),
+                onExitFullscreen: _handleCloseFullscreen,
+                child: playerView,
+              ),
+            ),
+          ),
+        );
+      },
+      child: PopScope(
       canPop: !isInFullscreen,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
@@ -560,6 +540,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
           ),
         ),
       ),
+    ),
     );
   }
 

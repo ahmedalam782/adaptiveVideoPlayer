@@ -83,6 +83,21 @@ class YouTubeJsCommands {
     }
     return "initPlayer('$videoId', $autoPlay, $mute, $startAt, '$lang', '$dir');";
   }
+
+  /// Asks the already-playing YouTube video, including inside the embed iframe,
+  /// to enter Picture-in-Picture without loading a second player.
+  static const String enterPictureInPicture = r"""
+(function() {
+  function forward(win) {
+    try { win.postMessage({ type: 'adaptive-enter-pip' }, '*'); } catch (e) {}
+  }
+  forward(window);
+  var frames = document.querySelectorAll('iframe');
+  for (var i = 0; i < frames.length; i++) {
+    try { forward(frames[i].contentWindow); } catch (e) {}
+  }
+})();
+""";
 }
 
 /// Pre-bundled JavaScript user scripts and permission definitions for YouTube WebView.
@@ -97,15 +112,62 @@ class YouTubeJsScripts {
   static const String iframeAllowPermissions =
       'camera; microphone; playing; fullscreen; autoplay; encrypted-media; gyroscope; accelerometer; clipboard-write; picture-in-picture';
 
-  /// Full injected client script that strips unwanted YouTube chrome, suppresses OS PiP,
-  /// observes controls visibility, and bridges touch/pointer activity back to Flutter.
+  /// Full injected client script that strips unwanted YouTube chrome.
+  ///
+  /// On iOS the embedded video stays eligible for Picture-in-Picture. Other
+  /// platforms keep the system PiP control hidden. The script also observes
+  /// controls visibility and bridges touch activity back to Flutter.
   static const String injectedPlayerScript = r"""
 (function() {
+  var isIOSWebKit = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  function enterVideoPip(video) {
+    try {
+      video.disablePictureInPicture = false;
+      video.removeAttribute('disablePictureInPicture');
+      var controls = video.getAttribute('controlsList') || '';
+      video.setAttribute('controlsList', controls.replace(/\bnopip\b/g, '').replace(/\s+/g, ' ').trim());
+      if (typeof video.webkitSetPresentationMode === 'function') {
+        if (video.webkitPresentationMode !== 'picture-in-picture') {
+          video.webkitSetPresentationMode('picture-in-picture');
+        }
+        return true;
+      }
+      if (document.pictureInPictureElement !== video &&
+          typeof video.requestPictureInPicture === 'function') {
+        video.requestPictureInPicture();
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  window.addEventListener('message', function(event) {
+    var data = event.data;
+    if (!data || data.type !== 'adaptive-enter-pip') return;
+    var videos = document.querySelectorAll('video');
+    for (var i = 0; i < videos.length; i++) {
+      enterVideoPip(videos[i]);
+    }
+    var frames = document.querySelectorAll('iframe');
+    for (var f = 0; f < frames.length; f++) {
+      try {
+        frames[f].contentWindow.postMessage({ type: 'adaptive-enter-pip' }, '*');
+      } catch (e) {}
+    }
+  });
+
   function updatePlayerStyles() {
     try {
       var vids = document.querySelectorAll('video');
       for (var i = 0; i < vids.length; i++) {
         var v = vids[i];
+        if (isIOSWebKit) {
+          v.disablePictureInPicture = false;
+          v.removeAttribute('disablePictureInPicture');
+          continue;
+        }
         v.disablePictureInPicture = true;
         v.setAttribute('disablePictureInPicture', '');
         var cl = v.getAttribute('controlsList') || '';

@@ -31,16 +31,12 @@ mixin NormalPlayerFullscreenMixin on State<NormalVideoPlayer> {
     }
   }
 
-  void openFullscreenView({
-    required Widget Function(BuildContext overlayContext) builder,
+  void enterSystemFullscreenView({
     VoidCallback? onBeforeOpen,
     VoidCallback? onAfterOpen,
   }) {
     onBeforeOpen?.call();
-    fullscreenCoordinator.openFullscreen(
-      context: context,
-      builder: builder,
-    );
+    fullscreenCoordinator.enterSystemFullscreen(context: context);
     onAfterOpen?.call();
   }
 

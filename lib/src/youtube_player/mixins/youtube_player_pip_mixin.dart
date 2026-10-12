@@ -25,11 +25,12 @@ mixin YouTubePlayerPipMixin on State<YouTubeVideoPlayer> {
   void onAfterClosePip(bool pauseOnClose);
 
   Future<void> openMobilePip() async {
-    if (!kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS)) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       final entered = await NativePipService.enterPip();
       if (entered) return;
+    }
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      return;
     }
     if (!mounted || isInMobilePip) return;
     if (kIsWeb && (currentVideoId == null || currentWebIframeId == null)) {

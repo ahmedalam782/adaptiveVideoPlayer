@@ -11,8 +11,10 @@ import 'models/video_config.dart';
 import 'utils/adaptive_player_keyboard_handler.dart';
 import 'utils/subtitle_parser.dart';
 import 'utils/video_player_web_safe.dart';
+import 'utils/player_surface_tier.dart';
 import 'widgets/adaptive_buffering_indicator.dart';
 import 'widgets/adaptive_controls_layer.dart';
+import 'widgets/mobile/mobile_next_episode_prompt.dart';
 import 'widgets/adaptive_seek_feedback_overlay.dart';
 import 'widgets/adaptive_subtitle_layer.dart';
 import 'widgets/adaptive_video_surface.dart';
@@ -100,7 +102,10 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
         AdaptivePlayerGesturesMixin,
         AdaptivePlayerSubtitlesSyncMixin {
   final FocusNode _focusNode = FocusNode();
+  final ValueNotifier<double> _brightness = ValueNotifier<double>(1);
   bool _videoEndedEventSent = false;
+  bool _screenLocked = false;
+  bool _creditsPromptDismissed = false;
 
   AdaptivePlayerKeyboardHandler get _keyboardHandler =>
       AdaptivePlayerKeyboardHandler(
@@ -146,6 +151,11 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
   TapDownDetails? _lastTapDownDetails;
 
   void _handleSingleTap() {
+    if (_screenLocked) {
+      setState(() => controlsVisible = !controlsVisible);
+      if (controlsVisible) startHideTimer();
+      return;
+    }
     _focusNode.requestFocus();
     final enableClickToPlay =
         widget.visibility?.clickToPlayPause ?? true;
@@ -220,6 +230,12 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
     final position = widget.controller.value.position;
     final duration = widget.controller.value.duration;
 
+    if (_creditsPromptDismissed &&
+        duration > Duration.zero &&
+        duration - position > const Duration(seconds: 20)) {
+      _creditsPromptDismissed = false;
+    }
+
     if (position >= duration && duration.inMilliseconds > 0) {
       if (!_videoEndedEventSent) {
         _videoEndedEventSent = true;
@@ -254,11 +270,24 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
     disposeVisibilityTimer();
     disposeGesturesTimers();
     _focusNode.dispose();
+    _brightness.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) =>
+          _buildFramedPlayer(context, constraints),
+    );
+  }
+
+  Widget _buildFramedPlayer(BuildContext context, BoxConstraints constraints) {
+    final tier = playerSurfaceTierOf(
+      context,
+      Size(constraints.maxWidth, constraints.maxHeight),
+    );
+    final mobileChrome = tier == PlayerSurfaceTier.phone;
     final videoFit = widget.styling?.videoFit ?? BoxFit.contain;
     final isCover = videoFit == BoxFit.cover || videoFit == BoxFit.fill;
 
@@ -281,6 +310,17 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
             child: isCover
                 ? SizedBox.expand(child: videoContent)
                 : videoContent,
+          ),
+
+          ValueListenableBuilder<double>(
+            valueListenable: _brightness,
+            builder: (context, brightness, _) {
+              final dim = (1 - brightness).clamp(0.0, 0.85);
+              if (dim <= 0.01) return const SizedBox.shrink();
+              return IgnorePointer(
+                child: ColoredBox(color: Colors.black.withValues(alpha: dim)),
+              );
+            },
           ),
 
           // Buffering/Loading Indicator Overlay
@@ -348,6 +388,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
             isFullScreen: widget.isFullScreen,
             subtitleBuilder: widget.subtitleBuilder,
             styling: widget.styling,
+            controlsBottomInset: mobileChrome ? 132 : null,
           ),
 
           if (widget.showControls)
@@ -359,12 +400,16 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                     behavior: HitTestBehavior.opaque,
                     onTapDown: (details) => _lastTapDownDetails = details,
                     onTap: _handleSingleTap,
-                    onDoubleTapDown: (details) =>
-                        handleDoubleTap(details, startHideTimer),
+                    onDoubleTapDown: _screenLocked
+                        ? null
+                        : (details) =>
+                            handleDoubleTap(details, startHideTimer),
                     onDoubleTap: () {},
-                    onLongPressStart: handleLongPressStart,
-                    onLongPressEnd: handleLongPressEnd,
-                    onLongPressCancel: stopHold2xSpeed,
+                    onLongPressStart:
+                        _screenLocked ? null : handleLongPressStart,
+                    onLongPressEnd: _screenLocked ? null : handleLongPressEnd,
+                    onLongPressCancel:
+                        _screenLocked ? null : stopHold2xSpeed,
                   ),
                   AnimatedOpacity(
                     opacity: controlsVisible ? 1 : 0,
@@ -405,10 +450,77 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                               audioTracks: widget.audioTracks,
                               currentAudioTrack: widget.currentAudioTrack,
                               onAudioTrackSelected: widget.onAudioTrackSelected,
+                              brightnessListenable:
+                                  mobileChrome ? _brightness : null,
+                              screenLocked: _screenLocked,
+                              onToggleScreenLock: mobileChrome
+                                  ? () {
+                                      setState(() {
+                                        _screenLocked = !_screenLocked;
+                                        controlsVisible = true;
+                                      });
+                                      if (_screenLocked) {
+                                        hideTimer?.cancel();
+                                      }
+                                      startHideTimer();
+                                    }
+                                  : null,
+                              onHideControls: () {
+                                setState(() => controlsVisible = false);
+                                hideTimer?.cancel();
+                              },
+                              onControlsPinnedChanged: (pinned) {
+                                holdControlsOpen = pinned;
+                                if (pinned) {
+                                  hideTimer?.cancel();
+                                  if (!controlsVisible) {
+                                    setState(() => controlsVisible = true);
+                                  }
+                                } else {
+                                  startHideTimer();
+                                }
+                              },
                             ),
                     ),
                   ),
                 ],
+              ),
+            ),
+          if (mobileChrome &&
+              widget.showControls &&
+              !widget.isLive &&
+              widget.onNextEpisode != null)
+            PositionedDirectional(
+              bottom: 96,
+              end: 18,
+              child: ValueListenableBuilder<VideoPlayerValue>(
+                valueListenable: widget.controller,
+                builder: (context, value, _) {
+                  if (_screenLocked ||
+                      _creditsPromptDismissed ||
+                      holdControlsOpen) {
+                    return const SizedBox.shrink();
+                  }
+                  if (!value.isInitialized || value.duration <= Duration.zero) {
+                    return const SizedBox.shrink();
+                  }
+                  final remaining = value.duration - value.position;
+                  if (remaining > const Duration(seconds: 20)) {
+                    return const SizedBox.shrink();
+                  }
+                  final isRtl = (widget.messages?.resolveTextDirection(context) ??
+                          Directionality.maybeOf(context)) ==
+                      TextDirection.rtl;
+                  return MobileNextEpisodePrompt(
+                    nextLabel: widget.messages?.nextEpisodeText ??
+                        (isRtl ? 'الحلقة التالية' : 'Next Episode'),
+                    creditsLabel: isRtl ? 'مشاهدة الشارة' : 'Watch credits',
+                    onNext: widget.onNextEpisode!,
+                    onWatchCredits: () {
+                      setState(() => _creditsPromptDismissed = true);
+                    },
+                  );
+                },
               ),
             ),
         ],

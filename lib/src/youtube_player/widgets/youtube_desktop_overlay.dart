@@ -110,9 +110,9 @@ class YouTubeDesktopFullscreenManager {
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
+      // One landscape direction. Listing both makes iOS rotate, then rotate again.
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
       ]);
     } else {
       await SystemChrome.setPreferredOrientations([
@@ -161,15 +161,13 @@ class YouTubeDesktopFullscreenManager {
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
-      await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      Future.delayed(const Duration(milliseconds: 500), () {
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ]);
-      });
+      // One restore. Portrait first, then every orientation 500ms later, turns the phone twice.
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
     } else {
       await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     }

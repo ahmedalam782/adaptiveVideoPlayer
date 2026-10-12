@@ -17,6 +17,8 @@ void exitBrowserFullscreen() {
   } catch (_) {}
 }
 
+void markDesktopFullscreenExited() {}
+
 bool isBrowserFullscreen() {
   try {
     return web.document.fullscreenElement != null;

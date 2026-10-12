@@ -445,6 +445,17 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                       else
                         const Spacer(),
 
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth:
+                              (constraints.maxWidth * 0.5).clamp(88.0, 560.0),
+                        ),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          reverse: true,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
                       // 4. Volume Control
                       if (showVolume) ...[
                         SizedBox(width: isCompact ? 3.0 : 6.0),
@@ -514,8 +525,7 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                       // Discrete Playback Speed Button
                       if (!inTopBar &&
                           effectiveVisibility.showSpeedButton &&
-                          onSpeedPressed != null &&
-                          constraints.maxWidth > 540) ...[
+                          onSpeedPressed != null) ...[
                         SizedBox(width: isCompact ? 2.0 : 4.0),
                         Tooltip(
                           message: messages?.playbackSpeedText ?? 'Playback Speed',
@@ -545,8 +555,7 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                           effectiveVisibility.showAudioSubtitlesButton &&
                           onAudioSubtitlesPressed != null &&
                           ((audioTracks != null && audioTracks!.isNotEmpty) ||
-                              (subtitles != null && subtitles!.isNotEmpty)) &&
-                          constraints.maxWidth > 620) ...[
+                              (subtitles != null && subtitles!.isNotEmpty))) ...[
                         SizedBox(width: isCompact ? 2.0 : 4.0),
                         Tooltip(
                           message: messages?.audioAndSubtitlesText ??
@@ -577,8 +586,7 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                           effectiveVisibility.showEpisodesButton &&
                           episodes != null &&
                           episodes!.isNotEmpty &&
-                          onEpisodesPressed != null &&
-                          constraints.maxWidth > 680) ...[
+                          onEpisodesPressed != null) ...[
                         SizedBox(width: isCompact ? 2.0 : 4.0),
                         Tooltip(
                           message: messages?.episodesText ?? 'Episodes',
@@ -659,6 +667,10 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                           onExitFullscreen: onExitFullscreen,
                         ),
                       ],
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 );

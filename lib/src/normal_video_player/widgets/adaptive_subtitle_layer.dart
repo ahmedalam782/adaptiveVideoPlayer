@@ -10,6 +10,7 @@ class AdaptiveSubtitleLayer extends StatelessWidget {
   final bool isFullScreen;
   final SubtitleBuilder? subtitleBuilder;
   final PlayerStyleConfig? styling;
+  final double? controlsBottomInset;
 
   const AdaptiveSubtitleLayer({
     super.key,
@@ -19,6 +20,7 @@ class AdaptiveSubtitleLayer extends StatelessWidget {
     required this.isFullScreen,
     this.subtitleBuilder,
     this.styling,
+    this.controlsBottomInset,
   });
 
   @override
@@ -29,7 +31,8 @@ class AdaptiveSubtitleLayer extends StatelessWidget {
       left: 20,
       right: 20,
       bottom: showControls && controlsVisible
-          ? (styling?.bottomBarLayout == BottomBarLayout.inline ? 76.0 : 96.0)
+          ? (controlsBottomInset ??
+              (styling?.bottomBarLayout == BottomBarLayout.inline ? 76.0 : 96.0))
           : 20.0,
       child: subtitleBuilder != null
           ? subtitleBuilder!(context, subtitleText)

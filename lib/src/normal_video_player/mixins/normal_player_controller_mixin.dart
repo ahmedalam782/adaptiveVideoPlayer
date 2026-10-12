@@ -351,6 +351,7 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
         }
         onEnsurePlayback(true);
       }
+
     } catch (e) {
       if (isBenignPlaybackError(e.toString())) {
         log('Ignoring benign playback interruption during initialization: $e');

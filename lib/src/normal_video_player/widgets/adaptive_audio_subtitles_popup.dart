@@ -3,9 +3,13 @@ import '../../youtube_player/models/player_style_config.dart';
 import '../../youtube_player/models/player_text_config.dart';
 import '../models/audio_track.dart';
 import '../models/subtitle_track.dart';
+import 'responsive/responsive_audio_subtitle_columns.dart';
 
-/// Dual-column popup for Audio and Subtitles selection matching Netflix's interface.
-class AdaptiveAudioSubtitlesPopup extends StatefulWidget {
+/// Audio and subtitle picker for Windows, web, and tablet.
+///
+/// [immersive] fills the player on a phone or tablet. Otherwise the card
+/// shrinks to [maxWidth] and [maxHeight].
+class ResponsiveAudioSubtitlesPanel extends StatefulWidget {
   final List<AudioTrack>? audioTracks;
   final AudioTrack? currentAudioTrack;
   final ValueChanged<AudioTrack>? onAudioTrackSelected;
@@ -16,7 +20,14 @@ class AdaptiveAudioSubtitlesPopup extends StatefulWidget {
   final PlayerTextConfig? messages;
   final VoidCallback? onClose;
 
-  const AdaptiveAudioSubtitlesPopup({
+  /// Edge-to-edge two-column panel used on phone and tablet.
+  final bool immersive;
+
+  /// Caps the floating card so it stays inside smaller windows.
+  final double? maxWidth;
+  final double? maxHeight;
+
+  const ResponsiveAudioSubtitlesPanel({
     super.key,
     this.audioTracks,
     this.currentAudioTrack,
@@ -27,15 +38,21 @@ class AdaptiveAudioSubtitlesPopup extends StatefulWidget {
     this.styling,
     this.messages,
     this.onClose,
+    this.immersive = false,
+    this.maxWidth,
+    this.maxHeight,
   });
 
   @override
-  State<AdaptiveAudioSubtitlesPopup> createState() =>
-      _AdaptiveAudioSubtitlesPopupState();
+  State<ResponsiveAudioSubtitlesPanel> createState() =>
+      _ResponsiveAudioSubtitlesPanelState();
 }
 
-class _AdaptiveAudioSubtitlesPopupState
-    extends State<AdaptiveAudioSubtitlesPopup> {
+/// Previous name. Prefer [ResponsiveAudioSubtitlesPanel].
+typedef AdaptiveAudioSubtitlesPopup = ResponsiveAudioSubtitlesPanel;
+
+class _ResponsiveAudioSubtitlesPanelState
+    extends State<ResponsiveAudioSubtitlesPanel> {
   AudioTrack? _selectedAudio;
   SubtitleTrack? _selectedSub;
 
@@ -47,7 +64,7 @@ class _AdaptiveAudioSubtitlesPopupState
   }
 
   @override
-  void didUpdateWidget(covariant AdaptiveAudioSubtitlesPopup oldWidget) {
+  void didUpdateWidget(covariant ResponsiveAudioSubtitlesPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.currentAudioTrack != oldWidget.currentAudioTrack) {
       _selectedAudio = widget.currentAudioTrack;
@@ -73,212 +90,72 @@ class _AdaptiveAudioSubtitlesPopupState
 
     final audioList = widget.audioTracks ?? const [];
     final subList = widget.subtitles ?? const [];
+    final columns = ResponsiveAudioSubtitleColumns(
+      subtitlesLabel: subtitlesLabel,
+      audioLabel: audioLabel,
+      offLabel: offLabel,
+      emptyAudioLabel: isRtl ? 'افتراضي' : 'Default',
+      audioList: audioList,
+      subList: subList,
+      selectedSubtitle: _selectedSub,
+      selectedAudio: _selectedAudio,
+      onSubtitleSelected: (track) {
+        setState(() => _selectedSub = track);
+        widget.onSubtitleSelected?.call(track);
+      },
+      onAudioSelected: (audio) {
+        setState(() => _selectedAudio = audio);
+        widget.onAudioTrackSelected?.call(audio);
+      },
+    );
 
     return Directionality(
       textDirection: textDirection,
       child: Material(
         color: Colors.transparent,
         child: Container(
-          width: 520,
-          constraints: const BoxConstraints(maxHeight: 380),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: BoxDecoration(
-            color:
-                widget.styling?.settingsBackgroundColor ?? const Color(0xF21F1F1F),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.65),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.12),
-              width: 1,
-            ),
+          width: widget.immersive ? double.infinity : (widget.maxWidth ?? 520),
+          height: widget.immersive ? double.infinity : null,
+          constraints: widget.immersive
+              ? const BoxConstraints()
+              : BoxConstraints(maxHeight: widget.maxHeight ?? 380),
+          padding: EdgeInsets.symmetric(
+            horizontal: widget.immersive ? 28 : 20,
+            vertical: widget.immersive ? 12 : 16,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Column 1: Subtitles (الترجمة)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      subtitlesLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: [
-                          // "Off" option
-                          _buildSubItem(
-                            label: offLabel,
-                            isSelected: _selectedSub == null,
-                            onTap: () {
-                              setState(() => _selectedSub = null);
-                              widget.onSubtitleSelected?.call(null);
-                            },
-                          ),
-                          ...subList.map((track) {
-                            final isSelected = _selectedSub?.id == track.id;
-                            return _buildSubItem(
-                              label: track.title,
-                              isSelected: isSelected,
-                              onTap: () {
-                                setState(() => _selectedSub = track);
-                                widget.onSubtitleSelected?.call(track);
-                              },
-                            );
-                          }),
-                        ],
-                      ),
+          decoration: widget.immersive
+              ? const BoxDecoration(color: Color(0xF0141414))
+              : BoxDecoration(
+                  color: widget.styling?.settingsBackgroundColor ??
+                      const Color(0xF21F1F1F),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
                     ),
                   ],
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    width: 1,
+                  ),
                 ),
-              ),
-
-              // Vertical divider
-              Container(
-                width: 1,
-                height: double.infinity,
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                color: Colors.white.withValues(alpha: 0.12),
-              ),
-
-              // Column 2: Audio (الصوت)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: widget.immersive
+              ? Column(
                   children: [
-                    Text(
-                      audioLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: IconButton(
+                        onPressed: widget.onClose,
+                        icon: const Icon(Icons.close_rounded,
+                            color: Colors.white),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: audioList.isEmpty
-                            ? [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Text(
-                                    isRtl ? 'افتراضي' : 'Default',
-                                    style: TextStyle(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.7),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ]
-                            : audioList.map((audio) {
-                                final isSelected =
-                                    _selectedAudio?.id == audio.id ||
-                                        (_selectedAudio == null &&
-                                            audio.isDefault);
-                                return _buildAudioItem(
-                                  audio: audio,
-                                  isSelected: isSelected,
-                                  onTap: () {
-                                    setState(() => _selectedAudio = audio);
-                                    widget.onAudioTrackSelected?.call(audio);
-                                  },
-                                );
-                              }).toList(),
-                      ),
-                    ),
+                    Expanded(child: columns),
                   ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubItem({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isSelected
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.75),
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                Icons.check_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAudioItem({
-    required AudioTrack audio,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                audio.label,
-                style: TextStyle(
-                  color: isSelected
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.75),
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                Icons.check_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-          ],
+                )
+              : columns,
         ),
       ),
     );

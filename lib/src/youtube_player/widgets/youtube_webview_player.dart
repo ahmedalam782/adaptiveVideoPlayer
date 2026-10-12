@@ -252,8 +252,9 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
         thirdPartyCookiesEnabled: true,
         domStorageEnabled: true,
-        allowsPictureInPictureMediaPlayback: false,
-        isElementFullscreenEnabled: true,
+        allowsPictureInPictureMediaPlayback: Platform.isIOS,
+        // Flutter applies one landscape lock. The webview fullscreen would rotate as well.
+        isElementFullscreenEnabled: false,
         iframeAllowFullscreen: true,
         iframeAllow: YouTubeJsScripts.iframeAllowPermissions,
         userAgent: _usesDesktopUserAgent
@@ -419,6 +420,16 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       onConsoleMessage: (controller, consoleMessage) {
         log("JS: ${consoleMessage.message}");
       },
+    );
+  }
+
+  /// Moves the current YouTube video into Picture-in-Picture.
+  ///
+  /// Uses the video element that is already playing, so playback does not reload.
+  Future<void> enterPictureInPicture() async {
+    play();
+    await _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.enterPictureInPicture,
     );
   }
 

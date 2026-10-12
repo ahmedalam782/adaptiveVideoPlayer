@@ -180,8 +180,7 @@ class AdaptiveBottomBar extends StatelessWidget {
                     showMiniPlayerHere &&
                     effectiveVisibility.showMiniPlayerButton &&
                     onMiniPlayerPressed != null &&
-                    !isFullScreen &&
-                    availableWidth > 560;
+                    !isFullScreen;
                 final showLoop = !inTopBar &&
                     effectiveVisibility.showLoopSetting &&
                     availableWidth > 860;
@@ -197,27 +196,23 @@ class AdaptiveBottomBar extends StatelessWidget {
 
                 final canShowNextEpisode =
                     effectiveVisibility.showNextEpisodeButton &&
-                        onNextEpisode != null &&
-                        availableWidth > 480;
+                        onNextEpisode != null;
 
                 final canShowEpisodes = !inTopBar &&
                     effectiveVisibility.showEpisodesButton &&
                     episodes != null &&
                     episodes!.isNotEmpty &&
-                    onEpisodesPressed != null &&
-                    availableWidth > 820;
+                    onEpisodesPressed != null;
 
                 final canShowAudioSubtitles = !inTopBar &&
                     effectiveVisibility.showAudioSubtitlesButton &&
                     onAudioSubtitlesPressed != null &&
                     ((audioTracks != null && audioTracks!.isNotEmpty) ||
-                        (subtitles != null && subtitles!.isNotEmpty)) &&
-                    availableWidth > 780;
+                        (subtitles != null && subtitles!.isNotEmpty));
 
                 final canShowSpeed = !inTopBar &&
                     effectiveVisibility.showSpeedButton &&
-                    onSpeedPressed != null &&
-                    availableWidth > 740;
+                    onSpeedPressed != null;
 
                 final hasRightActions =
                     (isWide && (showLoop || showSubtitlesQuick)) ||
@@ -321,29 +316,37 @@ class AdaptiveBottomBar extends StatelessWidget {
                       ],
                     ),
 
-                    if (canShowCenteredTitle)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            title!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      const Spacer(),
-
-                    if (hasRightActions)
-                      // Glassmorphic Right Action Pill
-                      AdaptiveGlassmorphicContainer(
+                    Expanded(
+                      child: Row(
+                        children: [
+                          if (canShowCenteredTitle)
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  title!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            const Spacer(),
+                          if (hasRightActions)
+                            Flexible(
+                              child: Align(
+                                alignment: AlignmentDirectional.centerEnd,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  reverse: true,
+                                  child: AdaptiveGlassmorphicContainer(
                         height: 38,
                         borderRadius: 24,
                         blur: 10,
@@ -499,6 +502,12 @@ class AdaptiveBottomBar extends StatelessWidget {
                           ],
                         ),
                       ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ],
                 );
               },

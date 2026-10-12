@@ -2,6 +2,7 @@ typedef FullscreenChangeCallback = void Function(bool isFullscreen);
 
 void enterBrowserFullscreen() {}
 void exitBrowserFullscreen() {}
+void markDesktopFullscreenExited() {}
 bool isBrowserFullscreen() => false;
 void listenToFullscreenChange(FullscreenChangeCallback callback) {}
 bool enterDesktopPipMode({int width = 380, int height = 214}) => false;

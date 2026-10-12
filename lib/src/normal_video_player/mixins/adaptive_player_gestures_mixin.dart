@@ -84,6 +84,7 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
     }
 
     if (widget.isLive) return;
+    if (!(widget.visibility?.showSkipButtons ?? true)) return;
 
     final width = MediaQuery.of(context).size.width;
     final position = details.globalPosition.dx;
@@ -98,13 +99,14 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
     final skipDuration =
         widget.visibility?.skipDuration ?? const Duration(seconds: 10);
 
+    final showSeekFeedback = widget.visibility?.showSeekFeedback ?? true;
     if (isForward) {
-      triggerSeekFeedback(1, onRestartHideTimer);
+      if (showSeekFeedback) triggerSeekFeedback(1, onRestartHideTimer);
       final newPosition = currentPosition + skipDuration;
       widget.controller
           .seekTo(newPosition > duration ? duration : newPosition);
     } else {
-      triggerSeekFeedback(-1, onRestartHideTimer);
+      if (showSeekFeedback) triggerSeekFeedback(-1, onRestartHideTimer);
       final newPosition = currentPosition - skipDuration;
       widget.controller
           .seekTo(newPosition.isNegative ? Duration.zero : newPosition);
@@ -117,6 +119,7 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
 
   void handleLongPressStart(LongPressStartDetails details) {
     if (widget.isLive) return;
+    if (!(widget.visibility?.showHoldToSpeed ?? true)) return;
     previousPlaybackSpeed = widget.controller.value.playbackSpeed;
     setState(() => isHold2xActive = true);
     widget.controller.setPlaybackSpeed(2.0);

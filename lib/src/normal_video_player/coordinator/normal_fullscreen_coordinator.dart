@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../utils/fullscreen_utils_export.dart';
+import '../utils/player_surface_tier.dart';
 
 /// Coordinates fullscreen transitions, overlays, system UI modes, and device orientations for normal video player.
 class NormalFullscreenCoordinator extends ChangeNotifier {
@@ -34,37 +35,52 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
   void openFullscreen({
     required BuildContext context,
     required Widget Function(BuildContext context) builder,
-  }) async {
-    if (_isInFullscreen) return;
+  }) {
+    enterSystemFullscreen(context: context);
+    if (_fullscreenOverlay != null) return;
+
+    final window = MediaQuery.maybeSizeOf(context) ?? Size.zero;
+    final player = context.size ?? window;
+    final tier = PlayerSurfaceScope.maybeOf(context) ??
+        resolvePlayerSurfaceTier(window: window, player: player);
 
     _fullscreenOverlay = OverlayEntry(
       builder: (context) {
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) {
-            if (didPop) return;
-            closeFullscreen();
-          },
-          child: ListenableBuilder(
-            listenable: this,
-            builder: (context, _) => builder(context),
+        return PlayerSurfaceScope(
+          tier: tier,
+          child: PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              closeFullscreen();
+            },
+            child: ListenableBuilder(
+              listenable: this,
+              builder: (context, _) => builder(context),
+            ),
           ),
         );
       },
     );
+    Overlay.of(context).insert(_fullscreenOverlay!);
+  }
+
+  /// Native fullscreen and orientation, without a second video overlay.
+  void enterSystemFullscreen({required BuildContext context}) async {
+    if (_isInFullscreen) return;
+
     _isInFullscreen = true;
     _onFullscreenChanged?.call();
 
-    Overlay.of(context).insert(_fullscreenOverlay!);
     enterBrowserFullscreen();
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     final isMobile = !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
+      // One landscape direction. Listing both makes iOS rotate, then rotate again.
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
       ]);
     } else {
       await SystemChrome.setPreferredOrientations([
@@ -76,9 +92,22 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
     }
   }
 
+  /// Drop the fullscreen surface without a second native window resize.
+  ///
+  /// Picture-in-Picture owns the window change. Restoring the old frame here
+  /// and then shrinking it in the same turn freezes macOS.
+  void abandonFullscreenForPip() {
+    if (!_isInFullscreen) return;
+    _fullscreenOverlay?.remove();
+    _fullscreenOverlay?.dispose();
+    _fullscreenOverlay = null;
+    _isInFullscreen = false;
+    _onFullscreenChanged?.call();
+  }
+
   /// Close fullscreen overlay and restore normal orientations
   void closeFullscreen() async {
-    if (!_isInFullscreen || _fullscreenOverlay == null) return;
+    if (!_isInFullscreen) return;
 
     _fullscreenOverlay?.remove();
     _fullscreenOverlay?.dispose();
@@ -93,15 +122,13 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
-      await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-      Future.delayed(const Duration(milliseconds: 500), () {
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ]);
-      });
+      // One restore. A portrait lock followed by every orientation turns the phone twice.
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
     } else {
       await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     }

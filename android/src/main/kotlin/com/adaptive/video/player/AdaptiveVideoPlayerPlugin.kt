@@ -30,7 +30,6 @@ class AdaptiveVideoPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandle
 
     private val ACTION_PIP_CONTROL = "com.adaptive.video.player.PIP_ACTION"
     private var isPlaying = true
-    private var pipEnabled = false
 
     private val pipReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {
@@ -138,7 +137,7 @@ class AdaptiveVideoPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandle
                 }
             }
             "setPipEnabled" -> {
-                pipEnabled = call.arguments as? Boolean ?: false
+                // Backgrounding the app must not open PiP. enterPip is explicit.
                 result.success(true)
             }
             "updatePlaybackState" -> {
@@ -228,7 +227,7 @@ class AdaptiveVideoPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandle
             .setActions(actions)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setAutoEnterEnabled(pipEnabled)
+            builder.setAutoEnterEnabled(false)
             builder.setSeamlessResizeEnabled(true)
         }
 

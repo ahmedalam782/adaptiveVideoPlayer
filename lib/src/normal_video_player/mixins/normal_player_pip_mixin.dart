@@ -26,6 +26,7 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
   OverlayEntry? miniPlayerOverlayEntry;
   bool transferredToBackgroundMini = false;
   bool? lastReportedPipPlaying;
+  bool _pausedFlutterForIosPip = false;
 
   bool get isInMiniPlayer => miniPlayerOverlayEntry != null;
 
@@ -34,26 +35,74 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
   void onHoldPlayback();
   void onResumeHeldPlayback();
   void onEnsurePlaybackContinues(bool wasPlaying);
+  bool onLeaveFullscreenForPip();
 
   void initPipListeners() {
     NativePipService.isInPip.addListener(_onNativePipModeChanged);
     NativePipService.pipAction.addListener(_onPipActionReceived);
+    NativePipService.restoredPositionMs.addListener(_onPipPositionRestored);
+    NativePipService.pipSessionEnd.addListener(_onPipSessionEnded);
   }
 
   void disposePipListeners() {
     NativePipService.isInPip.removeListener(_onNativePipModeChanged);
     NativePipService.pipAction.removeListener(_onPipActionReceived);
+    NativePipService.restoredPositionMs.removeListener(_onPipPositionRestored);
+    NativePipService.pipSessionEnd.removeListener(_onPipSessionEnded);
+  }
+
+  void _onPipPositionRestored() {
+    final posMs = NativePipService.restoredPositionMs.value;
+    if (posMs != null && activePipController != null) {
+      activePipController!.seekTo(Duration(milliseconds: posMs));
+    }
+  }
+
+  Future<void> _onPipSessionEnded() async {
+    final end = NativePipService.pipSessionEnd.value;
+    final ctrl = activePipController;
+    if (end == null || ctrl == null) return;
+    if (end.positionMs >= 0) {
+      await ctrl.seekTo(Duration(milliseconds: end.positionMs));
+    }
+    if (!mounted && activePipController == null) return;
+    // Closing the PiP window stops playback. Returning to the app continues
+    // only when the video was still playing inside PiP.
+    final continuePlaying = !end.dismissed && end.isPlaying;
+    if (continuePlaying) {
+      await ctrl.play();
+    } else {
+      await ctrl.pause();
+    }
+    lastReportedPipPlaying = continuePlaying;
+    _pausedFlutterForIosPip = false;
+    if (mounted) setState(() {});
   }
 
   void _onNativePipModeChanged() {
     onHoldPlayback();
+    final ctrl = activePipController;
+    final inPip = NativePipService.isInPip.value;
+    // iOS PiP plays a separate AVPlayer. Pause the in-app player so closing
+    // the PiP window cannot leave that player running.
+    if (inPip &&
+        ctrl != null &&
+        !kIsWeb &&
+        Platform.isIOS &&
+        ctrl.value.isPlaying) {
+      _pausedFlutterForIosPip = true;
+      ctrl.pause();
+    }
     if (mounted) {
       setState(() {});
-      final ctrl = activePipController;
-      if (NativePipService.isInPip.value && ctrl != null) {
+      if (inPip && ctrl != null && (kIsWeb || !Platform.isIOS)) {
         final currentPlaying = ctrl.value.isPlaying;
         lastReportedPipPlaying = currentPlaying;
-        NativePipService.updatePlaybackState(isPlaying: currentPlaying);
+        NativePipService.updatePlaybackState(
+          isPlaying: currentPlaying,
+          url: ctrl.dataSource,
+          positionMs: ctrl.value.position.inMilliseconds,
+        );
       }
     }
     onResumeHeldPlayback();
@@ -72,7 +121,11 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
           ctrl.play();
         }
         lastReportedPipPlaying = !isPlaying;
-        NativePipService.updatePlaybackState(isPlaying: !isPlaying);
+        NativePipService.updatePlaybackState(
+          isPlaying: !isPlaying,
+          url: ctrl.dataSource,
+          positionMs: ctrl.value.position.inMilliseconds,
+        );
         if (mounted) setState(() {});
       }
     } else if (action == 'seek_backward') {
@@ -92,11 +145,22 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
   }
 
   void handlePipControllerUpdate() {
+    if (_pausedFlutterForIosPip) {
+      if (activePipController?.value.isPlaying == false) {
+        _pausedFlutterForIosPip = false;
+      }
+      return;
+    }
     if (NativePipService.isInPip.value && activePipController != null) {
-      final currentPlaying = activePipController!.value.isPlaying;
+      final ctrl = activePipController!;
+      final currentPlaying = ctrl.value.isPlaying;
       if (lastReportedPipPlaying != currentPlaying) {
         lastReportedPipPlaying = currentPlaying;
-        NativePipService.updatePlaybackState(isPlaying: currentPlaying);
+        NativePipService.updatePlaybackState(
+          isPlaying: currentPlaying,
+          url: ctrl.dataSource,
+          positionMs: ctrl.value.position.inMilliseconds,
+        );
       }
     }
   }
@@ -112,8 +176,26 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
   }
 
   void openMiniPlayer() async {
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isWindows)) {
-      final entered = await NativePipService.enterPip();
+    if (onLeaveFullscreenForPip()) {
+      if (!kIsWeb && Platform.isMacOS) {
+        markDesktopFullscreenExited();
+        NativePipService.isInPip.value = true;
+      }
+      // Let the fullscreen surface leave the tree before the window shrinks.
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted) return;
+    if (!kIsWeb &&
+        (Platform.isAndroid ||
+            Platform.isIOS ||
+            Platform.isWindows ||
+            Platform.isMacOS)) {
+      final ctrl = activePipController;
+      final entered = await NativePipService.enterPip(
+        url: ctrl?.dataSource,
+        positionMs: ctrl?.value.position.inMilliseconds,
+        isPlaying: ctrl?.value.isPlaying,
+      );
       if (entered) return;
     }
     if (!mounted) return;

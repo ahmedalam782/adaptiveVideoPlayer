@@ -84,7 +84,8 @@ class AdaptiveTopBar extends StatelessWidget {
     this.showActions,
   });
 
-  bool get _shouldShowBackButton => showBackButton == true;
+  bool get _shouldShowBackButton =>
+      showBackButton ?? visibility?.showBackButton ?? false;
 
   @override
   Widget build(BuildContext context) {

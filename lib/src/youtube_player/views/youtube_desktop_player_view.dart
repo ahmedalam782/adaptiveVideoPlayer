@@ -45,7 +45,8 @@ class YouTubeDesktopPlayerView extends StatefulWidget {
       _YouTubeDesktopPlayerViewState();
 }
 
-class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
+class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
+    with WidgetsBindingObserver {
   int _seekDirection = 0;
   int _seekSeconds = 10;
   Timer? _seekResetTimer;
@@ -54,12 +55,36 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
   bool _isPlaying = false;
   int _positionSeconds = 0;
   int _durationSeconds = 0;
+  bool _backgroundPipRequested = false;
+
+  bool get _usesWebViewPip => !kIsWeb && Platform.isIOS;
 
   @override
   void initState() {
     super.initState();
     NativePipService.isInPip.addListener(_onNativePipModeChanged);
     NativePipService.pipAction.addListener(_onPipActionReceived);
+    if (_usesWebViewPip) {
+      WidgetsBinding.instance.addObserver(this);
+      // The hidden AVPlayer would start a second video and reload it.
+      NativePipService.setPipEnabled(false);
+      NativePipService.closePip();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_usesWebViewPip) return;
+    if (state == AppLifecycleState.resumed) {
+      _backgroundPipRequested = false;
+      return;
+    }
+    if (state == AppLifecycleState.inactive &&
+        !_backgroundPipRequested &&
+        _isPlaying) {
+      _backgroundPipRequested = true;
+      widget.desktopWebViewKey.currentState?.enterPictureInPicture();
+    }
   }
 
   void _onPipActionReceived() {
@@ -223,7 +248,13 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
     if (widget.fullscreenManager.isInFullscreen) {
       widget.fullscreenManager.closeFullscreen();
     }
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isWindows)) {
+    if (_usesWebViewPip) {
+      final player = widget.desktopWebViewKey.currentState;
+      player?.play();
+      await player?.enterPictureInPicture();
+      return;
+    }
+    if (!kIsWeb && (Platform.isAndroid || Platform.isWindows)) {
       final entered = await NativePipService.enterPip();
       if (entered) return;
     }
@@ -299,6 +330,9 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView> {
 
   @override
   void dispose() {
+    if (_usesWebViewPip) {
+      WidgetsBinding.instance.removeObserver(this);
+    }
     NativePipService.isInPip.removeListener(_onNativePipModeChanged);
     NativePipService.pipAction.removeListener(_onPipActionReceived);
     _seekResetTimer?.cancel();

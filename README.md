@@ -170,6 +170,30 @@ Add to `ios/Runner/Info.plist` for WebView rendering and **background audio / Pi
 </dict>
 ```
 
+The native plugin requires **iOS 13.0** or later. It supports both **CocoaPods** and **Swift Package Manager**. Flutter picks one when you build. Do not add `adaptive_video_player` yourself in the Podfile or in Xcode’s package list.
+
+**Swift Package Manager** is the default on Flutter 3.44 and later. Flutter builds this plugin from `ios/adaptive_video_player/Package.swift`.
+
+```bash
+flutter config --enable-swift-package-manager
+```
+
+**CocoaPods** is used when Swift Package Manager is turned off. Flutter builds this plugin from `ios/adaptive_video_player.podspec`.
+
+```bash
+flutter config --no-enable-swift-package-manager
+```
+
+After switching, rebuild so Xcode picks up the other integration:
+
+```bash
+flutter clean
+flutter pub get
+flutter run
+```
+
+`Info.plist` setup above is the same for both. Some dependencies of this package, including `flutter_inappwebview_ios` and `media_kit_video`, still ship CocoaPods only. Flutter keeps CocoaPods for those plugins and may print a Swift Package Manager warning that names them. That warning is not about `adaptive_video_player`.
+
 ### 🍏 macOS
 In both `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements`:
 ```xml
@@ -553,6 +577,9 @@ A: Simply set `preventScreenCapture: true`. Android activates `FLAG_SECURE`, Win
 
 **Q: How does Android Picture-in-Picture handle background controls?**  
 A: When entering native PiP on Android, the package registers native OS `RemoteAction`s (Play, Pause, Seek -10s, Seek +10s) in the system PiP window, and automatically suppresses unclickable Flutter UI overlays.
+
+**Q: Does iOS use CocoaPods or Swift Package Manager?**  
+A: Both. Flutter 3.44 and later uses Swift Package Manager by default and builds this plugin from its `Package.swift`. Turn Swift Package Manager off with `flutter config --no-enable-swift-package-manager` to build it from the podspec instead. You do not add the plugin manually in either case. Warnings that name `flutter_inappwebview_ios` or `media_kit_video` come from those dependencies, which are still CocoaPods-only.
 
 ---
 

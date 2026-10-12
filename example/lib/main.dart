@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:adaptive_video_player/adaptive_video_player.dart';
@@ -20,6 +21,41 @@ void main() async {
       child: const MyApp(),
     ),
   );
+}
+
+/// Keeps the Windows studio the same size at 100%, 125%, and 175% display scale.
+///
+/// Flutter otherwise grows the whole UI with [MediaQuery.devicePixelRatio].
+/// This lays the page out in physical pixels and scales it back, and it also
+/// ignores the Windows text-size setting.
+class WindowsStableScale extends StatelessWidget {
+  final Widget child;
+
+  const WindowsStableScale({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.windows) {
+      return child;
+    }
+    final mq = MediaQuery.of(context);
+    final dpr = mq.devicePixelRatio;
+    final data = mq.copyWith(
+      textScaler: TextScaler.noScaling,
+      devicePixelRatio: 1.0,
+      size: dpr == 1.0 ? mq.size : mq.size * dpr,
+    );
+    final page = MediaQuery(data: data, child: child);
+    if (dpr == 1.0) return page;
+    return FittedBox(
+      fit: BoxFit.fill,
+      child: SizedBox(
+        width: mq.size.width * dpr,
+        height: mq.size.height * dpr,
+        child: page,
+      ),
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -86,7 +122,7 @@ class _MyAppState extends State<MyApp> {
         return Directionality(
           textDirection:
               currentLang.isRtl ? TextDirection.rtl : TextDirection.ltr,
-          child: child ?? const SizedBox(),
+          child: WindowsStableScale(child: child ?? const SizedBox.shrink()),
         );
       },
       home: FullFeaturesExampleScreen(

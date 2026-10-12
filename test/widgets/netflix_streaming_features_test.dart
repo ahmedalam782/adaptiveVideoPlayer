@@ -63,6 +63,39 @@ void main() {
       expect(controller.value.playbackSpeed, equals(1.5));
     });
 
+    testWidgets('speed sheet centers each label on its step', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Scaffold(
+              body: SizedBox(
+                width: 700,
+                height: 160,
+                child: ResponsiveSpeedPanel(
+                  asSheet: true,
+                  controller: controller,
+                  onClose: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      for (final speed in ResponsiveSpeedPanel.defaultSpeeds) {
+        final label = speed == 1.0 ? '1x' : '${speed}x';
+        final labelCenter = tester.getCenter(find.text(label));
+        final stepCenter =
+            tester.getCenter(find.byKey(ValueKey('speed-stop-$speed')));
+        expect(labelCenter.dx, closeTo(stepCenter.dx, 1));
+      }
+
+      await tester.tap(find.text('1.25x'));
+      await tester.pump();
+      expect(controller.value.playbackSpeed, 1.25);
+    });
+
     testWidgets(
         'AdaptiveAudioSubtitlesPopup renders dual columns and handles selection',
         (tester) async {

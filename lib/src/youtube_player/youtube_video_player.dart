@@ -416,7 +416,14 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
     );
   }
 
-  void openPip() => openMobilePip();
+  void openPip() {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      _desktopWebViewKey.currentState?.play();
+      _desktopWebViewKey.currentState?.enterPictureInPicture();
+      return;
+    }
+    openMobilePip();
+  }
 
   void loadVideo(String videoSource) {
     final newVideoId = PlayerUtils.extractVideoId(videoSource);

@@ -77,21 +77,15 @@ class LanguagePickerSheet extends StatelessWidget {
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+        child: Material(
+          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+          elevation: 12,
+          shadowColor: Colors.black54,
+          shape: RoundedRectangleBorder(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.16),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.4),
-                blurRadius: 24,
-                offset: const Offset(0, -6),
-              ),
-            ],
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.16)),
           ),
+          clipBehavior: Clip.antiAlias,
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -190,7 +184,7 @@ class LanguagePickerSheet extends StatelessWidget {
                             ),
                           ),
                           subtitle: Text(
-                            ' ()',
+                            lang.englishName,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.white.withValues(alpha: 0.5),

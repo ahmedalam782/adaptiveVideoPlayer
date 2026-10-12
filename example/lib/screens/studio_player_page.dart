@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_video_player/adaptive_video_player.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
@@ -50,19 +51,25 @@ class _StudioStageState extends State<StudioStage> {
   @override
   void initState() {
     super.initState();
-    NativePipService.setPipEnabled(true);
+    _preventScreenCapture = widget.source.config.preventScreenCapture;
     NativePipService.isInPip.addListener(_onPipChanged);
   }
 
   void _onPipChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void didUpdateWidget(covariant StudioStage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.source.id != widget.source.id && _eventLogs.isNotEmpty) {
-      setState(() => _eventLogs.clear());
+    if (oldWidget.source.id != widget.source.id) {
+      _preventScreenCapture = widget.source.config.preventScreenCapture;
+      if (_eventLogs.isNotEmpty) {
+        setState(() => _eventLogs.clear());
+      }
     }
   }
 
@@ -177,7 +184,10 @@ class _StudioStageState extends State<StudioStage> {
     }
     final player = AdaptiveVideoPlayer(key: _playerKey, config: config);
 
-    if (NativePipService.isInPip.value) {
+    final androidFillsScreenForPip = !kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.android &&
+        NativePipService.isInPip.value;
+    if (androidFillsScreenForPip) {
       return ColoredBox(
         color: Colors.black,
         child: SizedBox.expand(child: player),

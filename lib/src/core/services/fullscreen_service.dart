@@ -40,7 +40,6 @@ class PlatformFullscreenService implements IFullscreenService {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
     ]);
     _onEnter?.call();
   }

@@ -21,8 +21,8 @@ class MainActivity : FlutterActivity() {
     private val ACTION_PIP_CONTROL = "com.example.example.PIP_ACTION"
     private var pipChannel: MethodChannel? = null
     private var isPipMode = false
-    private var pipEnabled = false
     private var isPlaying = true
+    private var leavingPip = false
 
     private val pipReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -40,6 +40,7 @@ class MainActivity : FlutterActivity() {
             when (call.method) {
                 "enterPip" -> {
                     val success = enterPipMode()
+                    if (success) isPipMode = true
                     result.success(success)
                 }
                 "exitPip" -> {
@@ -61,8 +62,7 @@ class MainActivity : FlutterActivity() {
                     result.success(isPipMode)
                 }
                 "setPipEnabled" -> {
-                    pipEnabled = call.arguments as? Boolean ?: false
-                    updateAutoEnterPip()
+                    // Backgrounding the app must not open PiP. enterPip is explicit.
                     result.success(true)
                 }
                 "updatePlaybackState" -> {
@@ -163,7 +163,7 @@ class MainActivity : FlutterActivity() {
             builder.setActions(actions)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                builder.setAutoEnterEnabled(pipEnabled)
+                builder.setAutoEnterEnabled(false)
             }
             return builder.build()
         }
@@ -179,10 +179,6 @@ class MainActivity : FlutterActivity() {
                 }
             } catch (_: Exception) {}
         }
-    }
-
-    private fun updateAutoEnterPip() {
-        updatePipParams()
     }
 
     private fun exitPipMode() {
@@ -210,10 +206,27 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        if (pipEnabled) {
-            enterPipMode()
+    override fun onResume() {
+        super.onResume()
+        if (leavingPip && !isInPictureInPictureMode) {
+            leavingPip = false
+        }
+    }
+
+    override fun onStop() {
+        val dismissed = leavingPip && !isInPictureInPictureMode
+        super.onStop()
+        if (dismissed) {
+            leavingPip = false
+            isPipMode = false
+            pipChannel?.invokeMethod(
+                "onPipSessionEnded",
+                hashMapOf(
+                    "positionMs" to -1,
+                    "isPlaying" to false,
+                    "dismissed" to true,
+                ),
+            )
         }
     }
 
@@ -222,6 +235,9 @@ class MainActivity : FlutterActivity() {
         newConfig: Configuration
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (!isInPictureInPictureMode && isPipMode) {
+            leavingPip = true
+        }
         isPipMode = isInPictureInPictureMode
         if (isInPictureInPictureMode) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)

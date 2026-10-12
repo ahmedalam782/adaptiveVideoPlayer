@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:adaptive_video_player/adaptive_video_player.dart';
+import '../widgets/demo_preview_stage.dart';
+import '../widgets/demo_stream_strip.dart';
 import '../widgets/language_picker_sheet.dart';
 
 /// Complete, production-grade single screen demonstrating EVERY feature in
@@ -137,6 +139,7 @@ class _FullFeaturesExampleScreenState extends State<FullFeaturesExampleScreen> {
       watchedProgress: 0.85,
       videoUrl:
           'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1280x720_4000k.mp4',
+      extra: {'season': '1'},
     ),
     VideoEpisode(
       id: 'ep2',
@@ -145,8 +148,8 @@ class _FullFeaturesExampleScreenState extends State<FullFeaturesExampleScreen> {
       description: 'Deep ocean life and coastal coral reefs in cinema clarity.',
       duration: Duration(seconds: 46),
       watchedProgress: 0.40,
-      videoUrl:
-          'https://vjs.zencdn.net/v/oceans.mp4',
+      videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4',
+      extra: {'season': '1'},
     ),
     VideoEpisode(
       id: 'ep3',
@@ -157,6 +160,7 @@ class _FullFeaturesExampleScreenState extends State<FullFeaturesExampleScreen> {
       watchedProgress: 0.10,
       videoUrl:
           'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1920x1080_8000k.mp4',
+      extra: {'season': '2'},
     ),
     VideoEpisode(
       id: 'ep4',
@@ -165,8 +169,8 @@ class _FullFeaturesExampleScreenState extends State<FullFeaturesExampleScreen> {
       description: 'High-fidelity audio and video recitation stream.',
       duration: Duration(minutes: 10, seconds: 53),
       watchedProgress: 0.0,
-      videoUrl:
-          'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
+      videoUrl: 'https://upload.mp3quran.net/group1_pbuh/maher.mp4',
+      extra: {'season': '2'},
     ),
   ];
   late VideoEpisode _currentEpisode;
@@ -253,25 +257,11 @@ Featuring Netflix circular loader and top-end actions!
 
   // Event telemetry logs
   final List<String> _eventLogs = [];
-  Key _playerKey = UniqueKey();
-  final ScrollController _sampleStreamsScrollController = ScrollController();
-
-  void _scrollSampleStreams(double delta) {
-    if (!_sampleStreamsScrollController.hasClients) return;
-    final target = (_sampleStreamsScrollController.offset + delta).clamp(
-      0.0,
-      _sampleStreamsScrollController.position.maxScrollExtent,
-    );
-    _sampleStreamsScrollController.animateTo(
-      target,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOutCubic,
-    );
-  }
+  Key _playerKey = GlobalKey();
 
   @override
   void dispose() {
-    _sampleStreamsScrollController.dispose();
+    NativePipService.setPipEnabled(false);
     NativePipService.isInPip.removeListener(_onPipChanged);
     super.dispose();
   }
@@ -287,7 +277,10 @@ Featuring Netflix circular loader and top-end actions!
   }
 
   void _onPipChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   void _recordEvent(String event, Map<String, dynamic> data) {
@@ -345,7 +338,7 @@ Featuring Netflix circular loader and top-end actions!
               Navigator.pop(ctx);
               setState(() {
                 _customStreamUrl = text;
-                _playerKey = UniqueKey();
+                _playerKey = GlobalKey();
               });
               _recordEvent('customUrlLoaded', {'url': text});
             },
@@ -423,7 +416,7 @@ Featuring Netflix circular loader and top-end actions!
       onEpisodeSelected: (ep) {
         setState(() {
           _currentEpisode = ep;
-          _playerKey = UniqueKey();
+          _playerKey = GlobalKey();
         });
         _recordEvent('episodeSelected', {'number': ep.number, 'title': ep.title});
       },
@@ -431,7 +424,7 @@ Featuring Netflix circular loader and top-end actions!
         final nextIndex = (_episodes.indexOf(_currentEpisode) + 1) % _episodes.length;
         setState(() {
           _currentEpisode = _episodes[nextIndex];
-          _playerKey = UniqueKey();
+          _playerKey = GlobalKey();
         });
         _recordEvent('nextEpisode', {'number': _currentEpisode.number});
       },
@@ -476,6 +469,31 @@ Featuring Netflix circular loader and top-end actions!
     );
   }
 
+  Widget _livePlayer() {
+    return AdaptiveVideoPlayer(
+      key: _playerKey,
+      config: _createVideoConfig(),
+    );
+  }
+
+  String _liveDesignLabel(DemoPreviewMode mode) {
+    final surface = switch (mode) {
+      DemoPreviewMode.phone => 'phone',
+      DemoPreviewMode.tablet => 'tablet',
+      DemoPreviewMode.desktop => 'desktop',
+    };
+    if (kIsWeb) return 'Web · $surface';
+    final host = switch (defaultTargetPlatform) {
+      TargetPlatform.android => 'Android',
+      TargetPlatform.iOS => 'iOS',
+      TargetPlatform.windows => 'Windows',
+      TargetPlatform.macOS => 'macOS',
+      TargetPlatform.linux => 'Linux',
+      TargetPlatform.fuchsia => 'Desktop',
+    };
+    return '$host · $surface';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -485,23 +503,33 @@ Featuring Netflix circular loader and top-end actions!
     final currentLang = LanguagePickerSheet.getLanguage(
       widget.currentLanguageCode ?? (context.mounted ? context.locale.languageCode : 'en'),
     );
+    final screen = MediaQuery.sizeOf(context);
+    final liveMode = DemoPreviewSpec.forWindow(screen);
+    final isPhone = liveMode == DemoPreviewMode.phone;
 
-    if (NativePipService.isInPip.value) {
+    // Desktop and Android PiP shrink this window, so only the video should remain.
+    // iOS draws PiP in a separate system player.
+    final pipKeepsVideoOnly = NativePipService.isInPip.value &&
+        !kIsWeb &&
+        defaultTargetPlatform != TargetPlatform.iOS;
+    if (pipKeepsVideoOnly) {
       return Scaffold(
         backgroundColor: Colors.black,
-        body: SizedBox.expand(
-          child: AdaptiveVideoPlayer(
-            key: _playerKey,
-            config: _createVideoConfig(),
-          ),
-        ),
+        body: SizedBox.expand(child: _livePlayer()),
       );
     }
+
+    final playerWidth = screen.width - (isPhone ? 0 : 32);
+    final available = screen.height <= 0 ? 1.0 : screen.height;
+    final cap = available * 0.62 < 1 ? 1.0 : available * 0.62;
+    final requestedFloor = isPhone ? 220.0 : 240.0;
+    final floor = requestedFloor < cap ? requestedFloor : cap;
+    final playerHeight = (playerWidth * 9 / 16).clamp(floor, cap);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Adaptive Video Player',
+          'Adaptive Video Player Studio',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         elevation: 0,
@@ -549,18 +577,28 @@ Featuring Netflix circular loader and top-end actions!
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 1. The Video Player Canvas
-            Container(
-              color: Colors.black,
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: AdaptiveVideoPlayer(
-                  key: _playerKey,
-                  config: _createVideoConfig(),
+            Padding(
+              padding: EdgeInsets.fromLTRB(isPhone ? 12 : 16, 12, 16, 0),
+              child: Text(
+                _liveDesignLabel(liveMode),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.primary,
                 ),
               ),
             ),
-
+            const SizedBox(height: 8),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: isPhone ? 0 : 16),
+              child: SizedBox(
+                height: playerHeight,
+                width: double.infinity,
+                child: _livePlayer(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            DemoTryRail(mode: liveMode),
             const SizedBox(height: 12),
 
             // 2. Interactive Quick Toggles
@@ -604,82 +642,25 @@ Featuring Netflix circular loader and top-end actions!
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.chevron_left_rounded, size: 24),
-                            tooltip: 'Scroll left',
-                            splashRadius: 18,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () => _scrollSampleStreams(-250),
-                          ),
-                          Expanded(
-                            child: Scrollbar(
-                              controller: _sampleStreamsScrollController,
-                              thumbVisibility: true,
-                              thickness: 4,
-                              radius: const Radius.circular(8),
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: SingleChildScrollView(
-                                  controller: _sampleStreamsScrollController,
-                                  scrollDirection: Axis.horizontal,
-                                  physics: const BouncingScrollPhysics(),
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(right: 8),
-                                        child: ActionChip(
-                                          avatar: const Icon(Icons.add_link_rounded,
-                                              size: 16, color: Colors.cyanAccent),
-                                          label: Text(
-                                            _customStreamUrl != null
-                                                ? 'Custom URL (Active)'
-                                                : '+ Custom URL',
-                                          ),
-                                          labelStyle: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.cyanAccent,
-                                          ),
-                                          backgroundColor: isDark
-                                              ? Colors.cyanAccent.withValues(alpha: 0.12)
-                                              : Colors.cyan.withValues(alpha: 0.15),
-                                          side: BorderSide(
-                                            color: Colors.cyanAccent.withValues(alpha: 0.35),
-                                          ),
-                                          onPressed: _showCustomUrlDialog,
-                                        ),
-                                      ),
-                                      for (var i = 0; i < _sampleStreams.length; i++)
-                                        Padding(
-                                          padding: const EdgeInsets.only(right: 8),
-                                          child: FilterChip(
-                                            selected: _customStreamUrl == null &&
-                                                _selectedStreamIndex == i,
-                                            label: Text(_sampleStreams[i].title),
-                                            onSelected: (_) {
-                                              setState(() {
-                                                _customStreamUrl = null;
-                                                _selectedStreamIndex = i;
-                                                _playerKey = UniqueKey();
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                      DemoStreamStrip(
+                        customSelected: _customStreamUrl != null,
+                        onCustomUrl: _showCustomUrlDialog,
+                        streams: [
+                          for (var i = 0; i < _sampleStreams.length; i++)
+                            DemoStreamChoice(
+                              title: _sampleStreams[i].title,
+                              isLive: _sampleStreams[i].isLive,
+                              isYouTube: _sampleStreams[i].isYouTube,
+                              selected: _customStreamUrl == null &&
+                                  _selectedStreamIndex == i,
+                              onTap: () {
+                                setState(() {
+                                  _customStreamUrl = null;
+                                  _selectedStreamIndex = i;
+                                  _playerKey = GlobalKey();
+                                });
+                              },
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right_rounded, size: 24),
-                            tooltip: 'Scroll right',
-                            splashRadius: 18,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () => _scrollSampleStreams(250),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -715,7 +696,7 @@ Featuring Netflix circular loader and top-end actions!
                             onSelected: (val) {
                               setState(() {
                                 _showActionsInTopBar = val;
-                                _playerKey = UniqueKey();
+                                _playerKey = GlobalKey();
                               });
                             },
                           ),
@@ -729,7 +710,7 @@ Featuring Netflix circular loader and top-end actions!
                                 _bottomBarLayout = val
                                     ? BottomBarLayout.inline
                                     : BottomBarLayout.youtubePills;
-                                _playerKey = UniqueKey();
+                                _playerKey = GlobalKey();
                               });
                             },
                           ),
@@ -741,7 +722,7 @@ Featuring Netflix circular loader and top-end actions!
                             onSelected: (val) {
                               setState(() {
                                 _videoFit = val ? BoxFit.cover : BoxFit.contain;
-                                _playerKey = UniqueKey();
+                                _playerKey = GlobalKey();
                               });
                             },
                           ),
@@ -759,7 +740,7 @@ Featuring Netflix circular loader and top-end actions!
                             onSelected: (val) {
                               setState(() {
                                 _enableCache = val;
-                                _playerKey = UniqueKey();
+                                _playerKey = GlobalKey();
                               });
                             },
                           ),
@@ -777,7 +758,7 @@ Featuring Netflix circular loader and top-end actions!
                             onSelected: (val) {
                               setState(() {
                                 _preventScreenCapture = val;
-                                _playerKey = UniqueKey();
+                                _playerKey = GlobalKey();
                               });
                             },
                           ),
@@ -804,82 +785,6 @@ Featuring Netflix circular loader and top-end actions!
                     ],
                   ),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // 3. Feature Highlights
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Active Features in this Example',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _FeatureTile(
-                    icon: Icons.offline_bolt_rounded,
-                    title: 'Persistent Disk Cache (CachedVideoPlayerPlus)',
-                    description:
-                        'Local filesystem caching for zero-delay instant replays and offline-ready playback.',
-                    accentColor: const Color(0xFF06B6D4),
-                  ),
-                  _FeatureTile(
-                    icon: Icons.timelapse_rounded,
-                    title: 'Netflix-Style Circular Percentage Loader',
-                    description:
-                        'Red arc with rounded stroke caps and bold centered percentage readout (77% style).',
-                    accentColor: const Color(0xFFE50914),
-                  ),
-                  _FeatureTile(
-                    icon: Icons.vertical_align_top_rounded,
-                    title: 'Top-Bar Actions Positioning',
-                    description:
-                        'Secondary controls (Settings, PiP, Episodes, Subs, Speed) move to the top-end to leave the bottom bar uncluttered.',
-                    accentColor: Colors.indigoAccent,
-                  ),
-                  _FeatureTile(
-                    icon: Icons.video_library_rounded,
-                    title: 'Netflix Episodes Drawer',
-                    description:
-                        'Slide-out drawer displaying episode list, watched progress bars, and episode descriptions.',
-                    accentColor: Colors.deepPurpleAccent,
-                  ),
-                  _FeatureTile(
-                    icon: Icons.subtitles_rounded,
-                    title: 'Dual-Column Audio & Subtitles Popup',
-                    description:
-                        'Simultaneously select multi-language audio tracks and SRT/WebVTT subtitles in a side-by-side popup.',
-                    accentColor: Colors.teal,
-                  ),
-                  _FeatureTile(
-                    icon: Icons.speed_rounded,
-                    title: 'Discrete Speed Stepper & Hold-to-2x',
-                    description:
-                        'Tap the speed icon for preset speeds (0.5x to 2.0x), or hold down on the video for instant 2x fast-forward.',
-                    accentColor: Colors.amber,
-                  ),
-                  _FeatureTile(
-                    icon: Icons.bookmarks_rounded,
-                    title: 'Interactive Chapter Scrubbing',
-                    description:
-                        'Timeline slider displays chapter breaks and titles dynamically while dragging or hovering.',
-                    accentColor: Colors.cyan,
-                  ),
-                  _FeatureTile(
-                    icon: Icons.picture_in_picture_alt_rounded,
-                    title: 'Picture-in-Picture (OS + In-App)',
-                    description:
-                        'Seamless floating window on Windows Desktop and Android/iOS, with draggable in-app miniplayer.',
-                    accentColor: Colors.blueAccent,
-                  ),
-                ],
               ),
             ),
 
@@ -1021,64 +926,4 @@ AdaptiveVideoPlayer(
   ),
 );
 ''';
-}
-
-class _FeatureTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String description;
-  final Color accentColor;
-
-  const _FeatureTile({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.accentColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 18, color: accentColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.white70 : const Color(0xFF475569),
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

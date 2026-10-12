@@ -100,6 +100,30 @@ class PlayerVisibilityConfig {
   /// should be displayed in the top bar (top end of the video) instead of crowding the bottom bar.
   final bool showActionsInTopBar;
 
+  /// Whether the phone headline is shown.
+  final bool showTitle;
+
+  /// Whether the phone lock button is shown.
+  final bool showScreenLockButton;
+
+  /// Whether the phone brightness slider is shown.
+  final bool showBrightnessSlider;
+
+  /// Whether the end-of-episode prompt is shown on a phone.
+  final bool showNextEpisodePrompt;
+
+  /// Whether "Watch credits" is shown inside the end-of-episode prompt.
+  final bool showWatchCreditsButton;
+
+  /// Whether the double-tap seek ripple is shown.
+  final bool showSeekFeedback;
+
+  /// Whether holding the video plays at 2x and shows the speed badge.
+  final bool showHoldToSpeed;
+
+  /// Whether the back button is shown in the window top bar.
+  final bool showBackButton;
+
   const PlayerVisibilityConfig({
     this.showControls = true,
     this.showFullscreenButton = true,
@@ -131,6 +155,14 @@ class PlayerVisibilityConfig {
     this.showCenteredTitle = true,
     this.showRemainingDuration = true,
     this.showActionsInTopBar = false,
+    this.showTitle = true,
+    this.showScreenLockButton = true,
+    this.showBrightnessSlider = true,
+    this.showNextEpisodePrompt = true,
+    this.showWatchCreditsButton = true,
+    this.showSeekFeedback = true,
+    this.showHoldToSpeed = true,
+    this.showBackButton = false,
     this.skipDuration = const Duration(seconds: 10),
     this.controlsHideTimeout = const Duration(seconds: 3),
     this.volumeFeedbackTimeout = const Duration(milliseconds: 1200),
@@ -168,6 +200,14 @@ class PlayerVisibilityConfig {
     bool? showCenteredTitle,
     bool? showRemainingDuration,
     bool? showActionsInTopBar,
+    bool? showTitle,
+    bool? showScreenLockButton,
+    bool? showBrightnessSlider,
+    bool? showNextEpisodePrompt,
+    bool? showWatchCreditsButton,
+    bool? showSeekFeedback,
+    bool? showHoldToSpeed,
+    bool? showBackButton,
     Duration? skipDuration,
     Duration? controlsHideTimeout,
     Duration? volumeFeedbackTimeout,
@@ -208,6 +248,16 @@ class PlayerVisibilityConfig {
       showRemainingDuration:
           showRemainingDuration ?? this.showRemainingDuration,
       showActionsInTopBar: showActionsInTopBar ?? this.showActionsInTopBar,
+      showTitle: showTitle ?? this.showTitle,
+      showScreenLockButton: showScreenLockButton ?? this.showScreenLockButton,
+      showBrightnessSlider: showBrightnessSlider ?? this.showBrightnessSlider,
+      showNextEpisodePrompt:
+          showNextEpisodePrompt ?? this.showNextEpisodePrompt,
+      showWatchCreditsButton:
+          showWatchCreditsButton ?? this.showWatchCreditsButton,
+      showSeekFeedback: showSeekFeedback ?? this.showSeekFeedback,
+      showHoldToSpeed: showHoldToSpeed ?? this.showHoldToSpeed,
+      showBackButton: showBackButton ?? this.showBackButton,
       skipDuration: skipDuration ?? this.skipDuration,
       controlsHideTimeout: controlsHideTimeout ?? this.controlsHideTimeout,
       volumeFeedbackTimeout:

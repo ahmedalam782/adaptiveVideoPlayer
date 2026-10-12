@@ -51,6 +51,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     return const SizedBox.shrink();
   }
 
+  Future<void> enterPictureInPicture() async {}
+
   void play() {}
   void pause() {}
   void seekTo(int seconds) {}
