@@ -364,6 +364,7 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
       isOsPipWindow: isOsPipWindow,
       isPlaying: widget.isPlaying?.call() ?? false,
       progress: widget.progress?.call() ?? 0,
+      textDirection: effectiveDirection,
       closeTooltip:
           widget.getCloseTooltip?.call() ?? PlayerStrings.closeMiniPlayer,
       expandTooltip: widget.getExpandTooltip?.call() ?? PlayerStrings.expand,

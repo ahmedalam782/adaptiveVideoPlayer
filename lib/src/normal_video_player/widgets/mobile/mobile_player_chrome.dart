@@ -235,7 +235,7 @@ class MobileTopBar extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: visibility.showTitle
+          child: !isFullScreen && visibility.showTitle
               ? Text(
                   headline,
                   maxLines: 1,
@@ -330,9 +330,7 @@ class MobileCenterTransport extends StatelessWidget {
     final skip = visibility.skipDuration;
 
     return Center(
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Row(
+      child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showSkip)
@@ -356,7 +354,6 @@ class MobileCenterTransport extends StatelessWidget {
               ),
           ],
         ),
-      ),
     );
   }
 

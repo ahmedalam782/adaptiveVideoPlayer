@@ -364,7 +364,7 @@ void main() {
         (tester) async {
       final controller = _FakeVideoPlayerController();
 
-      // Default without playback config: in Arabic -> RTL
+      // Default without playback config: Arabic timeline starts on the right.
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

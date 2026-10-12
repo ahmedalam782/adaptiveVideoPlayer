@@ -52,6 +52,7 @@ class NormalNativePipView extends StatelessWidget {
             PipPlaybackChrome(
               isPlaying: value.isPlaying,
               progress: progress,
+              textDirection: messages.resolveTextDirection(context),
               closeTooltip: messages.closeMiniPlayerText,
               expandTooltip: messages.expandPlayerText,
               playTooltip: messages.playText,

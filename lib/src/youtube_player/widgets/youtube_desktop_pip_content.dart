@@ -17,6 +17,7 @@ class YouTubeDesktopPipContent extends StatelessWidget {
   final VoidCallback? onSeekBackward;
   final VoidCallback? onSeekForward;
   final GestureDragUpdateCallback? onDragUpdate;
+  final TextDirection? textDirection;
 
   const YouTubeDesktopPipContent({
     super.key,
@@ -32,6 +33,7 @@ class YouTubeDesktopPipContent extends StatelessWidget {
     this.onSeekBackward,
     this.onSeekForward,
     this.onDragUpdate,
+    this.textDirection,
   });
 
   @override
@@ -61,6 +63,7 @@ class YouTubeDesktopPipContent extends StatelessWidget {
             PipPlaybackChrome(
               isPlaying: isPlaying,
               progress: progress,
+              textDirection: textDirection,
               closeTooltip: closeTooltip,
               expandTooltip: expandTooltip,
               onClose: onClose,

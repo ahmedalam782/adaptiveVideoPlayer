@@ -24,8 +24,9 @@ class PlayerPlaybackConfig {
   /// Optional initial playback speed (e.g. 1.0, 1.5, 2.0)
   final double? playbackSpeed;
 
-  /// Whether to mirror the progress bar slider in RTL (Arabic) so that it starts from the right.
-  /// Defaults to `true` when in RTL layouts (Arabic) so the timeline begins on the right.
+  /// Whether the timeline runs from the right in Arabic.
+  ///
+  /// On by default, so Arabic starts on the right and English starts on the left.
   final bool mirrorProgressBarInRtl;
 
   const PlayerPlaybackConfig({

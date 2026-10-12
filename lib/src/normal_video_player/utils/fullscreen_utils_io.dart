@@ -106,7 +106,10 @@ void restoreDesktopWindowIfStuckInPip() {
 }
 
 /// Applies or removes native Win32 screen protection (SetWindowDisplayAffinity).
-void applyDesktopScreenProtection(bool enabled) {
+void applyDesktopScreenProtection(
+  bool enabled, {
+  void Function()? onScreenshot,
+}) {
   if (!Platform.isWindows) return;
   try {
     final user32 = getUser32();

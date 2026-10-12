@@ -253,23 +253,28 @@ class AdaptiveBottomBar extends StatelessWidget {
 
                         if (canShowSkip) ...[
                           const SizedBox(width: 6),
-                          AdaptiveCirclePillButton(
-                            backgroundColor: _pillColor,
-                            playerIcon: styling?.icons.skipBackwardIcon,
-                            icon: Icons.replay_10_rounded,
-                            tooltip: messages?.skipBackwardText ??
-                                PlayerStrings.seekBackward,
-                            onTap: () => _seekRelative(-skipDuration),
-                          ),
-                          const SizedBox(width: 6),
-                          AdaptiveCirclePillButton(
-                            backgroundColor: _pillColor,
-                            playerIcon: styling?.icons.skipForwardIcon,
-                            icon: Icons.forward_10_rounded,
-                            tooltip: messages?.skipForwardText ??
-                                PlayerStrings.seekForward,
-                            onTap: () => _seekRelative(skipDuration),
-                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                                AdaptiveCirclePillButton(
+                                  backgroundColor: _pillColor,
+                                  playerIcon: styling?.icons.skipBackwardIcon,
+                                  icon: Icons.replay_10_rounded,
+                                  tooltip: messages?.skipBackwardText ??
+                                      PlayerStrings.seekBackward,
+                                  onTap: () => _seekRelative(-skipDuration),
+                                ),
+                                const SizedBox(width: 6),
+                                AdaptiveCirclePillButton(
+                                  backgroundColor: _pillColor,
+                                  playerIcon: styling?.icons.skipForwardIcon,
+                                  icon: Icons.forward_10_rounded,
+                                  tooltip: messages?.skipForwardText ??
+                                      PlayerStrings.seekForward,
+                                  onTap: () => _seekRelative(skipDuration),
+                                ),
+                              ],
+                            ),
                         ],
 
                         if (canShowVolume) ...[

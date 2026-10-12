@@ -31,14 +31,12 @@ class SeekFeedbackIcon extends StatelessWidget {
         context,
         defaultColor: iconColor,
         defaultSize: size,
-        fallbackIcon: isForward
-            ? Icons.fast_forward_rounded
-            : Icons.fast_rewind_rounded,
+        fallbackIcon: isForward ? Icons.add_rounded : Icons.remove_rounded,
       );
     }
 
     return Icon(
-      isForward ? Icons.fast_forward_rounded : Icons.fast_rewind_rounded,
+      isForward ? Icons.add_rounded : Icons.remove_rounded,
       color: iconColor,
       size: size,
     );

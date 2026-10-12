@@ -130,12 +130,16 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
     widget.onControlsPinnedChanged?.call(pinned);
   }
 
-  bool get _hasTopBarContent =>
-      widget.isLive ||
-      (widget.viewerCount?.isNotEmpty ?? false) ||
-      (widget.title?.isNotEmpty ?? false) ||
-      widget.isFullScreen ||
-      (widget.visibility?.showActionsInTopBar ?? false);
+  bool get _hasTopBarContent {
+    if (widget.isFullScreen) return false;
+    final showTitle = (widget.visibility?.showTitle ?? true) &&
+        (widget.title?.isNotEmpty ?? false);
+    return showTitle ||
+        widget.isLive ||
+        (widget.viewerCount?.isNotEmpty ?? false) ||
+        (widget.visibility?.showActionsInTopBar ?? false) ||
+        (widget.visibility?.showBackButton ?? false);
+  }
 
   bool get _showCenterPlayPause =>
       (widget.visibility?.showCenterPlayPause ?? true) &&
@@ -405,6 +409,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
 
         return Stack(
           children: [
+        if (!widget.isFullScreen)
         Positioned(
           top: 0,
           left: 0,

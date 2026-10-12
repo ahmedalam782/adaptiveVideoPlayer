@@ -13,6 +13,7 @@ class AdaptivePlayerKeyboardHandler {
   final void Function(double volume) onVolumeChanged;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
+  final TextDirection textDirection;
 
   const AdaptivePlayerKeyboardHandler({
     required this.controller,
@@ -23,6 +24,7 @@ class AdaptivePlayerKeyboardHandler {
     required this.onVolumeChanged,
     this.onEnterFullscreen,
     this.onExitFullscreen,
+    this.textDirection = TextDirection.ltr,
   });
 
   KeyEventResult handleKeyEvent(FocusNode node, KeyEvent event) {
@@ -34,22 +36,11 @@ class AdaptivePlayerKeyboardHandler {
       return KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.arrowLeft ||
         key == LogicalKeyboardKey.keyJ) {
-      if (!isLive) {
-        final currentPos = controller.value.position;
-        final newPos = currentPos - const Duration(seconds: 10);
-        controller.seekTo(newPos.isNegative ? Duration.zero : newPos);
-        onSeek(-1);
-      }
+      if (!isLive) _seek(towardStart: textDirection != TextDirection.rtl);
       return KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.arrowRight ||
         key == LogicalKeyboardKey.keyL) {
-      if (!isLive) {
-        final currentPos = controller.value.position;
-        final duration = controller.value.duration;
-        final newPos = currentPos + const Duration(seconds: 10);
-        controller.seekTo(newPos > duration ? duration : newPos);
-        onSeek(1);
-      }
+      if (!isLive) _seek(towardStart: textDirection == TextDirection.rtl);
       return KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.arrowUp) {
       final newVol = (controller.value.volume + 0.1).clamp(0.0, 1.0);
@@ -82,5 +73,21 @@ class AdaptivePlayerKeyboardHandler {
     }
 
     return KeyEventResult.ignored;
+  }
+
+  /// Left seeks toward the left end of the timeline, right toward the right end.
+  /// In Arabic the start is on the right, so those keys swap.
+  void _seek({required bool towardStart}) {
+    final currentPos = controller.value.position;
+    if (towardStart) {
+      final newPos = currentPos - const Duration(seconds: 10);
+      controller.seekTo(newPos.isNegative ? Duration.zero : newPos);
+      onSeek(-1);
+      return;
+    }
+    final duration = controller.value.duration;
+    final newPos = currentPos + const Duration(seconds: 10);
+    controller.seekTo(newPos > duration ? duration : newPos);
+    onSeek(1);
   }
 }

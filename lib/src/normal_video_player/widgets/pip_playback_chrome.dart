@@ -21,6 +21,7 @@ class PipPlaybackChrome extends StatefulWidget {
   final String expandTooltip;
   final String playTooltip;
   final String pauseTooltip;
+  final TextDirection? textDirection;
 
   const PipPlaybackChrome({
     super.key,
@@ -36,6 +37,7 @@ class PipPlaybackChrome extends StatefulWidget {
     this.expandTooltip = PlayerStrings.expand,
     this.playTooltip = PlayerStrings.play,
     this.pauseTooltip = PlayerStrings.pause,
+    this.textDirection,
   });
 
   @override
@@ -109,15 +111,19 @@ class _PipPlaybackChromeState extends State<PipPlaybackChrome> {
               left: 10,
               right: 10,
               bottom: 8,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  height: 3,
-                  child: LinearProgressIndicator(
-                    value: widget.progress.clamp(0.0, 1.0),
-                    backgroundColor: const Color(0x66FFFFFF),
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(Colors.white),
+              child: Directionality(
+                textDirection:
+                    widget.textDirection ?? Directionality.of(context),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    height: 3,
+                    child: LinearProgressIndicator(
+                      value: widget.progress.clamp(0.0, 1.0),
+                      backgroundColor: const Color(0x66FFFFFF),
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -175,37 +181,37 @@ class _PipPlaybackButtons extends StatelessWidget {
                   behavior: HitTestBehavior.translucent,
                   onTap: chrome.onPlayPause,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      PipCircleButton(
-                        icon: Icons.replay_10_rounded,
-                        tooltip: PlayerStrings.back10Seconds,
-                        onTap: chrome.onSeekBackward,
-                        size: skip,
-                        iconSize: compact ? 20 : 26,
-                      ),
-                      SizedBox(width: compact ? 12 : 22),
-                      PipCircleButton(
-                        icon: chrome.isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        tooltip: chrome.isPlaying
-                            ? chrome.pauseTooltip
-                            : chrome.playTooltip,
-                        onTap: chrome.onPlayPause,
-                        size: play,
-                        iconSize: compact ? 28 : 36,
-                      ),
-                      SizedBox(width: compact ? 12 : 22),
-                      PipCircleButton(
-                        icon: Icons.forward_10_rounded,
-                        tooltip: PlayerStrings.forward10Seconds,
-                        onTap: chrome.onSeekForward,
-                        size: skip,
-                        iconSize: compact ? 20 : 26,
-                      ),
-                    ],
-                  ),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        PipCircleButton(
+                          icon: Icons.replay_10_rounded,
+                          tooltip: PlayerStrings.back10Seconds,
+                          onTap: chrome.onSeekBackward,
+                          size: skip,
+                          iconSize: compact ? 20 : 26,
+                        ),
+                        SizedBox(width: compact ? 12 : 22),
+                        PipCircleButton(
+                          icon: chrome.isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          tooltip: chrome.isPlaying
+                              ? chrome.pauseTooltip
+                              : chrome.playTooltip,
+                          onTap: chrome.onPlayPause,
+                          size: play,
+                          iconSize: compact ? 28 : 36,
+                        ),
+                        SizedBox(width: compact ? 12 : 22),
+                        PipCircleButton(
+                          icon: Icons.forward_10_rounded,
+                          tooltip: PlayerStrings.forward10Seconds,
+                          onTap: chrome.onSeekForward,
+                          size: skip,
+                          iconSize: compact ? 20 : 26,
+                        ),
+                      ],
+                    ),
                 ),
               ),
             ],

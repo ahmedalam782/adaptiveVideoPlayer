@@ -117,6 +117,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
         onVolumeChanged: showVolumeFeedback,
         onEnterFullscreen: widget.onEnterFullscreen,
         onExitFullscreen: widget.onExitFullscreen,
+        textDirection: widget.messages?.resolveTextDirection(context) ??
+            Directionality.of(context),
       );
 
   @override

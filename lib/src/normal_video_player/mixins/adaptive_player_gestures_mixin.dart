@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../youtube_player/models/player_text_config.dart';
 import '../adaptive_controls.dart';
 
 /// Mixin handling user gestures (Double-tap seek feedback, Hold-to-2x speed, Volume HUD)
@@ -86,16 +85,16 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
     if (widget.isLive) return;
     if (!(widget.visibility?.showSkipButtons ?? true)) return;
 
-    final width = MediaQuery.of(context).size.width;
-    final position = details.globalPosition.dx;
+    final playerWidth = (context.findRenderObject() as RenderBox?)?.size.width ??
+        MediaQuery.sizeOf(context).width;
+    final isRtl = (widget.messages?.resolveTextDirection(context) ??
+            Directionality.of(context)) ==
+        TextDirection.rtl;
+    final tappedRightHalf = details.localPosition.dx > playerWidth / 2;
+    final isForward = isRtl ? !tappedRightHalf : tappedRightHalf;
     final currentPosition = widget.controller.value.position;
     final wasPlaying = widget.controller.value.isPlaying;
     final duration = widget.controller.value.duration;
-    final isRtl = (widget.messages ?? const PlayerTextConfig())
-            .resolveTextDirection(context) ==
-        TextDirection.rtl;
-    final tappedRightHalf = position > width / 2;
-    final isForward = isRtl ? !tappedRightHalf : tappedRightHalf;
     final skipDuration =
         widget.visibility?.skipDuration ?? const Duration(seconds: 10);
 

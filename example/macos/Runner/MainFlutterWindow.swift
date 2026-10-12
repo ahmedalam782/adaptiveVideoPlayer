@@ -28,6 +28,12 @@ class MainFlutterWindow: NSWindow {
   private var savedBackgroundColor: NSColor?
   private var savedTitleVisibility: NSWindow.TitleVisibility = .visible
   private var savedTitlebarTransparent = false
+  private var savedWindowTitle = ""
+  private var secureCapture = false
+
+  private func applySecureCapture() {
+    sharingType = secureCapture ? .none : .readOnly
+  }
 
   override var canBecomeKey: Bool { true }
   override var canBecomeMain: Bool { true }
@@ -137,8 +143,9 @@ class MainFlutterWindow: NSWindow {
       case "setSecureMode":
         let args = call.arguments as? [String: Any]
         let enabled = args?["enabled"] as? Bool ?? false
+        self.secureCapture = enabled
         DispatchQueue.main.async {
-          self.sharingType = enabled ? .none : .readOnly
+          self.applySecureCapture()
         }
         result(true)
       default:
@@ -148,8 +155,11 @@ class MainFlutterWindow: NSWindow {
   }
 
   private func enterAppFullscreen() {
-    if isAppFullscreen { return }
     guard let screen = self.screen ?? NSScreen.main else { return }
+    if isAppFullscreen {
+      hideWindowHeader()
+      return
+    }
 
     savedFullscreenFrame = frame
     savedFullscreenStyle = styleMask
@@ -161,30 +171,83 @@ class MainFlutterWindow: NSWindow {
     savedBackgroundColor = backgroundColor
     savedTitleVisibility = titleVisibility
     savedTitlebarTransparent = titlebarAppearsTransparent
+    if savedWindowTitle.isEmpty {
+      savedWindowTitle = title
+    }
     isAppFullscreen = true
+
+    // Hide the "example" title and traffic lights while those views still exist.
+    hideWindowHeader()
 
     // Already in a native fullscreen Space: keep that space and hide the bars.
     if styleMask.contains(.fullScreen) {
       keptNativeFullscreen = true
       NSMenu.setMenuBarVisible(false)
       NSApp.presentationOptions = [.fullScreen, .hideMenuBar, .hideDock]
+      reapplyHiddenHeader()
       return
     }
 
     // A titled window is clamped to the area under the menu bar.
     // fullSizeContentView keeps that title bar, so the mask must be borderless only.
     styleMask = [.borderless]
-    titleVisibility = .hidden
-    titlebarAppearsTransparent = true
     hasShadow = false
     isMovable = false
     backgroundColor = .black
     collectionBehavior.formUnion([.canJoinAllSpaces, .fullScreenAuxiliary])
     level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 2)
     setFrame(screen.frame, display: true, animate: false)
+    hideWindowHeader()
     NSMenu.setMenuBarVisible(false)
     NSApp.presentationOptions = [.hideMenuBar, .hideDock]
     makeKeyAndOrderFront(nil)
+    reapplyHiddenHeader()
+    applySecureCapture()
+  }
+
+  /// AppKit sometimes puts the title bar back on the next frame.
+  private func reapplyHiddenHeader() {
+    for delay in [0.0, 0.05, 0.2] {
+      DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+        guard let self = self, self.isAppFullscreen else { return }
+        self.hideWindowHeader()
+      }
+    }
+  }
+
+  /// Hides the macOS title bar: the word "example" and the traffic lights.
+  private func hideWindowHeader() {
+    if savedWindowTitle.isEmpty, !title.isEmpty {
+      savedWindowTitle = title
+    }
+    title = ""
+    titleVisibility = .hidden
+    titlebarAppearsTransparent = true
+    titlebarSeparatorStyle = .none
+    let buttons: [NSWindow.ButtonType] = [.closeButton, .miniaturizeButton, .zoomButton]
+    for kind in buttons {
+      guard let button = standardWindowButton(kind) else { continue }
+      button.alphaValue = 0
+      button.isHidden = true
+      button.superview?.isHidden = true
+      button.superview?.superview?.isHidden = true
+    }
+  }
+
+  private func showWindowHeader() {
+    let buttons: [NSWindow.ButtonType] = [.closeButton, .miniaturizeButton, .zoomButton]
+    for kind in buttons {
+      guard let button = standardWindowButton(kind) else { continue }
+      button.superview?.superview?.isHidden = false
+      button.superview?.isHidden = false
+      button.isHidden = false
+      button.alphaValue = 1
+    }
+    if !savedWindowTitle.isEmpty {
+      title = savedWindowTitle
+    }
+    titleVisibility = savedTitleVisibility
+    titlebarAppearsTransparent = savedTitlebarTransparent
   }
 
   private func exitAppFullscreen() {
@@ -199,14 +262,14 @@ class MainFlutterWindow: NSWindow {
     }
     if keptNativeFullscreen {
       keptNativeFullscreen = false
+      showWindowHeader()
       return
     }
 
     if let style = savedFullscreenStyle {
       styleMask = style
     }
-    titleVisibility = savedTitleVisibility
-    titlebarAppearsTransparent = savedTitlebarTransparent
+    showWindowHeader()
     hasShadow = savedHasShadow
     isMovable = savedIsMovable
     if let color = savedBackgroundColor {
@@ -219,6 +282,7 @@ class MainFlutterWindow: NSWindow {
       savedFullscreenFrame = nil
     }
     makeKeyAndOrderFront(nil)
+    applySecureCapture()
   }
 
   private func enterPipMode(width: CGFloat, height: CGFloat) {
@@ -269,6 +333,7 @@ class MainFlutterWindow: NSWindow {
       savedPresentationOptions = nil
     }
     makeKeyAndOrderFront(nil)
+    applySecureCapture()
     windowChannel?.invokeMethod("onPipModeChanged", arguments: true)
   }
 
@@ -279,6 +344,7 @@ class MainFlutterWindow: NSWindow {
       styleMask = style
       savedPrePipStyle = nil
     }
+    showWindowHeader()
     titleVisibility = savedPrePipTitleVisibility
     titlebarAppearsTransparent = savedPrePipTitlebarTransparent
     hasShadow = savedPrePipHasShadow
@@ -294,6 +360,7 @@ class MainFlutterWindow: NSWindow {
       savedPrePipFrame = nil
     }
     makeKeyAndOrderFront(nil)
+    applySecureCapture()
     windowChannel?.invokeMethod("onPipModeChanged", arguments: false)
   }
 

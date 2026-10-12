@@ -64,7 +64,9 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              child: Row(
+                              child: Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SeekFeedbackIcon(
@@ -74,7 +76,7 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    '- $seekSeconds',
+                                    '$seekSeconds',
                                     style: TextStyle(
                                       color: textColor,
                                       fontSize: 16,
@@ -83,6 +85,7 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                                     ),
                                   ),
                                 ],
+                                ),
                               ),
                             ),
                           ),
@@ -124,11 +127,19 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              child: Row(
+                              child: Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  SeekFeedbackIcon(
+                                    isForward: true,
+                                    iconColor: iconColor,
+                                    configuredIcon: styling?.icons.skipForwardIcon,
+                                  ),
+                                  const SizedBox(width: 6),
                                   Text(
-                                    '+ $seekSeconds',
+                                    '$seekSeconds',
                                     style: TextStyle(
                                       color: textColor,
                                       fontSize: 16,
@@ -136,13 +147,8 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                                       letterSpacing: 0.5,
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
-                                  SeekFeedbackIcon(
-                                    isForward: true,
-                                    iconColor: iconColor,
-                                    configuredIcon: styling?.icons.skipForwardIcon,
-                                  ),
                                 ],
+                                ),
                               ),
                             ),
                           ),

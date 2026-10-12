@@ -132,6 +132,12 @@ class VideoConfig {
   /// Defaults to `false`.
   final bool preventScreenCapture;
 
+  /// Runs when a screenshot or recording attempt is detected.
+  ///
+  /// Used only while [preventScreenCapture] is `true`. Leave this null when
+  /// you do not want an extra action.
+  final VoidCallback? onScreenshot;
+
   /// Complete player configuration using YouTube models
   final YouTubePlayerConfig playerConfig;
 
@@ -168,6 +174,7 @@ class VideoConfig {
     this.preloadedController,
     this.enableCache = false,
     this.preventScreenCapture = false,
+    this.onScreenshot,
     this.playerConfig = const YouTubePlayerConfig(),
   });
 
@@ -214,6 +221,7 @@ class VideoConfig {
     VideoPlayerController? preloadedController,
     bool? enableCache,
     bool? preventScreenCapture,
+    VoidCallback? onScreenshot,
     YouTubePlayerConfig? playerConfig,
   }) {
     return VideoConfig(
@@ -250,6 +258,7 @@ class VideoConfig {
       preloadedController: preloadedController ?? this.preloadedController,
       enableCache: enableCache ?? this.enableCache,
       preventScreenCapture: preventScreenCapture ?? this.preventScreenCapture,
+      onScreenshot: onScreenshot ?? this.onScreenshot,
       playerConfig: playerConfig ?? this.playerConfig,
     );
   }

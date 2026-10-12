@@ -93,10 +93,8 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
   Widget build(BuildContext context) {
     final effectiveDir = widget.config.text.resolveTextDirection(context);
     final isFullscreenNow = widget.isInFullscreen || isYoutubeWebFullscreen();
-    // In fullscreen mode, show the exit fullscreen button.
     final showFullscreen = widget.config.visibility.showControls &&
-        widget.config.visibility.showFullscreenButton &&
-        isFullscreenNow;
+        widget.config.visibility.showFullscreenButton;
     final showLiveBadge = widget.isLive ||
         widget.viewerCount != null ||
         widget.liveBadgeBuilder != null;
@@ -164,8 +162,8 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                       ),
                     if (showFullscreen)
                       PositionedDirectional(
-                        top: 14,
-                        end: 14,
+                        bottom: 8,
+                        end: 8,
                         child: AnimatedOpacity(
                           opacity: _isHovered ? 1.0 : 0.85,
                           duration: const Duration(milliseconds: 220),
@@ -192,11 +190,16 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 YouTubeDesktopStyleButton(
-                                  playerIcon: widget
-                                      .config.style.icons.exitFullscreenIcon,
-                                  fallbackIcon: Icons.fullscreen_exit_rounded,
-                                  tooltip:
-                                      widget.config.text.exitFullscreenText,
+                                  playerIcon: isFullscreenNow
+                                      ? widget.config.style.icons
+                                          .exitFullscreenIcon
+                                      : widget.config.style.icons.fullscreenIcon,
+                                  fallbackIcon: isFullscreenNow
+                                      ? Icons.fullscreen_exit_rounded
+                                      : Icons.open_in_full_rounded,
+                                  tooltip: isFullscreenNow
+                                      ? widget.config.text.exitFullscreenText
+                                      : widget.config.text.fullscreenText,
                                   onTap: widget.onToggleFullscreen,
                                   size: 21,
                                 ),

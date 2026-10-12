@@ -198,7 +198,7 @@ class YouTubeJsScripts {
 
       var styleId = 'yt-custom-injected-style';
       var existing = document.getElementById(styleId);
-      var css = '.ytp-fullscreen-button, .ytp-share-button, .ytp-watch-later-button, .ytp-subtitles-button, .ytp-autonav-toggle-button, .ytp-autonav-toggle-button-container, .ytp-autonav-endscreen-button-container, .ytp-chrome-top, .ytp-chrome-top-buttons, [class*="autonav" i], [class*="subtitles-button" i], button[aria-label*="subtitles" i], button[aria-label*="captions" i], button[aria-label*="ترجمة" i], button[aria-label*="الترجمة" i], button[aria-label*="autoplay" i], button[aria-label*="تشغيل تلقائي" i], button[title*="subtitles" i], button[title*="captions" i], button[title*="ترجمة" i], button[title*="الترجمة" i], button[title*="autoplay" i], button[title*="تشغيل تلقائي" i], .ytp-copylink-button, .ytp-copy-link-button, .ytp-button-copylink, .ytp-overflow-button, .ytp-share-panel-link, .ytp-share-icon, .ytp-share-panel, [class*="copylink" i], [class*="copy-link" i], [class*="ytp-share" i], [class*="share-button" i], [data-tooltip-target-id*="copy" i], [data-tooltip-target-id*="share" i], [data-tooltip-target-id*="link" i], [data-title-no-tooltip*="copy" i], [data-title-no-tooltip*="share" i], [data-title-no-tooltip*="link" i], [data-title-no-tooltip*="نسخ" i], [data-title-no-tooltip*="رابط" i], [data-title-no-tooltip*="مشاركة" i], button[aria-label*="copy" i], button[aria-label*="link" i], button[aria-label*="share" i], button[aria-label*="نسخ" i], button[aria-label*="رابط" i], button[aria-label*="مشاركة" i], button[title*="copy" i], button[title*="link" i], button[title*="share" i], button[title*="نسخ" i], button[title*="رابط" i], button[title*="مشاركة" i], a[aria-label*="copy" i], a[aria-label*="link" i], a[aria-label*="share" i], a[aria-label*="نسخ" i], a[aria-label*="رابط" i], a[aria-label*="مشاركة" i], a[title*="copy" i], a[title*="link" i], a[title*="share" i], a[title*="نسخ" i], a[title*="رابط" i], a[title*="مشاركة" i] { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; width: 0 !important; height: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; margin: 0 !important; }';
+      var css = '.ytp-autonav-toggle-button, .ytp-autonav-toggle-button-container, .ytp-autonav-endscreen-button-container, [class*="autonav" i], button[aria-label*="autoplay" i], button[aria-label*="تشغيل تلقائي" i], button[title*="autoplay" i], button[title*="تشغيل تلقائي" i], .ytp-volume-slider, .ytp-volume-slider-handle { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; width: 0 !important; height: 0 !important; }';
 
       var nodes = document.querySelectorAll('button, a, div[role="button"], [role="button"], .ytp-button');
       for (var b = 0; b < nodes.length; b++) {
@@ -210,48 +210,8 @@ class YouTubeJsScripts {
           label.indexOf('autonav') !== -1 ||
           label.indexOf('autoplay') !== -1 ||
           label.indexOf('تشغيل تلقائي') !== -1 ||
-          label.indexOf('subtitles') !== -1 ||
-          label.indexOf('captions') !== -1 ||
-          label.indexOf('ترجمة') !== -1 ||
-          rawHtml.indexOf('autonav') !== -1 ||
-          rawHtml.indexOf('subtitles-button') !== -1 ||
-          label.indexOf('share') !== -1 ||
-          label.indexOf('copy') !== -1 ||
-          label.indexOf('link') !== -1 ||
-          label.indexOf('نسخ') !== -1 ||
-          label.indexOf('رابط') !== -1 ||
-          label.indexOf('مشاركة') !== -1 ||
-          label.indexOf('watch later') !== -1 ||
-          label.indexOf('full screen') !== -1 ||
-          label.indexOf('fullscreen') !== -1 ||
-          label.indexOf('ملء الشاشة') !== -1 ||
-          label.indexOf('شاشة كاملة') !== -1 ||
-          rawHtml.indexOf('copylink') !== -1 ||
-          rawHtml.indexOf('copy-link') !== -1 ||
-          rawHtml.indexOf('share-button') !== -1 ||
-          rawHtml.indexOf('aria-label="copy') !== -1 ||
-          rawHtml.indexOf('title="copy') !== -1 ||
-          rawHtml.indexOf('نسخ') !== -1 ||
-          rawHtml.indexOf('رابط') !== -1
+          rawHtml.indexOf('autonav') !== -1
         );
-
-        if (!shouldHide) {
-          var svgs = n.querySelectorAll('svg, path, title, use');
-          for (var s = 0; s < svgs.length; s++) {
-            var sTxt = ((svgs[s].getAttribute('aria-label') || '') + ' ' + (svgs[s].getAttribute('title') || '') + ' ' + (svgs[s].textContent || '')).toLowerCase();
-            if (
-              sTxt.indexOf('share') !== -1 ||
-              sTxt.indexOf('copy') !== -1 ||
-              sTxt.indexOf('link') !== -1 ||
-              sTxt.indexOf('نسخ') !== -1 ||
-              sTxt.indexOf('رابط') !== -1 ||
-              sTxt.indexOf('مشاركة') !== -1
-            ) {
-              shouldHide = true;
-              break;
-            }
-          }
-        }
 
         if (shouldHide) {
           n.style.setProperty('display', 'none', 'important');
@@ -260,24 +220,6 @@ class YouTubeJsScripts {
           n.style.setProperty('pointer-events', 'none', 'important');
           n.style.setProperty('width', '0', 'important');
           n.style.setProperty('height', '0', 'important');
-        }
-      }
-
-      var leftControls = document.querySelectorAll('.ytp-left-controls button, .ytp-left-controls a, .ytp-left-controls [role="button"], .ytp-left-controls .ytp-button');
-      for (var l = 0; l < leftControls.length; l++) {
-        var item = leftControls[l];
-        var isEssential = item.classList.contains('ytp-play-button') ||
-                          item.classList.contains('ytp-mute-button') ||
-                          item.classList.contains('ytp-volume-area') ||
-                          item.classList.contains('ytp-time-display') ||
-                          item.classList.contains('ytp-live-badge');
-        if (!isEssential) {
-          item.style.setProperty('display', 'none', 'important');
-          item.style.setProperty('opacity', '0', 'important');
-          item.style.setProperty('visibility', 'hidden', 'important');
-          item.style.setProperty('pointer-events', 'none', 'important');
-          item.style.setProperty('width', '0', 'important');
-          item.style.setProperty('height', '0', 'important');
         }
       }
 
@@ -307,17 +249,60 @@ class YouTubeJsScripts {
 
   try {
     var lastActivityTime = 0;
+    var lastFullscreenNotify = 0;
     function sendToFlutter(payload) {
+      var message = { type: 'YouTubePlayerHandler' };
+      try {
+        var keys = Object.keys(payload || {});
+        for (var k = 0; k < keys.length; k++) message[keys[k]] = payload[keys[k]];
+      } catch(e) {}
       try {
         if (window.flutter_inappwebview) {
-          window.flutter_inappwebview.callHandler('YouTubePlayerHandler', payload);
+          window.flutter_inappwebview.callHandler('YouTubePlayerHandler', message);
         }
       } catch(e) {}
       try {
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ type: 'YouTubePlayerHandler', ...payload }, '*');
-        }
+        if (window.parent && window.parent !== window) window.parent.postMessage(message, '*');
       } catch(e) {}
+      try {
+        if (window.top && window.top !== window && window.top !== window.parent) window.top.postMessage(message, '*');
+      } catch(e) {}
+    }
+    function notifyFullscreenToggle() {
+      var now = Date.now();
+      if (now - lastFullscreenNotify < 500) return;
+      lastFullscreenNotify = now;
+      sendToFlutter({ 'event': 'onToggleFullscreen' });
+    }
+    function isFullscreenControl(el) {
+      if (!el || el.nodeType !== 1) return false;
+      var cls = '';
+      try {
+        cls = (el.className && el.className.baseVal) || el.className || '';
+        if (typeof cls !== 'string') cls = '';
+      } catch(e) { cls = ''; }
+      cls = String(cls).toLowerCase();
+      var label = '';
+      try {
+        label = ((el.getAttribute('aria-label') || '') + ' ' + (el.getAttribute('title') || '') + ' ' + (el.getAttribute('data-title-no-tooltip') || '') + ' ' + (el.getAttribute('data-tooltip-target-id') || '') + ' ' + (el.getAttribute('aria-keyshortcuts') || '')).toLowerCase();
+      } catch(e) {}
+      return cls.indexOf('ytp-fullscreen') !== -1 ||
+        cls.indexOf('fullscreen-button') !== -1 ||
+        label.indexOf('full screen') !== -1 ||
+        label.indexOf('fullscreen') !== -1 ||
+        label.indexOf('exit full') !== -1 ||
+        label === 'f' ||
+        label.indexOf('ملء') !== -1 ||
+        label.indexOf('شاشة كاملة') !== -1;
+    }
+    function eventHitsFullscreen(e) {
+      var path = [];
+      try { path = e.composedPath ? e.composedPath() : []; } catch(err) {}
+      if (!path || !path.length) path = [e.target];
+      for (var i = 0; i < path.length && i < 8; i++) {
+        if (isFullscreenControl(path[i])) return true;
+      }
+      return false;
     }
     function onUserTouchActivity() {
       sendToFlutter({ 'event': 'onTouchActivity' });
@@ -333,6 +318,29 @@ class YouTubeJsScripts {
     window.addEventListener('touchstart', onUserTouchActivity, { passive: true, capture: true });
     window.addEventListener('pointerdown', onUserTouchActivity, { passive: true, capture: true });
     window.addEventListener('click', onUserTouchActivity, { passive: true, capture: true });
+    window.addEventListener('click', function(e) {
+      if (!eventHitsFullscreen(e)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      notifyFullscreenToggle();
+    }, true);
+    try {
+      var elProto = Element.prototype;
+      ['requestFullscreen', 'webkitRequestFullscreen'].forEach(function(name) {
+        var original = elProto[name];
+        if (!original) return;
+        elProto[name] = function() {
+          notifyFullscreenToggle();
+          return Promise.resolve();
+        };
+      });
+      var videoProto = window.HTMLVideoElement && HTMLVideoElement.prototype;
+      if (videoProto && videoProto.webkitEnterFullscreen) {
+        videoProto.webkitEnterFullscreen = function() {
+          notifyFullscreenToggle();
+        };
+      }
+    } catch(e) {}
     window.addEventListener('mousemove', onUserMoveActivity, { passive: true, capture: true });
     window.addEventListener('pointermove', onUserMoveActivity, { passive: true, capture: true });
 

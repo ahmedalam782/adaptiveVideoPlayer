@@ -8,7 +8,6 @@ import '../../normal_video_player/widgets/adaptive_seek_feedback_overlay.dart';
 import '../../normal_video_player/widgets/pip_playback_chrome.dart';
 import '../models/youtube_player_config.dart';
 import '../widgets/youtube_desktop_overlay.dart';
-import '../widgets/youtube_desktop_style_button.dart';
 import '../widgets/youtube_live_badge.dart';
 import '../widgets/youtube_webview_player_export.dart';
 
@@ -82,15 +81,6 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
     final isMobile = !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
-    final showPipButton = !inNativePip && (isHovered || !isPlaying);
-    final showMini = !fullscreenManager.isInPip &&
-        !inNativePip &&
-        config.visibility.showControls &&
-        config.visibility.showMiniPlayerButton;
-    final showFullscreen = !fullscreenManager.isInPip &&
-        !inNativePip &&
-        config.visibility.showControls &&
-        config.visibility.showFullscreenButton;
     final effectiveDir = config.text.resolveTextDirection(context);
 
     return CallbackShortcuts(
@@ -126,39 +116,7 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final targetAspect = aspectRatio ?? (16.0 / 9.0);
-                  double letterboxBottom = 0.0;
-                  double pillarboxSide = 0.0;
-
                   final isCover = config.style.videoFit == BoxFit.cover;
-
-                  if (!isCover &&
-                      constraints.maxWidth.isFinite &&
-                      constraints.maxHeight.isFinite &&
-                      constraints.maxWidth > 0 &&
-                      constraints.maxHeight > 0) {
-                    final currentAspect =
-                        constraints.maxWidth / constraints.maxHeight;
-                    if (currentAspect < targetAspect) {
-                      final videoHeight = constraints.maxWidth / targetAspect;
-                      letterboxBottom =
-                          (constraints.maxHeight - videoHeight) / 2.0;
-                    } else if (currentAspect > targetAspect) {
-                      final videoWidth = constraints.maxHeight * targetAspect;
-                      pillarboxSide =
-                          (constraints.maxWidth - videoWidth) / 2.0;
-                    }
-                  }
-
-                  final baseBottom = config.style.bottomBarMargin != null &&
-                          config.style.bottomBarMargin is EdgeInsets
-                      ? (config.style.bottomBarMargin as EdgeInsets).bottom
-                      : (isMobile
-                          ? 12.0
-                          : (fullscreenManager.isInFullscreen ? 24.0 : 45.0));
-
-                  final responsiveBottom = letterboxBottom + baseBottom;
-                  final responsiveRight =
-                      pillarboxSide + (isMobile ? 12.0 : 12.0);
                   // wasPlaying is null until fullscreen or PiP has observed
                   // playback. Until then, honor the configured autoPlay flag.
                   final shouldAutoPlay = fullscreenManager.isInPip ||
@@ -255,73 +213,12 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                                 textColor: config.style.textColor,
                               ),
                         ),
-                      if (showMini || showFullscreen)
-                        PositionedDirectional(
-                          end: responsiveRight,
-                          bottom: responsiveBottom,
-                          child: IgnorePointer(
-                            ignoring: !showPipButton,
-                            child: AnimatedOpacity(
-                              opacity: showPipButton ? 1 : 0,
-                              duration: const Duration(milliseconds: 220),
-                              child: Directionality(
-                                textDirection: effectiveDir,
-                                child: Container(
-                                  height: 38,
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 4.0),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6.0),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xCC000000),
-                                    borderRadius: BorderRadius.circular(19),
-                                    border: Border.all(
-                                        color: Colors.white24, width: 0.8),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (showMini)
-                                        YouTubeDesktopStyleButton(
-                                          playerIcon:
-                                              config.style.icons.miniPlayerIcon,
-                                          fallbackIcon: Icons
-                                              .picture_in_picture_alt_rounded,
-                                          tooltip: config.text.miniPlayerText,
-                                          onTap: onOpenPip,
-                                          size: 19,
-                                        ),
-                                      if (showFullscreen)
-                                        YouTubeDesktopStyleButton(
-                                          playerIcon: fullscreenManager
-                                                  .isInFullscreen
-                                              ? config.style.icons
-                                                  .exitFullscreenIcon
-                                              : config
-                                                  .style.icons.fullscreenIcon,
-                                          fallbackIcon: fullscreenManager
-                                                  .isInFullscreen
-                                              ? Icons.fullscreen_exit_rounded
-                                              : Icons.fullscreen_rounded,
-                                          tooltip: fullscreenManager
-                                                  .isInFullscreen
-                                              ? config.text.exitFullscreenText
-                                              : config.text.fullscreenText,
-                                          onTap: onToggleFullscreen,
-                                          size: 21,
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
                       if (inNativePip && !isMobile)
                         Positioned.fill(
                           child: PipPlaybackChrome(
                             isPlaying: isPlaying,
                             progress: pipProgress,
+                            textDirection: config.text.resolveTextDirection(context),
                             closeTooltip: config.text.closeMiniPlayerText,
                             expandTooltip: config.text.expandPlayerText,
                             playTooltip: config.text.playText,

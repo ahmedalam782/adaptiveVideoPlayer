@@ -29,8 +29,20 @@ class ScreenProtectionService {
 
   static const Object _defaultOwner = Object();
 
+  static VoidCallback? _screenshotAction;
+
   /// Whether screen capture is currently prevented.
   static bool get isProtected => isProtectedNotifier.value;
+
+  /// Action to run when a screenshot attempt is detected.
+  ///
+  /// Pass null when the app should not run an extra action.
+  static void setScreenshotAction(VoidCallback? action) {
+    _screenshotAction = action;
+    if (isProtected) {
+      applyDesktopScreenProtection(true, onScreenshot: action);
+    }
+  }
 
   /// Registers [owner] as requesting screen capture prevention.
   static Future<void> registerOwner(Object owner) async {
@@ -81,6 +93,7 @@ class ScreenProtectionService {
   /// Clears all owners and restores normal capture (useful in tests or resets).
   static Future<void> resetAll() async {
     _activeOwners.clear();
+    _screenshotAction = null;
     await _applyProtection(false);
   }
 
@@ -89,7 +102,10 @@ class ScreenProtectionService {
 
     // Desktop (Windows via FFI) and Web (DOM & blur shield)
     try {
-      applyDesktopScreenProtection(enabled);
+      applyDesktopScreenProtection(
+        enabled,
+        onScreenshot: enabled ? _screenshotAction : null,
+      );
     } catch (e) {
       log('Platform screen protection error: $e');
     }

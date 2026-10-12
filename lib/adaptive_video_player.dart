@@ -123,6 +123,9 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
         widget.config.analyticsService ??
         CallbackAnalyticsService(widget.config.onAnalyticsEvent);
     _detectVideoType();
+    ScreenProtectionService.setScreenshotAction(
+      widget.config.preventScreenCapture ? widget.config.onScreenshot : null,
+    );
     if (widget.config.preventScreenCapture) {
       ScreenProtectionService.registerOwner(this);
     }
@@ -132,7 +135,11 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
   void didUpdateWidget(covariant AdaptiveVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.config.preventScreenCapture !=
-        widget.config.preventScreenCapture) {
+            widget.config.preventScreenCapture ||
+        oldWidget.config.onScreenshot != widget.config.onScreenshot) {
+      ScreenProtectionService.setScreenshotAction(
+        widget.config.preventScreenCapture ? widget.config.onScreenshot : null,
+      );
       ScreenProtectionService.setEnabledFor(
           this, widget.config.preventScreenCapture);
     }
@@ -140,6 +147,7 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
 
   @override
   void dispose() {
+    ScreenProtectionService.setScreenshotAction(null);
     ScreenProtectionService.unregisterOwner(this);
     _fullscreenService.dispose();
     super.dispose();

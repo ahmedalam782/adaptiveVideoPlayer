@@ -198,6 +198,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       },
     );
     if (widget.config.preventScreenCapture) {
+      ScreenProtectionService.setScreenshotAction(widget.config.onScreenshot);
       ScreenProtectionService.registerOwner(this);
     }
   }
@@ -294,7 +295,11 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
     syncSubtitlesOnUpdate(oldWidget);
     _syncStreamingStateOnUpdate(oldWidget);
     if (oldWidget.config.preventScreenCapture !=
-        widget.config.preventScreenCapture) {
+            widget.config.preventScreenCapture ||
+        oldWidget.config.onScreenshot != widget.config.onScreenshot) {
+      ScreenProtectionService.setScreenshotAction(
+        widget.config.preventScreenCapture ? widget.config.onScreenshot : null,
+      );
       ScreenProtectionService.setEnabledFor(
           this, widget.config.preventScreenCapture);
     }
@@ -322,6 +327,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
 
   @override
   void dispose() {
+    ScreenProtectionService.setScreenshotAction(null);
     ScreenProtectionService.unregisterOwner(this);
     disposeFullscreenCoordinator();
     handlePipDisposal(() {

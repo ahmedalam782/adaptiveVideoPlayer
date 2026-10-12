@@ -304,43 +304,48 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                       // Optional Skip Backward & Skip Forward
                       if (canShowSkip) ...[
                         const SizedBox(width: 2),
-                        Tooltip(
-                          message: messages?.skipBackwardText ?? 'Rewind 10s',
-                          waitDuration: const Duration(milliseconds: 500),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _seekRelative(-skipDuration),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                              child: PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.skipBackwardIcon,
-                                fallbackIcon: Icons.replay_10_rounded,
-                                defaultColor: iconColor,
-                                defaultSize: 20,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                              Tooltip(
+                                message: messages?.skipBackwardText ?? 'Rewind 10s',
+                                waitDuration: const Duration(milliseconds: 500),
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => _seekRelative(-skipDuration),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                    child: PlayerIcon.resolve(
+                                      context,
+                                      icon: styling?.icons.skipBackwardIcon,
+                                      fallbackIcon: Icons.replay_10_rounded,
+                                      defaultColor: iconColor,
+                                      defaultSize: 20,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Tooltip(
-                          message: messages?.skipForwardText ?? 'Forward 10s',
-                          waitDuration: const Duration(milliseconds: 500),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _seekRelative(skipDuration),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                              child: PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.skipForwardIcon,
-                                fallbackIcon: Icons.forward_10_rounded,
-                                defaultColor: iconColor,
-                                defaultSize: 20,
+                              const SizedBox(width: 2),
+                              Tooltip(
+                                message: messages?.skipForwardText ?? 'Forward 10s',
+                                waitDuration: const Duration(milliseconds: 500),
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => _seekRelative(skipDuration),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                    child: PlayerIcon.resolve(
+                                      context,
+                                      icon: styling?.icons.skipForwardIcon,
+                                      fallbackIcon: Icons.forward_10_rounded,
+                                      defaultColor: iconColor,
+                                      defaultSize: 20,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        ),
                       ],
 
                       SizedBox(width: isCompact ? 3.0 : 6.0),

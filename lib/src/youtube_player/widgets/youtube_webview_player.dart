@@ -65,8 +65,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   /// https://www.youtube.com base URL makes YouTube return error 152-4.
   bool get _usesLocalServer => true;
 
-  bool get _usesDesktopUserAgent =>
-      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  /// Desktop YouTube chrome, including the title and channel, on phone too.
+  bool get _usesDesktopUserAgent => true;
   int _currentPosition = 0;
   int _duration = 0;
   String _currentLang = 'en';

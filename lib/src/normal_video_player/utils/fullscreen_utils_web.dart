@@ -76,21 +76,22 @@ JSFunction? _visibilityCallback;
 JSFunction? _keydownCallback;
 JSFunction? _keyupCallback;
 JSFunction? _contextmenuCallback;
+JSFunction? _pointerOutCallback;
+JSFunction? _pointerOverCallback;
 
 void _showWebShield() {
-  if (_shieldElement != null) {
-    _shieldElement!.style.display = 'flex';
-    _shieldElement!.style.opacity = '1';
-    _shieldElement!.style.pointerEvents = 'auto';
-  }
+  final shield = _shieldElement;
+  if (shield == null) return;
+  shield.style.display = 'flex';
+  shield.style.opacity = '1';
+  shield.style.pointerEvents = 'none';
 }
 
 void _hideWebShield() {
-  if (_shieldElement != null) {
-    _shieldElement!.style.opacity = '0';
-    _shieldElement!.style.display = 'none';
-    _shieldElement!.style.pointerEvents = 'none';
-  }
+  final shield = _shieldElement;
+  if (shield == null) return;
+  shield.style.opacity = '0';
+  shield.style.pointerEvents = 'none';
 }
 
 void _clearClipboard() {
@@ -103,38 +104,101 @@ void _clearClipboard() {
   }
 }
 
-void _flashWebShield() {
+bool _captureChordHeld = false;
+void Function()? _onScreenshot;
+int _lastScreenshotNoticeMs = 0;
+
+void _paintShieldNow() {
   _showWebShield();
-  _clearClipboard();
-  Future.delayed(const Duration(milliseconds: 2500), () {
-    _hideWebShield();
-  });
-}
-
-void _handleCaptureKey(web.KeyboardEvent e) {
-  final key = e.key;
-  final isCaptureKey = key == 'PrintScreen' ||
-      (e.ctrlKey && e.shiftKey && key.toLowerCase() == 's') ||
-      (e.metaKey && e.shiftKey && key.toLowerCase() == 's') ||
-      (e.metaKey &&
-          e.shiftKey &&
-          (key == '3' || key == '4' || key == '5')) ||
-      (e.ctrlKey && key.toLowerCase() == 'p') ||
-      (e.metaKey && key.toLowerCase() == 'p') ||
-      key == 'F12' ||
-      (e.ctrlKey && e.shiftKey && (key.toLowerCase() == 'i' || key.toLowerCase() == 'j' || key.toLowerCase() == 'c'));
-
-  if (isCaptureKey) {
-    try {
-      e.preventDefault();
-      e.stopPropagation();
-    } catch (_) {}
-    _flashWebShield();
+  final shield = _shieldElement;
+  if (shield != null) {
+    final _ = shield.offsetHeight;
   }
 }
 
-void applyDesktopScreenProtection(bool enabled) {
+void _notifyScreenshot() {
+  final action = _onScreenshot;
+  if (action == null) return;
+  final now = DateTime.now().millisecondsSinceEpoch;
+  if (now - _lastScreenshotNoticeMs < 1200) return;
+  _lastScreenshotNoticeMs = now;
   try {
+    action();
+  } catch (_) {}
+}
+
+bool _shortcutStartsCapture(web.KeyboardEvent e) {
+  final key = e.key.toLowerCase();
+  if (key == 'printscreen' || key == 'f12') return true;
+  // Command / Windows / Control starts the screenshot before the number key.
+  if (key == 'meta' || key == 'os' || key == 'control') return true;
+  if (e.metaKey || e.ctrlKey) return true;
+  return false;
+}
+
+void _handleCaptureKeyDown(web.KeyboardEvent e) {
+  if (!_shortcutStartsCapture(e)) return;
+  _captureChordHeld = true;
+  _paintShieldNow();
+  _notifyScreenshot();
+  final key = e.key.toLowerCase();
+  final finishesCapture = key == 'printscreen' ||
+      key == 'f12' ||
+      key == '3' ||
+      key == '4' ||
+      key == '5' ||
+      key == 's' ||
+      key == 'p';
+  if (!finishesCapture) return;
+  try {
+    e.preventDefault();
+    e.stopPropagation();
+  } catch (_) {}
+  _clearClipboard();
+}
+
+void _handleCaptureKeyUp(web.KeyboardEvent e) {
+  if (e.metaKey || e.ctrlKey) return;
+  _captureChordHeld = false;
+  Future.delayed(const Duration(milliseconds: 900), () {
+    if (_captureChordHeld) return;
+    if (web.document.hasFocus()) _hideWebShield();
+  });
+}
+
+void _handleWindowBlur(web.Event _) {
+  if (web.document.hasFocus()) return;
+  _captureChordHeld = true;
+  _paintShieldNow();
+  _notifyScreenshot();
+}
+
+void _handleWindowFocus(web.Event _) {
+  if (web.document.hasFocus() == false) return;
+  _captureChordHeld = false;
+  _hideWebShield();
+}
+
+void _handlePointerOut(web.MouseEvent e) {
+  if (e.relatedTarget != null) return;
+  _paintShieldNow();
+}
+
+void _handlePointerOver(web.MouseEvent e) {
+  if (_captureChordHeld) return;
+  if (web.document.hasFocus()) _hideWebShield();
+}
+
+void applyDesktopScreenProtection(
+  bool enabled, {
+  void Function()? onScreenshot,
+}) {
+  try {
+    _onScreenshot = enabled ? onScreenshot : null;
+    final stuck = web.document.getElementById('adaptive-video-screen-shield');
+    if (stuck != null && stuck != _shieldElement) {
+      stuck.remove();
+    }
     if (enabled) {
       if (_shieldElement == null) {
         final shield = web.document.createElement('div') as web.HTMLDivElement;
@@ -147,24 +211,10 @@ void applyDesktopScreenProtection(bool enabled) {
         shield.style.backgroundColor = '#000000';
         shield.style.zIndex = '2147483647';
         shield.style.pointerEvents = 'none';
-        shield.style.display = 'none';
+        shield.style.display = 'flex';
         shield.style.opacity = '0';
         shield.style.transition = 'none';
-        shield.style.alignItems = 'center';
-        shield.style.justifyContent = 'center';
         shield.style.userSelect = 'none';
-        shield.innerHTML = '''
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 36px;background:rgba(20,20,20,0.96);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,0.9);max-width:440px;border:1px solid #2e2e2e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <div style="width:68px;height:68px;border-radius:50%;background:rgba(239,68,68,0.18);display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-    </svg>
-  </div>
-  <div style="font-size:22px;font-weight:700;color:#ffffff;margin-bottom:10px;">Protected Content</div>
-  <div style="font-size:14px;color:#a1a1aa;line-height:1.6;">Screen capture, recording, and printing are disabled to protect media rights.</div>
-</div>
-'''.toJS;
 
         (web.document.body ?? web.document.documentElement)?.appendChild(shield);
         _shieldElement = shield;
@@ -181,31 +231,27 @@ void applyDesktopScreenProtection(bool enabled) {
         web.document.head?.appendChild(style);
         _shieldStyle = style;
 
-        _blurCallback = ((web.Event _) => _showWebShield()).toJS;
-        _focusCallback = ((web.Event _) => _hideWebShield()).toJS;
-        _visibilityCallback = ((web.Event _) {
-          if (web.document.visibilityState == 'hidden') {
-            _showWebShield();
-          } else {
-            _hideWebShield();
-          }
-        }).toJS;
-
-        _keydownCallback = ((web.KeyboardEvent e) => _handleCaptureKey(e)).toJS;
-        _keyupCallback = ((web.KeyboardEvent e) => _handleCaptureKey(e)).toJS;
+        _blurCallback = ((web.Event e) => _handleWindowBlur(e)).toJS;
+        _focusCallback = ((web.Event e) => _handleWindowFocus(e)).toJS;
+        _keydownCallback = ((web.KeyboardEvent e) => _handleCaptureKeyDown(e)).toJS;
+        _keyupCallback = ((web.KeyboardEvent e) => _handleCaptureKeyUp(e)).toJS;
         _contextmenuCallback = ((web.MouseEvent e) {
           try {
             e.preventDefault();
             e.stopPropagation();
           } catch (_) {}
         }).toJS;
+        _pointerOutCallback = ((web.MouseEvent e) => _handlePointerOut(e)).toJS;
+        _pointerOverCallback =
+            ((web.MouseEvent e) => _handlePointerOver(e)).toJS;
 
         web.window.addEventListener('blur', _blurCallback!);
         web.window.addEventListener('focus', _focusCallback!);
-        web.document.addEventListener('visibilitychange', _visibilityCallback!);
-        web.window.addEventListener('keydown', _keydownCallback!);
-        web.window.addEventListener('keyup', _keyupCallback!);
+        web.window.addEventListener('keydown', _keydownCallback!, true.toJS);
+        web.window.addEventListener('keyup', _keyupCallback!, true.toJS);
         web.window.addEventListener('contextmenu', _contextmenuCallback!);
+        web.document.addEventListener('mouseout', _pointerOutCallback!, true.toJS);
+        web.document.addEventListener('mouseover', _pointerOverCallback!, true.toJS);
       }
     } else {
       if (_blurCallback != null) {
@@ -222,21 +268,34 @@ void applyDesktopScreenProtection(bool enabled) {
         _visibilityCallback = null;
       }
       if (_keydownCallback != null) {
-        web.window.removeEventListener('keydown', _keydownCallback!);
+        web.window.removeEventListener('keydown', _keydownCallback!, true.toJS);
         _keydownCallback = null;
       }
       if (_keyupCallback != null) {
-        web.window.removeEventListener('keyup', _keyupCallback!);
+        web.window.removeEventListener('keyup', _keyupCallback!, true.toJS);
         _keyupCallback = null;
       }
       if (_contextmenuCallback != null) {
         web.window.removeEventListener('contextmenu', _contextmenuCallback!);
         _contextmenuCallback = null;
       }
+      if (_pointerOutCallback != null) {
+        web.document.removeEventListener('mouseout', _pointerOutCallback!, true.toJS);
+        _pointerOutCallback = null;
+      }
+      if (_pointerOverCallback != null) {
+        web.document.removeEventListener('mouseover', _pointerOverCallback!, true.toJS);
+        _pointerOverCallback = null;
+      }
       _shieldElement?.remove();
       _shieldElement = null;
       _shieldStyle?.remove();
       _shieldStyle = null;
+      _captureChordHeld = false;
+      _onScreenshot = null;
+      _lastScreenshotNoticeMs = 0;
+      web.document.getElementById('adaptive-video-screen-shield')?.remove();
+      web.document.getElementById('adaptive-video-screen-shield-css')?.remove();
     }
   } catch (_) {}
 }
