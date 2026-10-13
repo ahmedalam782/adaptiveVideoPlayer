@@ -296,45 +296,126 @@ class YouTubeJsScripts {
       lastFullscreenNotify = now;
       sendToFlutter({ 'event': 'onToggleFullscreen' });
     }
+    function mountInlinePip(fs) {
+      var pip = document.getElementById('adaptive-pip-inline');
+      if (!pip) {
+        pip = document.createElement('button');
+        pip.id = 'adaptive-pip-inline';
+        pip.type = 'button';
+        pip.className = 'ytp-button';
+        pip.setAttribute('aria-label', 'Picture in picture');
+        pip.innerHTML = '<svg viewBox="0 0 36 36" width="24" height="24" aria-hidden="true" style="pointer-events:none"><path fill="#fff" d="M25 17H17V23H25V17ZM29 25V10.98C29 9.88 28.1 9 27 9H9C7.9 9 7 9.88 7 10.98V25C7 26.1 7.9 27 9 27H27C28.1 27 29 26.1 29 25ZM27 25.02H9V10.97H27V25.02Z"></path></svg>';
+        pip.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          sendToFlutter({ 'event': 'onOpenPip' });
+        }, true);
+      }
+      var parent = fs.parentNode;
+      if (!parent) return false;
+      var fsStyle = window.getComputedStyle(fs);
+      pip.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;margin:0;padding:0;border:0;background:transparent;cursor:pointer;width:' + fsStyle.width + ';height:' + fsStyle.height + ';min-width:' + fsStyle.width + ';';
+      if (pip.parentNode !== parent) parent.insertBefore(pip, fs);
+      var pipBox = pip.getBoundingClientRect();
+      var fsBox = fs.getBoundingClientRect();
+      if (pipBox.top > fsBox.bottom || pipBox.bottom < fsBox.top || Math.abs((pipBox.top + pipBox.height / 2) - (fsBox.top + fsBox.height / 2)) > 8) {
+        parent.insertBefore(pip, fs);
+      }
+      if (pip.getBoundingClientRect().left > fs.getBoundingClientRect().left + 1) {
+        parent.insertBefore(pip, fs.nextSibling);
+      }
+      return true;
+    }
+    function controlsAreShown() {
+      try {
+        var player = document.querySelector('.html5-video-player') || document.getElementById('movie_player');
+        if (!player) return false;
+        if (player.classList.contains('ytp-autohide') || player.classList.contains('ytp-hide-controls')) return false;
+        var chrome = player.querySelector('.ytp-chrome-bottom');
+        if (!chrome) return false;
+        var style = window.getComputedStyle(chrome);
+        if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') < 0.05) return false;
+        var box = chrome.getBoundingClientRect();
+        return box.height >= 8 && box.width >= 8;
+      } catch (e) {
+        return false;
+      }
+    }
+    function postAnchor(anchor) {
+      try {
+        if (window.parent && window.parent !== window) window.parent.postMessage(anchor, '*');
+      } catch (e) {}
+      try {
+        if (window.top && window.top !== window && window.top !== window.parent) window.top.postMessage(anchor, '*');
+      } catch (e) {}
+    }
     function ensurePipButton() {
       try {
         var host = String(location.hostname || '').toLowerCase();
         if (host === '127.0.0.1' || host === 'localhost') return;
+        if (!controlsAreShown()) {
+          var hiddenInline = document.getElementById('adaptive-pip-inline');
+          if (hiddenInline && hiddenInline.parentNode) hiddenInline.parentNode.removeChild(hiddenInline);
+          postAnchor({ type: 'adaptive-pip-anchor', visible: false });
+          return;
+        }
         var fs = null;
         var bestScore = -1;
         var nodes = document.querySelectorAll('button, [role="button"], .ytp-fullscreen-button');
         for (var i = 0; i < nodes.length; i++) {
           if (!isFullscreenControl(nodes[i])) continue;
           var box = nodes[i].getBoundingClientRect();
-          if (box.width < 8 || box.height < 8 || box.width > 80 || box.height > 80) continue;
+          if (box.width < 8 || box.height < 8) continue;
           var style = window.getComputedStyle(nodes[i]);
           if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') < 0.05) continue;
-          var score = box.right + box.bottom;
+          var nodeClass = '';
+          try {
+            nodeClass = (nodes[i].className && nodes[i].className.baseVal) || nodes[i].className || '';
+            if (typeof nodeClass !== 'string') nodeClass = '';
+          } catch (e) { nodeClass = ''; }
+          nodeClass = String(nodeClass).toLowerCase();
+          var isFullscreenButton = nodeClass.indexOf('ytp-fullscreen-button') !== -1;
+          if (!isFullscreenButton && (box.width > 80 || box.height > 80)) continue;
+          var score = box.bottom + (isFullscreenButton ? 100000 : 0);
           if (score > bestScore) {
             fs = nodes[i];
             bestScore = score;
           }
         }
-        if (!fs) return;
+        if (!fs) {
+          postAnchor({ type: 'adaptive-pip-anchor', visible: false });
+          return;
+        }
         var rect = fs.getBoundingClientRect();
+        var icon = fs.querySelector('svg') || fs.querySelector('.ytp-svg-fill') || fs;
+        var iconBox = icon.getBoundingClientRect();
+        var centerY = iconBox.height > 4
+            ? (iconBox.top + iconBox.height / 2)
+            : (rect.top + rect.height / 2);
         var visible = true;
         var rtl = false;
         try { rtl = (document.documentElement.dir || '') === 'rtl'; } catch (e) {}
+        var viewWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+        var fullscreenOnLeft = viewWidth > 0 && (rect.left + rect.width / 2) < (viewWidth / 2);
+        var inline = false;
+        if ((rtl || fullscreenOnLeft) && fs.parentNode) {
+          inline = mountInlinePip(fs);
+        } else {
+          var oldInline = document.getElementById('adaptive-pip-inline');
+          if (oldInline && oldInline.parentNode) oldInline.parentNode.removeChild(oldInline);
+        }
         var anchor = {
           type: 'adaptive-pip-anchor',
           top: rect.top,
           left: rect.left,
           width: rect.width,
           height: rect.height,
-          visible: visible,
-          rtl: rtl
+          centerY: centerY,
+          visible: inline ? false : visible,
+          inline: inline,
+          rtl: rtl || fullscreenOnLeft
         };
-        try {
-          if (window.parent && window.parent !== window) window.parent.postMessage(anchor, '*');
-        } catch (e) {}
-        try {
-          if (window.top && window.top !== window && window.top !== window.parent) window.top.postMessage(anchor, '*');
-        } catch (e) {}
+        postAnchor(anchor);
         if (btn && btn.ownerDocument === document) {
           btn.style.setProperty('display', 'none', 'important');
         }

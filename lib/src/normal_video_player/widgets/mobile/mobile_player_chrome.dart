@@ -80,8 +80,11 @@ class MobilePlayerChrome extends StatelessWidget {
       textDirection: textDirection,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final short = constraints.maxHeight < 340;
-          final showLabels = constraints.maxHeight >= 300;
+          // Phone chrome stays up while either side is still at least 100px.
+          final phoneBox =
+              constraints.maxHeight >= 100 && constraints.maxWidth >= 100;
+          final short = !phoneBox;
+          final showLabels = phoneBox;
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -169,7 +172,6 @@ class MobilePlayerChrome extends StatelessWidget {
                 ),
               ),
               if (!short &&
-                  constraints.maxHeight > 280 &&
                   effectiveVisibility.showBrightnessSlider &&
                   brightnessListenable != null)
                 Positioned(

@@ -46,7 +46,7 @@ class DemoPreviewSpec {
           outerRadius: 36,
           screenRadius: 18,
           accent: Color(0xFFE50914),
-          title: 'Phone',
+          title: 'Phone · 844×390',
           detail: 'Lock, brightness, and labeled actions',
         ),
       DemoPreviewMode.tablet => const DemoPreviewSpec(

@@ -154,6 +154,9 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             if (langFlag !== nextLang || dirFlag !== nextDir) {
                 langFlag = nextLang;
                 dirFlag = nextDir;
+                if (typeof placePipButton === 'function') {
+                    placePipButton(typeof lastPipAnchor === 'undefined' ? null : lastPipAnchor);
+                }
                 if (player && typeof player.destroy === 'function') {
                     try {
                         if (typeof player.getCurrentTime === 'function') {
@@ -447,19 +450,38 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             pipButtonCompact = !!compact;
             placePipButton(lastPipAnchor);
         }
+        function phoneSized() {
+            var w = window.innerWidth || 0;
+            var h = window.innerHeight || 0;
+            function inPhone(n) { return n <= 400; }
+            return inPhone(w) || inPhone(h);
+        }
         function placePipButton(data) {
             if (!pipButton || !showMiniPlayerButton) return;
-            if (pipButtonCompact && data && data.visible) {
+            if (data && data.visible === false) {
+                pipButton.style.display = 'none';
+                return;
+            }
+            var rtl = dirFlag === 'rtl' || !!(data && data.rtl);
+            var phone = phoneSized();
+            if (data && data.visible && (pipButtonCompact || phone || rtl)) {
                 var frame = document.querySelector('iframe');
-                var frameBox = frame ? frame.getBoundingClientRect() : { top: 0, left: 0 };
-                var width = Math.round(Math.min(Math.max(data.width || 40, 36), 48));
-                var height = Math.round(Math.min(Math.max(data.height || 40, 36), 48));
+                var frameBox = frame ? frame.getBoundingClientRect() : { top: 0, left: 0, width: window.innerWidth };
+                var frameWidth = frameBox.width || window.innerWidth;
+                var buttonSize = Math.round(Math.min(Math.max(data.height || 36, 32), 48));
+                var width = buttonSize;
+                var height = buttonSize;
                 var anchorLeft = frameBox.left + data.left;
-                var anchorTop = frameBox.top + data.top;
-                var left = data.rtl ? (anchorLeft + data.width + 6) : (anchorLeft - width - 6);
+                var anchorHeight = data.height || height;
+                var centerY = frameBox.top + (typeof data.centerY === 'number'
+                    ? data.centerY
+                    : (data.top + anchorHeight / 2));
+                var fullscreenOnLeft = (data.left + (data.width || width) / 2) < (frameWidth / 2);
+                var left = fullscreenOnLeft
+                    ? (anchorLeft + (data.width || width) + 6)
+                    : (anchorLeft - width - 6);
                 if (left < 4) left = 4;
-                var top = anchorTop + ((data.height || height) - height) / 2;
-                if (top < 4) top = 4;
+                var top = centerY - height / 2;
                 pipButton.style.display = 'flex';
                 pipButton.style.right = 'auto';
                 pipButton.style.bottom = 'auto';
@@ -470,19 +492,20 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 return;
             }
             pipButton.style.top = 'auto';
-            pipButton.style.left = 'auto';
             pipButton.style.display = 'flex';
-            if (pipButtonCompact) {
-                pipButton.style.right = '52px';
-                pipButton.style.bottom = '52px';
-                pipButton.style.width = '40px';
-                pipButton.style.height = '40px';
-                return;
+            var inset = pipButtonCompact ? '60px' : (phone ? '60px' : '75px');
+            var bottom = pipButtonCompact ? '60px' : (phone ? '60px' : '85px');
+            var size = pipButtonCompact ? '40px' : '36px';
+            pipButton.style.bottom = bottom;
+            pipButton.style.width = size;
+            pipButton.style.height = size;
+            if (rtl) {
+                pipButton.style.right = 'auto';
+                pipButton.style.left = inset;
+            } else {
+                pipButton.style.left = 'auto';
+                pipButton.style.right = inset;
             }
-            pipButton.style.right = '75px';
-            pipButton.style.bottom = '85px';
-            pipButton.style.width = '36px';
-            pipButton.style.height = '36px';
         }
         if (pipButton) {
             pipButton.addEventListener('click', function(e) {
@@ -498,14 +521,24 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         }
         window.addEventListener('message', function(e) {
             var data = e.data;
-            if (!data || data.type !== 'adaptive-pip-anchor' || !pipButton) return;
-            if (!showMiniPlayerButton) {
-                pipButton.style.display = 'none';
+            if (!data) return;
+            if (data.type === 'YouTubePlayerHandler' && data.event === 'onOpenPip') {
+                if (window.flutter_inappwebview) {
+                    window.flutter_inappwebview.callHandler('YouTubePlayerHandler', data);
+                }
                 return;
             }
-            if (!data.visible) return;
+            if (data.type !== 'adaptive-pip-anchor' || !pipButton) return;
+            if (!showMiniPlayerButton || data.inline || !data.visible) {
+                pipButton.style.display = 'none';
+                if (!data.visible) lastPipAnchor = data;
+                return;
+            }
             lastPipAnchor = data;
             placePipButton(data);
+        });
+        window.addEventListener('resize', function() {
+            placePipButton(lastPipAnchor);
         });
     </script>
 </body>

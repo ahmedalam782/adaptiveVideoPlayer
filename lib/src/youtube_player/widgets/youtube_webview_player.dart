@@ -128,7 +128,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
   Future<void> _checkWindowsWebViewEnvironment() async {
     if (!Platform.isWindows) return;
-    if (_isWebViewAvailableOnWindows != null && _sharedWebViewEnvironment != null) {
+    if (_isWebViewAvailableOnWindows != null &&
+        _sharedWebViewEnvironment != null) {
       return;
     }
     _isCheckingEnvironment = true;
@@ -292,9 +293,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         isElementFullscreenEnabled: false,
         iframeAllowFullscreen: true,
         iframeAllow: YouTubeJsScripts.iframeAllowPermissions,
-        userAgent: _usesDesktopUserAgent
-            ? YouTubeJsScripts.desktopUserAgent
-            : null,
+        userAgent:
+            _usesDesktopUserAgent ? YouTubeJsScripts.desktopUserAgent : null,
         supportMultipleWindows:
             true, // Need this TRUE for onCreateWindow to fire on target="_blank"
         useShouldOverrideUrlLoading: true,
@@ -472,14 +472,14 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   }
 
   // Public control methods
-  void play() =>
-      _webViewController?.evaluateJavascript(source: YouTubeJsCommands.playVideo);
-  void pause() =>
-      _webViewController?.evaluateJavascript(source: YouTubeJsCommands.pauseVideo);
+  void play() => _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.playVideo);
+  void pause() => _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.pauseVideo);
   void seekTo(int seconds) => _webViewController?.evaluateJavascript(
       source: YouTubeJsCommands.seekTo(seconds));
-  void mute() =>
-      _webViewController?.evaluateJavascript(source: YouTubeJsCommands.muteVideo);
+  void mute() => _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.muteVideo);
   void unMute() => _webViewController?.evaluateJavascript(
       source: YouTubeJsCommands.unMuteVideo);
   void setPlaybackRate(double rate) => _webViewController?.evaluateJavascript(

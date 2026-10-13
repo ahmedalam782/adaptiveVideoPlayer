@@ -30,11 +30,20 @@ class FullFeaturesExampleScreen extends StatefulWidget {
 
 class _FullFeaturesExampleScreenState extends State<FullFeaturesExampleScreen> {
   // Real-world video streams (VOD MP4, Adaptive HLS, and YouTube)
-  static final List<({String title, String url, bool isYouTube, bool isLive, String? viewerCount})>
-      _sampleStreams = [
+  static final List<
+    ({
+      String title,
+      String url,
+      bool isYouTube,
+      bool isLive,
+      String? viewerCount,
+    })
+  >
+  _sampleStreams = [
     (
       title: 'Big Buck Bunny (Akamai 720p MP4)',
-      url: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1280x720_4000k.mp4',
+      url:
+          'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1280x720_4000k.mp4',
       isYouTube: false,
       isLive: false,
       viewerCount: null,
@@ -48,14 +57,16 @@ class _FullFeaturesExampleScreenState extends State<FullFeaturesExampleScreen> {
     ),
     (
       title: 'Bunny Teaser (Akamai 1080p MP4)',
-      url: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1920x1080_8000k.mp4',
+      url:
+          'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1920x1080_8000k.mp4',
       isYouTube: false,
       isLive: false,
       viewerCount: null,
     ),
     (
       title: 'Blooming Flower (MDN HD MP4)',
-      url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+      url:
+          'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
       isYouTube: false,
       isLive: false,
       viewerCount: null,
@@ -190,16 +201,8 @@ class _FullFeaturesExampleScreenState extends State<FullFeaturesExampleScreen> {
       language: 'en',
       isAudioDescription: true,
     ),
-    AudioTrack(
-      id: 'ar',
-      label: 'Arabic (العربية)',
-      language: 'ar',
-    ),
-    AudioTrack(
-      id: 'fr',
-      label: 'French (Français)',
-      language: 'fr',
-    ),
+    AudioTrack(id: 'ar', label: 'Arabic (العربية)', language: 'ar'),
+    AudioTrack(id: 'fr', label: 'French (Français)', language: 'fr'),
   ];
   late AudioTrack _currentAudioTrack;
 
@@ -230,19 +233,23 @@ Featuring Netflix circular loader and top-end actions!
   final List<VideoQuality> _qualities = const [
     VideoQuality(
       title: 'Auto (1080p)',
-      url: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1920x1080_8000k.mp4',
+      url:
+          'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1920x1080_8000k.mp4',
     ),
     VideoQuality(
       title: '1080p HD',
-      url: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1920x1080_8000k.mp4',
+      url:
+          'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1920x1080_8000k.mp4',
     ),
     VideoQuality(
       title: '720p HD',
-      url: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1280x720_4000k.mp4',
+      url:
+          'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1280x720_4000k.mp4',
     ),
     VideoQuality(
       title: '360p SD',
-      url: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_640x360_1000k.mp4',
+      url:
+          'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_640x360_1000k.mp4',
     ),
   ];
   late VideoQuality _currentQuality;
@@ -251,7 +258,10 @@ Featuring Netflix circular loader and top-end actions!
   final List<VideoChapter> _chapters = const [
     VideoChapter(title: 'Opening & Intro', startTime: Duration.zero),
     VideoChapter(title: 'Act I: Discovery', startTime: Duration(seconds: 10)),
-    VideoChapter(title: 'Act II: The Encounter', startTime: Duration(seconds: 20)),
+    VideoChapter(
+      title: 'Act II: The Encounter',
+      startTime: Duration(seconds: 20),
+    ),
     VideoChapter(title: 'Credits', startTime: Duration(seconds: 28)),
   ];
 
@@ -318,7 +328,9 @@ Featuring Netflix circular loader and top-end actions!
               autofocus: true,
               decoration: InputDecoration(
                 hintText: 'https://...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 prefixIcon: const Icon(Icons.link_rounded),
               ),
             ),
@@ -353,14 +365,17 @@ Featuring Netflix circular loader and top-end actions!
         ? (
             title: 'Custom User Stream',
             url: _customStreamUrl!,
-            isYouTube: _customStreamUrl!.contains('youtube.com') ||
+            isYouTube:
+                _customStreamUrl!.contains('youtube.com') ||
                 _customStreamUrl!.contains('youtu.be'),
             isLive: false,
             viewerCount: null,
           )
         : _sampleStreams[_selectedStreamIndex];
 
-    final langCode = widget.currentLanguageCode ?? (context.mounted ? context.locale.languageCode : 'en');
+    final langCode =
+        widget.currentLanguageCode ??
+        (context.mounted ? context.locale.languageCode : 'en');
     final isRtl = langCode == 'ar' || langCode == 'ur';
     final playerText = PlayerTextConfig.tr(
       (key) => key.tr(),
@@ -384,9 +399,7 @@ Featuring Netflix circular loader and top-end actions!
             loadingIndicatorColor: const Color(0xFFE50914),
             showLoadingPercentage: true,
           ),
-          playback: const PlayerPlaybackConfig(
-            autoPlay: true,
-          ),
+          playback: const PlayerPlaybackConfig(autoPlay: true),
           visibility: PlayerVisibilityConfig(
             showActionsInTopBar: _showActionsInTopBar,
           ),
@@ -399,8 +412,8 @@ Featuring Netflix circular loader and top-end actions!
     final activeUrl = _customStreamUrl != null
         ? _customStreamUrl!
         : (_selectedStreamIndex == 0
-            ? (_currentEpisode.videoUrl ?? active.url)
-            : active.url);
+              ? (_currentEpisode.videoUrl ?? active.url)
+              : active.url);
 
     return VideoConfig(
       videoUrl: activeUrl,
@@ -418,10 +431,14 @@ Featuring Netflix circular loader and top-end actions!
           _currentEpisode = ep;
           _playerKey = GlobalKey();
         });
-        _recordEvent('episodeSelected', {'number': ep.number, 'title': ep.title});
+        _recordEvent('episodeSelected', {
+          'number': ep.number,
+          'title': ep.title,
+        });
       },
       onNextEpisode: () {
-        final nextIndex = (_episodes.indexOf(_currentEpisode) + 1) % _episodes.length;
+        final nextIndex =
+            (_episodes.indexOf(_currentEpisode) + 1) % _episodes.length;
         setState(() {
           _currentEpisode = _episodes[nextIndex];
           _playerKey = GlobalKey();
@@ -432,7 +449,10 @@ Featuring Netflix circular loader and top-end actions!
       currentAudioTrack: _currentAudioTrack,
       onAudioTrackSelected: (track) {
         setState(() => _currentAudioTrack = track);
-        _recordEvent('audioTrackChanged', {'id': track.id, 'label': track.label});
+        _recordEvent('audioTrackChanged', {
+          'id': track.id,
+          'label': track.label,
+        });
       },
       subtitles: _subtitles,
       initialSubtitle: _currentSubtitleTrack,
@@ -461,28 +481,23 @@ Featuring Netflix circular loader and top-end actions!
           showActionsInTopBar: _showActionsInTopBar,
           showEpisodesButton: _selectedStreamIndex == 0,
         ),
-        playback: const PlayerPlaybackConfig(
-          autoPlay: false,
-          loop: false,
-        ),
+        playback: const PlayerPlaybackConfig(autoPlay: false, loop: false),
       ),
     );
   }
 
   Widget _livePlayer() {
-    return AdaptiveVideoPlayer(
-      key: _playerKey,
-      config: _createVideoConfig(),
-    );
+    return AdaptiveVideoPlayer(key: _playerKey, config: _createVideoConfig());
   }
 
-  String _liveDesignLabel(DemoPreviewMode mode) {
+  String _liveDesignLabel(DemoPreviewMode mode, Size screen) {
     final surface = switch (mode) {
       DemoPreviewMode.phone => 'phone',
       DemoPreviewMode.tablet => 'tablet',
       DemoPreviewMode.desktop => 'desktop',
     };
-    if (kIsWeb) return 'Web · $surface';
+    final size = '${screen.width.round()}×${screen.height.round()}';
+    if (kIsWeb) return 'Web · $surface · $size';
     final host = switch (defaultTargetPlatform) {
       TargetPlatform.android => 'Android',
       TargetPlatform.iOS => 'iOS',
@@ -491,7 +506,7 @@ Featuring Netflix circular loader and top-end actions!
       TargetPlatform.linux => 'Linux',
       TargetPlatform.fuchsia => 'Desktop',
     };
-    return '$host · $surface';
+    return '$host · $surface · $size';
   }
 
   @override
@@ -501,7 +516,8 @@ Featuring Netflix circular loader and top-end actions!
         ? widget.isDark
         : (theme.brightness == Brightness.dark);
     final currentLang = LanguagePickerSheet.getLanguage(
-      widget.currentLanguageCode ?? (context.mounted ? context.locale.languageCode : 'en'),
+      widget.currentLanguageCode ??
+          (context.mounted ? context.locale.languageCode : 'en'),
     );
     final screen = MediaQuery.sizeOf(context);
     final liveMode = DemoPreviewSpec.forWindow(screen);
@@ -509,7 +525,8 @@ Featuring Netflix circular loader and top-end actions!
 
     // Desktop and Android PiP shrink this window, so only the video should remain.
     // iOS draws PiP in a separate system player.
-    final pipKeepsVideoOnly = NativePipService.isInPip.value &&
+    final pipKeepsVideoOnly =
+        NativePipService.isInPip.value &&
         !kIsWeb &&
         defaultTargetPlatform != TargetPlatform.iOS;
     if (pipKeepsVideoOnly) {
@@ -580,7 +597,7 @@ Featuring Netflix circular loader and top-end actions!
             Padding(
               padding: EdgeInsets.fromLTRB(isPhone ? 12 : 16, 12, 16, 0),
               child: Text(
-                _liveDesignLabel(liveMode),
+                _liveDesignLabel(liveMode, screen),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -651,7 +668,8 @@ Featuring Netflix circular loader and top-end actions!
                               title: _sampleStreams[i].title,
                               isLive: _sampleStreams[i].isLive,
                               isYouTube: _sampleStreams[i].isYouTube,
-                              selected: _customStreamUrl == null &&
+                              selected:
+                                  _customStreamUrl == null &&
                                   _selectedStreamIndex == i,
                               onTap: () {
                                 setState(() {
@@ -701,10 +719,13 @@ Featuring Netflix circular loader and top-end actions!
                             },
                           ),
                           FilterChip(
-                            label: Text(_bottomBarLayout == BottomBarLayout.inline
-                                ? 'Layout: Inline Capsule'
-                                : 'Layout: YouTube Pills'),
-                            selected: _bottomBarLayout == BottomBarLayout.inline,
+                            label: Text(
+                              _bottomBarLayout == BottomBarLayout.inline
+                                  ? 'Layout: Inline Capsule'
+                                  : 'Layout: YouTube Pills',
+                            ),
+                            selected:
+                                _bottomBarLayout == BottomBarLayout.inline,
                             onSelected: (val) {
                               setState(() {
                                 _bottomBarLayout = val
@@ -715,9 +736,11 @@ Featuring Netflix circular loader and top-end actions!
                             },
                           ),
                           FilterChip(
-                            label: Text(_videoFit == BoxFit.cover
-                                ? 'Fit: Cover (No Black Bars)'
-                                : 'Fit: Contain'),
+                            label: Text(
+                              _videoFit == BoxFit.cover
+                                  ? 'Fit: Cover (No Black Bars)'
+                                  : 'Fit: Contain',
+                            ),
                             selected: _videoFit == BoxFit.cover,
                             onSelected: (val) {
                               setState(() {
@@ -733,9 +756,11 @@ Featuring Netflix circular loader and top-end actions!
                                   : Icons.cloud_outlined,
                               size: 16,
                             ),
-                            label: Text(_enableCache
-                                ? 'Disk Cache: ON'
-                                : 'Disk Cache: OFF'),
+                            label: Text(
+                              _enableCache
+                                  ? 'Disk Cache: ON'
+                                  : 'Disk Cache: OFF',
+                            ),
                             selected: _enableCache,
                             onSelected: (val) {
                               setState(() {
@@ -751,9 +776,11 @@ Featuring Netflix circular loader and top-end actions!
                                   : Icons.shield_outlined,
                               size: 16,
                             ),
-                            label: Text(_preventScreenCapture
-                                ? 'Anti-Capture Shield: ON'
-                                : 'Anti-Capture Shield: OFF'),
+                            label: Text(
+                              _preventScreenCapture
+                                  ? 'Anti-Capture Shield: ON'
+                                  : 'Anti-Capture Shield: OFF',
+                            ),
                             selected: _preventScreenCapture,
                             onSelected: (val) {
                               setState(() {
@@ -773,7 +800,9 @@ Featuring Netflix circular loader and top-end actions!
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Video disk cache cleared successfully.'),
+                                    content: Text(
+                                      'Video disk cache cleared successfully.',
+                                    ),
                                     duration: Duration(seconds: 2),
                                   ),
                                 );
@@ -820,7 +849,8 @@ Featuring Netflix circular loader and top-end actions!
                           ),
                           if (_eventLogs.isNotEmpty)
                             TextButton(
-                              onPressed: () => setState(() => _eventLogs.clear()),
+                              onPressed: () =>
+                                  setState(() => _eventLogs.clear()),
                               child: const Text('Clear'),
                             ),
                         ],

@@ -163,9 +163,9 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                             ),
                       ),
                     if (showFullscreen || showPip)
-                      PositionedDirectional(
+                      Positioned(
                         bottom: 8,
-                        end: 8,
+                        right: 8,
                         child: AnimatedOpacity(
                           opacity: _isHovered ? 1.0 : 0.85,
                           duration: const Duration(milliseconds: 220),
@@ -188,36 +188,39 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                                 ),
                               ],
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (showPip)
-                                  YouTubeDesktopStyleButton(
-                                    playerIcon: widget
-                                        .config.style.icons.miniPlayerIcon,
-                                    fallbackIcon: Icons
-                                        .picture_in_picture_alt_rounded,
-                                    tooltip: widget.config.text.miniPlayerText,
-                                    onTap: widget.onOpenPip,
-                                    size: 21,
-                                  ),
-                                if (showFullscreen)
-                                  YouTubeDesktopStyleButton(
-                                    playerIcon: isFullscreenNow
-                                        ? widget.config.style.icons
-                                            .exitFullscreenIcon
-                                        : widget.config.style.icons
-                                            .fullscreenIcon,
-                                    fallbackIcon: isFullscreenNow
-                                        ? Icons.fullscreen_exit_rounded
-                                        : Icons.open_in_full_rounded,
-                                    tooltip: isFullscreenNow
-                                        ? widget.config.text.exitFullscreenText
-                                        : widget.config.text.fullscreenText,
-                                    onTap: widget.onToggleFullscreen,
-                                    size: 21,
-                                  ),
-                              ],
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (showPip)
+                                    YouTubeDesktopStyleButton(
+                                      playerIcon: widget
+                                          .config.style.icons.miniPlayerIcon,
+                                      fallbackIcon: Icons
+                                          .picture_in_picture_alt_rounded,
+                                      tooltip: widget.config.text.miniPlayerText,
+                                      onTap: widget.onOpenPip,
+                                      size: 21,
+                                    ),
+                                  if (showFullscreen)
+                                    YouTubeDesktopStyleButton(
+                                      playerIcon: isFullscreenNow
+                                          ? widget.config.style.icons
+                                              .exitFullscreenIcon
+                                          : widget.config.style.icons
+                                              .fullscreenIcon,
+                                      fallbackIcon: isFullscreenNow
+                                          ? Icons.fullscreen_exit_rounded
+                                          : Icons.open_in_full_rounded,
+                                      tooltip: isFullscreenNow
+                                          ? widget.config.text.exitFullscreenText
+                                          : widget.config.text.fullscreenText,
+                                      onTap: widget.onToggleFullscreen,
+                                      size: 21,
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

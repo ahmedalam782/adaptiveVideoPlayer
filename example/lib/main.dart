@@ -14,8 +14,9 @@ void main() async {
 
   runApp(
     EasyLocalization(
-      supportedLocales:
-          supportedLanguages.map((lang) => Locale(lang.code)).toList(),
+      supportedLocales: supportedLanguages
+          .map((lang) => Locale(lang.code))
+          .toList(),
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       child: const MyApp(),
@@ -35,6 +36,9 @@ class WindowsStableScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(
+      'WindowsStableScale build ${MediaQuery.of(context).size.width} ${MediaQuery.of(context).size.height}',
+    );
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.windows) {
       return child;
     }
@@ -70,16 +74,18 @@ class _MyAppState extends State<MyApp> {
 
   void _toggleTheme() {
     setState(() {
-      _themeMode =
-          _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+      _themeMode = _themeMode == ThemeMode.dark
+          ? ThemeMode.light
+          : ThemeMode.dark;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     const primarySeed = Color(0xFF6366F1); // Indigo
-    final currentLang =
-        LanguagePickerSheet.getLanguage(context.locale.languageCode);
+    final currentLang = LanguagePickerSheet.getLanguage(
+      context.locale.languageCode,
+    );
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -120,8 +126,9 @@ class _MyAppState extends State<MyApp> {
       ),
       builder: (context, child) {
         return Directionality(
-          textDirection:
-              currentLang.isRtl ? TextDirection.rtl : TextDirection.ltr,
+          textDirection: currentLang.isRtl
+              ? TextDirection.rtl
+              : TextDirection.ltr,
           child: WindowsStableScale(child: child ?? const SizedBox.shrink()),
         );
       },

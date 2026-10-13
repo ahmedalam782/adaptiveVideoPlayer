@@ -490,10 +490,16 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
           if (mobileChrome &&
               widget.showControls &&
               !widget.isLive &&
-              widget.onNextEpisode != null)
+              widget.onNextEpisode != null &&
+              (widget.visibility?.showNextEpisodePrompt ?? true))
             PositionedDirectional(
-              bottom: 96,
-              end: 18,
+              // Phone chrome lays the scrubber under an 8px pad, a 76px
+              // action row (omitted below 100px of height or width), and a
+              // 22px track. Keep the prompt in the gap above that track.
+              bottom: constraints.maxHeight >= 100 && constraints.maxWidth >= 100
+                  ? 124
+                  : 48,
+              end: 12,
               child: ValueListenableBuilder<VideoPlayerValue>(
                 valueListenable: widget.controller,
                 builder: (context, value, _) {
