@@ -53,6 +53,9 @@ class AdaptiveTopBar extends StatelessWidget {
   /// Callback when MiniPlayer / PiP button is pressed
   final VoidCallback? onMiniPlayerPressed;
 
+  /// Callback when screen lock button is pressed.
+  final VoidCallback? onLockPressed;
+
   /// Whether to show action buttons in the top bar (overrides visibility.showActionsInTopBar if specified)
   final bool? showActions;
 
@@ -81,6 +84,7 @@ class AdaptiveTopBar extends StatelessWidget {
     this.onSpeedPressed,
     this.onSettingsPressed,
     this.onMiniPlayerPressed,
+    this.onLockPressed,
     this.showActions,
   });
 
@@ -104,6 +108,17 @@ class AdaptiveTopBar extends StatelessWidget {
           final maxW = constraints.maxWidth;
           final isCompact = maxW < 420;
           final buttonSpacing = isCompact ? 6.0 : 8.0;
+
+          final lockButton =
+              (visibility?.showScreenLockButton ?? true) &&
+                      onLockPressed != null
+                  ? AdaptiveCirclePillButton(
+                      icon: Icons.lock_outline_rounded,
+                      tooltip: isRtl ? 'قفل الشاشة' : 'Lock screen',
+                      onTap: onLockPressed!,
+                      color: iconColor,
+                    )
+                  : null;
 
           // Trailing action buttons (Episodes, Subtitles, Speed, Settings, MiniPlayer)
           final actionButtons = <Widget>[
@@ -165,6 +180,7 @@ class AdaptiveTopBar extends StatelessWidget {
 
           // Trailing cluster (viewerCount + action buttons)
           final trailingWidgets = <Widget>[
+            if (lockButton != null) lockButton,
             if (viewerCount != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),

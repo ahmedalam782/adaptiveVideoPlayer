@@ -23,6 +23,7 @@ class YouTubeJsHandler {
   static const String onSeekForward = 'onSeekForward';
   static const String onSeekBackward = 'onSeekBackward';
   static const String onToggleFullscreen = 'onToggleFullscreen';
+  static const String onOpenPip = 'onOpenPip';
   static const String onTouchActivity = 'onTouchActivity';
   static const String onControlsVisibilityChanged =
       'onControlsVisibilityChanged';
@@ -84,6 +85,15 @@ class YouTubeJsCommands {
     return "initPlayer('$videoId', $autoPlay, $mute, $startAt, '$lang', '$dir');";
   }
 
+  /// Shows or hides the YouTube Picture-in-Picture button on the host page.
+  static String setShowMiniPlayer(bool show) =>
+      'if (typeof setShowMiniPlayer === "function") { setShowMiniPlayer(${show ? 'true' : 'false'}); }';
+
+  /// Phone and tablet place the button from the fullscreen control.
+  /// Desktop keeps the fixed corner offset.
+  static String setPipButtonCompact(bool compact) =>
+      'if (typeof setPipButtonCompact === "function") { setPipButtonCompact(${compact ? 'true' : 'false'}); }';
+
   /// Asks the already-playing YouTube video, including inside the embed iframe,
   /// to enter Picture-in-Picture without loading a second player.
   static const String enterPictureInPicture = r"""
@@ -141,6 +151,17 @@ class YouTubeJsScripts {
       }
     } catch (e) {}
     return false;
+  }
+
+  function isEmbedPlayerDocument() {
+    try {
+      var host = String(location.hostname || '').toLowerCase();
+      var path = String(location.pathname || '');
+      if (host === '127.0.0.1' || host === 'localhost') return true;
+      return path.indexOf('/embed') !== -1;
+    } catch (e) {
+      return false;
+    }
   }
 
   window.addEventListener('message', function(event) {
@@ -237,6 +258,7 @@ class YouTubeJsScripts {
       }
     } catch(e) {}
   }
+  if (!isEmbedPlayerDocument()) return;
   updatePlayerStyles();
   if (window.MutationObserver) {
     new MutationObserver(updatePlayerStyles).observe(document.documentElement || document.body, {
@@ -274,14 +296,63 @@ class YouTubeJsScripts {
       lastFullscreenNotify = now;
       sendToFlutter({ 'event': 'onToggleFullscreen' });
     }
+    function ensurePipButton() {
+      try {
+        var host = String(location.hostname || '').toLowerCase();
+        if (host === '127.0.0.1' || host === 'localhost') return;
+        var fs = null;
+        var bestScore = -1;
+        var nodes = document.querySelectorAll('button, [role="button"], .ytp-fullscreen-button');
+        for (var i = 0; i < nodes.length; i++) {
+          if (!isFullscreenControl(nodes[i])) continue;
+          var box = nodes[i].getBoundingClientRect();
+          if (box.width < 8 || box.height < 8 || box.width > 80 || box.height > 80) continue;
+          var style = window.getComputedStyle(nodes[i]);
+          if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') < 0.05) continue;
+          var score = box.right + box.bottom;
+          if (score > bestScore) {
+            fs = nodes[i];
+            bestScore = score;
+          }
+        }
+        if (!fs) return;
+        var rect = fs.getBoundingClientRect();
+        var visible = true;
+        var rtl = false;
+        try { rtl = (document.documentElement.dir || '') === 'rtl'; } catch (e) {}
+        var anchor = {
+          type: 'adaptive-pip-anchor',
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+          visible: visible,
+          rtl: rtl
+        };
+        try {
+          if (window.parent && window.parent !== window) window.parent.postMessage(anchor, '*');
+        } catch (e) {}
+        try {
+          if (window.top && window.top !== window && window.top !== window.parent) window.top.postMessage(anchor, '*');
+        } catch (e) {}
+        if (btn && btn.ownerDocument === document) {
+          btn.style.setProperty('display', 'none', 'important');
+        }
+      } catch (e) {}
+    }
     function isFullscreenControl(el) {
       if (!el || el.nodeType !== 1) return false;
+      var tag = String(el.tagName || '').toLowerCase();
+      var role = '';
+      try { role = el.getAttribute('role') || ''; } catch (e) {}
       var cls = '';
       try {
         cls = (el.className && el.className.baseVal) || el.className || '';
         if (typeof cls !== 'string') cls = '';
       } catch(e) { cls = ''; }
       cls = String(cls).toLowerCase();
+      var isButton = tag === 'button' || role === 'button' || cls.indexOf('fullscreen-button') !== -1;
+      if (!isButton) return false;
       var label = '';
       try {
         label = ((el.getAttribute('aria-label') || '') + ' ' + (el.getAttribute('title') || '') + ' ' + (el.getAttribute('data-title-no-tooltip') || '') + ' ' + (el.getAttribute('data-tooltip-target-id') || '') + ' ' + (el.getAttribute('aria-keyshortcuts') || '')).toLowerCase();
@@ -348,6 +419,7 @@ class YouTubeJsScripts {
     function checkControlsVisibility() {
       try {
         var player = document.querySelector('.html5-video-player') || document.getElementById('movie_player');
+        ensurePipButton();
         if (player) {
           var isVisible = !player.classList.contains('ytp-autohide');
           if (lastVisibility !== isVisible) {

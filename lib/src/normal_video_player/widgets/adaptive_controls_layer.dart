@@ -13,7 +13,9 @@ import 'adaptive_center_play_pause.dart';
 import 'adaptive_episodes_drawer.dart';
 import 'adaptive_inline_bottom_bar.dart';
 import 'adaptive_player_settings_sheet.dart';
+import 'adaptive_circle_pill_button.dart';
 import 'mobile/mobile_controls_surface.dart';
+import 'mobile/mobile_screen_lock_badge.dart';
 import 'responsive/responsive_filled_panels.dart';
 import 'adaptive_progress_bar.dart';
 import 'adaptive_speed_stepper_popup.dart';
@@ -137,6 +139,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
     return showTitle ||
         widget.isLive ||
         (widget.viewerCount?.isNotEmpty ?? false) ||
+        ((widget.visibility?.showScreenLockButton ?? true) &&
+            widget.onToggleScreenLock != null) ||
         (widget.visibility?.showActionsInTopBar ?? false) ||
         (widget.visibility?.showBackButton ?? false);
   }
@@ -255,6 +259,16 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
             onCloseEpisodes: () => _toggle(() => _showEpisodesDrawer = false),
             onCloseSpeed: () => _toggle(() => _showSpeedStepperPopup = false),
             onCloseSettings: () => _toggle(() => _showSettingsMenu = false),
+          );
+        }
+        if (widget.screenLocked) {
+          final isRtl = (widget.messages ?? const PlayerTextConfig())
+                  .resolveTextDirection(context) ==
+              TextDirection.rtl;
+          return MobileScreenLockBadge(
+            isRtl: isRtl,
+            onUnlock: widget.onToggleScreenLock ?? () {},
+            onDismiss: widget.onHideControls,
           );
         }
         final tabletFit = tier == PlayerSurfaceTier.tablet;
@@ -483,6 +497,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                       onSettingsPressed: () => setState(
                           () => _showSettingsMenu = !_showSettingsMenu),
                       onMiniPlayerPressed: widget.onMiniPlayerPressed,
+                      onLockPressed: widget.onToggleScreenLock,
                     ),
                   )
                 : const SizedBox(height: 28),
@@ -511,6 +526,26 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
             ],
           ),
         ),
+
+        if (widget.isFullScreen &&
+            (widget.visibility?.showScreenLockButton ?? true) &&
+            widget.onToggleScreenLock != null)
+          PositionedDirectional(
+            top: 20,
+            end: 20,
+            child: SafeArea(
+              child: AdaptiveCirclePillButton(
+                icon: Icons.lock_outline_rounded,
+                tooltip: (widget.messages ?? const PlayerTextConfig())
+                            .resolveTextDirection(context) ==
+                        TextDirection.rtl
+                    ? 'قفل الشاشة'
+                    : 'Lock screen',
+                onTap: widget.onToggleScreenLock!,
+                color: widget.styling?.iconColor ?? Colors.white,
+              ),
+            ),
+          ),
 
         if (tabletFit && _panelsOpen)
           Positioned.fill(

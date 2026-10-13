@@ -95,6 +95,8 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
     final isFullscreenNow = widget.isInFullscreen || isYoutubeWebFullscreen();
     final showFullscreen = widget.config.visibility.showControls &&
         widget.config.visibility.showFullscreenButton;
+    final showPip = widget.config.visibility.showControls &&
+        widget.config.visibility.showMiniPlayerButton;
     final showLiveBadge = widget.isLive ||
         widget.viewerCount != null ||
         widget.liveBadgeBuilder != null;
@@ -160,7 +162,7 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                               textColor: widget.config.style.textColor,
                             ),
                       ),
-                    if (showFullscreen)
+                    if (showFullscreen || showPip)
                       PositionedDirectional(
                         bottom: 8,
                         end: 8,
@@ -189,20 +191,32 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                YouTubeDesktopStyleButton(
-                                  playerIcon: isFullscreenNow
-                                      ? widget.config.style.icons
-                                          .exitFullscreenIcon
-                                      : widget.config.style.icons.fullscreenIcon,
-                                  fallbackIcon: isFullscreenNow
-                                      ? Icons.fullscreen_exit_rounded
-                                      : Icons.open_in_full_rounded,
-                                  tooltip: isFullscreenNow
-                                      ? widget.config.text.exitFullscreenText
-                                      : widget.config.text.fullscreenText,
-                                  onTap: widget.onToggleFullscreen,
-                                  size: 21,
-                                ),
+                                if (showPip)
+                                  YouTubeDesktopStyleButton(
+                                    playerIcon: widget
+                                        .config.style.icons.miniPlayerIcon,
+                                    fallbackIcon: Icons
+                                        .picture_in_picture_alt_rounded,
+                                    tooltip: widget.config.text.miniPlayerText,
+                                    onTap: widget.onOpenPip,
+                                    size: 21,
+                                  ),
+                                if (showFullscreen)
+                                  YouTubeDesktopStyleButton(
+                                    playerIcon: isFullscreenNow
+                                        ? widget.config.style.icons
+                                            .exitFullscreenIcon
+                                        : widget.config.style.icons
+                                            .fullscreenIcon,
+                                    fallbackIcon: isFullscreenNow
+                                        ? Icons.fullscreen_exit_rounded
+                                        : Icons.open_in_full_rounded,
+                                    tooltip: isFullscreenNow
+                                        ? widget.config.text.exitFullscreenText
+                                        : widget.config.text.fullscreenText,
+                                    onTap: widget.onToggleFullscreen,
+                                    size: 21,
+                                  ),
                               ],
                             ),
                           ),

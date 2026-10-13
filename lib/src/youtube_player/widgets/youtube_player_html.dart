@@ -20,10 +20,47 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
 
         #player {
             position: fixed;
+            z-index: 1;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+        }
+
+        #adaptive-pip-button {
+            position: fixed;
+            z-index: 2147483647;
+            right: 70px;
+            bottom: 75px;
+            width: 32px;
+            height: 32px;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+
+        @media (min-width: 800px) and (min-height: 500px) {
+            #adaptive-pip-button {
+                right: 75px;
+                bottom: 85px;
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        #adaptive-pip-button svg {
+            width: 20px;
+            height: 20px;
+            display: block;
         }
 
         video::-webkit-media-controls,
@@ -50,6 +87,9 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
 
 <body>
     <div id="player"></div>
+    <button id="adaptive-pip-button" type="button" aria-label="Picture in picture" title="Picture in picture">
+        <svg viewBox="0 0 36 36" aria-hidden="true"><path fill="#fff" d="M25 17H17V23H25V17ZM29 25V10.98C29 9.88 28.1 9 27 9H9C7.9 9 7 9.88 7 10.98V25C7 26.1 7.9 27 9 27H27C28.1 27 29 26.1 29 25ZM27 25.02H9V10.97H27V25.02Z"></path></svg>
+    </button>
     <script>
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -391,6 +431,82 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 document.webkitExitFullscreen();
             }
         }
+
+        var pipButton = document.getElementById('adaptive-pip-button');
+        var showMiniPlayerButton = true;
+        var pipButtonCompact = false;
+        var lastPipAnchor = null;
+        function setShowMiniPlayer(show) {
+            showMiniPlayerButton = !!show;
+            if (!pipButton) return;
+            pipButton.style.display = showMiniPlayerButton ? 'flex' : 'none';
+            pipButton.style.pointerEvents = showMiniPlayerButton ? 'auto' : 'none';
+            if (showMiniPlayerButton) placePipButton(lastPipAnchor);
+        }
+        function setPipButtonCompact(compact) {
+            pipButtonCompact = !!compact;
+            placePipButton(lastPipAnchor);
+        }
+        function placePipButton(data) {
+            if (!pipButton || !showMiniPlayerButton) return;
+            if (pipButtonCompact && data && data.visible) {
+                var frame = document.querySelector('iframe');
+                var frameBox = frame ? frame.getBoundingClientRect() : { top: 0, left: 0 };
+                var width = Math.round(Math.min(Math.max(data.width || 40, 36), 48));
+                var height = Math.round(Math.min(Math.max(data.height || 40, 36), 48));
+                var anchorLeft = frameBox.left + data.left;
+                var anchorTop = frameBox.top + data.top;
+                var left = data.rtl ? (anchorLeft + data.width + 6) : (anchorLeft - width - 6);
+                if (left < 4) left = 4;
+                var top = anchorTop + ((data.height || height) - height) / 2;
+                if (top < 4) top = 4;
+                pipButton.style.display = 'flex';
+                pipButton.style.right = 'auto';
+                pipButton.style.bottom = 'auto';
+                pipButton.style.left = Math.round(left) + 'px';
+                pipButton.style.top = Math.round(top) + 'px';
+                pipButton.style.width = width + 'px';
+                pipButton.style.height = height + 'px';
+                return;
+            }
+            pipButton.style.top = 'auto';
+            pipButton.style.left = 'auto';
+            pipButton.style.display = 'flex';
+            if (pipButtonCompact) {
+                pipButton.style.right = '52px';
+                pipButton.style.bottom = '52px';
+                pipButton.style.width = '40px';
+                pipButton.style.height = '40px';
+                return;
+            }
+            pipButton.style.right = '75px';
+            pipButton.style.bottom = '85px';
+            pipButton.style.width = '36px';
+            pipButton.style.height = '36px';
+        }
+        if (pipButton) {
+            pipButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.flutter_inappwebview) {
+                    window.flutter_inappwebview.callHandler('YouTubePlayerHandler', {
+                        type: 'YouTubePlayerHandler',
+                        event: 'onOpenPip'
+                    });
+                }
+            });
+        }
+        window.addEventListener('message', function(e) {
+            var data = e.data;
+            if (!data || data.type !== 'adaptive-pip-anchor' || !pipButton) return;
+            if (!showMiniPlayerButton) {
+                pipButton.style.display = 'none';
+                return;
+            }
+            if (!data.visible) return;
+            lastPipAnchor = data;
+            placePipButton(data);
+        });
     </script>
 </body>
 

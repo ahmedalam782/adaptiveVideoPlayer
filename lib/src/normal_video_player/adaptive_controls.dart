@@ -136,6 +136,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
   }
 
   void _togglePlay() {
+    if (_screenLocked) return;
     final isPlaying = widget.controller.value.isPlaying;
     if (isPlaying) {
       widget.controller.pause();
@@ -455,18 +456,16 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                               brightnessListenable:
                                   mobileChrome ? _brightness : null,
                               screenLocked: _screenLocked,
-                              onToggleScreenLock: mobileChrome
-                                  ? () {
-                                      setState(() {
-                                        _screenLocked = !_screenLocked;
-                                        controlsVisible = true;
-                                      });
-                                      if (_screenLocked) {
-                                        hideTimer?.cancel();
-                                      }
-                                      startHideTimer();
-                                    }
-                                  : null,
+                              onToggleScreenLock: () {
+                                setState(() {
+                                  _screenLocked = !_screenLocked;
+                                  controlsVisible = true;
+                                });
+                                if (_screenLocked) {
+                                  hideTimer?.cancel();
+                                }
+                                startHideTimer();
+                              },
                               onHideControls: () {
                                 setState(() => controlsVisible = false);
                                 hideTimer?.cancel();
@@ -532,7 +531,10 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
     return Focus(
       focusNode: _focusNode,
       autofocus: true,
-      onKeyEvent: _keyboardHandler.handleKeyEvent,
+      onKeyEvent: (node, event) {
+        if (_screenLocked) return KeyEventResult.handled;
+        return _keyboardHandler.handleKeyEvent(node, event);
+      },
       child: MouseRegion(
         cursor:
             controlsVisible ? SystemMouseCursors.basic : SystemMouseCursors.none,

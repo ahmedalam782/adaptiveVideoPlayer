@@ -6,6 +6,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants/youtube_js_constants.dart';
+import '../../core/services/native_pip_service.dart';
 import '../../normal_video_player/utils/fullscreen_utils_export.dart';
 import '../models/youtube_player_config.dart';
 import '../services/youtube_local_server_service.dart';
@@ -27,6 +28,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
   final VoidCallback? onSeekForward;
   final VoidCallback? onSeekBackward;
   final VoidCallback? onToggleFullscreen;
+  final VoidCallback? onOpenPip;
   final VoidCallback? onTouchActivity;
   final void Function(int position, int duration)? onPositionUpdate;
   final ValueChanged<bool>? onPlayingStateChanged;
@@ -45,6 +47,7 @@ class YouTubeWebViewPlayer extends StatefulWidget {
     this.onSeekForward,
     this.onSeekBackward,
     this.onToggleFullscreen,
+    this.onOpenPip,
     this.onTouchActivity,
     this.onPositionUpdate,
     this.onPlayingStateChanged,
@@ -120,6 +123,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     if (Platform.isWindows) {
       _checkWindowsWebViewEnvironment();
     }
+    NativePipService.isInPip.addListener(_syncMiniPlayerButton);
   }
 
   Future<void> _checkWindowsWebViewEnvironment() async {
@@ -168,6 +172,36 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   void didUpdateWidget(covariant YouTubeWebViewPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     _syncLanguage(context);
+    if (oldWidget.config.visibility.showMiniPlayerButton !=
+            widget.config.visibility.showMiniPlayerButton ||
+        oldWidget.config.visibility.showControls !=
+            widget.config.visibility.showControls) {
+      _syncMiniPlayerButton();
+    }
+  }
+
+  void _syncMiniPlayerButton() {
+    final show = widget.config.visibility.showControls &&
+        widget.config.visibility.showMiniPlayerButton &&
+        !NativePipService.isInPip.value;
+    _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.setShowMiniPlayer(show),
+    );
+    _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.setPipButtonCompact(
+        Platform.isAndroid || Platform.isIOS,
+      ),
+    );
+  }
+
+  /// Shows or hides the YouTube Picture-in-Picture button.
+  ///
+  /// Pass false while the video is already in a PiP window so the button
+  /// does not sit on top of the mini player.
+  void setMiniPlayerButtonVisible(bool show) {
+    _webViewController?.evaluateJavascript(
+      source: YouTubeJsCommands.setShowMiniPlayer(show),
+    );
   }
 
   Future<void> _startLocalServer() async {
@@ -181,6 +215,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
   @override
   void dispose() {
+    NativePipService.isInPip.removeListener(_syncMiniPlayerButton);
     _serverService.stop();
     super.dispose();
   }
@@ -384,6 +419,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
               widget.onSeekBackward?.call();
             } else if (event == YouTubeJsHandler.onToggleFullscreen) {
               widget.onToggleFullscreen?.call();
+            } else if (event == YouTubeJsHandler.onOpenPip) {
+              widget.onOpenPip?.call();
             } else if (event == YouTubeJsHandler.onTouchActivity) {
               widget.onTouchActivity?.call();
             } else if (event == YouTubeJsHandler.onControlsVisibilityChanged) {
@@ -416,6 +453,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
             controls: showControls,
           ),
         );
+        _syncMiniPlayerButton();
       },
       onConsoleMessage: (controller, consoleMessage) {
         log("JS: ${consoleMessage.message}");

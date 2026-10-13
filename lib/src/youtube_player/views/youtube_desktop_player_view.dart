@@ -104,12 +104,26 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
     if (NativePipService.isInPip.value && widget.fullscreenManager.isInPip) {
       widget.fullscreenManager.closePip(pauseOnClose: false);
     }
+    _syncMiniPlayerButtonForPip();
     setState(() {});
+  }
+
+  void _syncMiniPlayerButtonForPip() {
+    final inPip =
+        widget.fullscreenManager.isInPip || NativePipService.isInPip.value;
+    final show = !inPip &&
+        widget.config.visibility.showControls &&
+        widget.config.visibility.showMiniPlayerButton;
+    widget.desktopWebViewKey.currentState?.setMiniPlayerButtonVisible(show);
   }
 
   @override
   void didUpdateWidget(covariant YouTubeDesktopPlayerView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.fullscreenManager.isInPip !=
+        widget.fullscreenManager.isInPip) {
+      _syncMiniPlayerButtonForPip();
+    }
     if (oldWidget.fullscreenManager.isInPip &&
         !widget.fullscreenManager.isInPip) {
       _isHovered = true;

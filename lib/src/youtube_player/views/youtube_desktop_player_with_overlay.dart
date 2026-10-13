@@ -152,6 +152,7 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                                     onSeekBackward: () =>
                                         onTriggerSeekFeedback(-1),
                                     onToggleFullscreen: onToggleFullscreen,
+                                    onOpenPip: onOpenPip,
                                     onTouchActivity: onMouseActivity,
                                     onControlsVisibilityChanged:
                                         onControlsVisibilityChanged,
@@ -182,6 +183,7 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                                     onSeekBackward: () =>
                                         onTriggerSeekFeedback(-1),
                                     onToggleFullscreen: onToggleFullscreen,
+                                    onOpenPip: onOpenPip,
                                     onTouchActivity: onMouseActivity,
                                     onControlsVisibilityChanged:
                                         onControlsVisibilityChanged,
