@@ -67,24 +67,25 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                               child: Directionality(
                                 textDirection: TextDirection.ltr,
                                 child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SeekFeedbackIcon(
-                                    isForward: false,
-                                    iconColor: iconColor,
-                                    configuredIcon: styling?.icons.skipBackwardIcon,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '$seekSeconds',
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SeekFeedbackIcon(
+                                      isForward: false,
+                                      iconColor: iconColor,
+                                      configuredIcon:
+                                          styling?.icons.skipBackwardIcon,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '$seekSeconds',
+                                      style: TextStyle(
+                                        color: textColor,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -130,24 +131,25 @@ class AdaptiveSeekFeedbackOverlay extends StatelessWidget {
                               child: Directionality(
                                 textDirection: TextDirection.ltr,
                                 child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SeekFeedbackIcon(
-                                    isForward: true,
-                                    iconColor: iconColor,
-                                    configuredIcon: styling?.icons.skipForwardIcon,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '$seekSeconds',
-                                    style: TextStyle(
-                                      color: textColor,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SeekFeedbackIcon(
+                                      isForward: true,
+                                      iconColor: iconColor,
+                                      configuredIcon:
+                                          styling?.icons.skipForwardIcon,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '$seekSeconds',
+                                      style: TextStyle(
+                                        color: textColor,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

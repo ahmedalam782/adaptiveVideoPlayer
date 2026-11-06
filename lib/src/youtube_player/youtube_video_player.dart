@@ -128,6 +128,9 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
       desktopWebViewKey: _desktopWebViewKey,
     );
 
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      NativePipService.setPipEnabled(true);
+    }
     NativePipService.isInPip.addListener(_onNativePipChanged);
     _initializePlayer();
   }

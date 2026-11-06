@@ -313,8 +313,8 @@ class PlayerStyleConfig {
           showLoadingPercentage ?? this.showLoadingPercentage,
       loadingIndicatorTextStyle:
           loadingIndicatorTextStyle ?? this.loadingIndicatorTextStyle,
-      loadingIndicatorBackgroundColor:
-          loadingIndicatorBackgroundColor ?? this.loadingIndicatorBackgroundColor,
+      loadingIndicatorBackgroundColor: loadingIndicatorBackgroundColor ??
+          this.loadingIndicatorBackgroundColor,
       volumeSliderActiveColor:
           volumeSliderActiveColor ?? this.volumeSliderActiveColor,
       volumeSliderInactiveColor:

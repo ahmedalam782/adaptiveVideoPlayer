@@ -272,6 +272,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
           );
         }
         final tabletFit = tier == PlayerSurfaceTier.tablet;
+        final onMiniPlayer = widget.onMiniPlayerPressed;
 
         final bottomControls = Container(
           decoration: const BoxDecoration(
@@ -308,16 +309,14 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                     onAnalyticsEvent: widget.onAnalyticsEvent,
                     onEnterFullscreen: widget.onEnterFullscreen,
                     onExitFullscreen: widget.onExitFullscreen,
-                    onMiniPlayerPressed: widget.onMiniPlayerPressed,
-                    showSkipButtons:
-                        widget.visibility?.showSkipButtons ?? true,
+                    onMiniPlayerPressed: onMiniPlayer,
+                    showSkipButtons: widget.visibility?.showSkipButtons ?? true,
                     skipDuration: widget.visibility?.skipDuration ??
                         const Duration(seconds: 10),
-                    onSettingsPressed: () => setState(
-                        () => _showSettingsMenu = !_showSettingsMenu),
+                    onSettingsPressed: () =>
+                        setState(() => _showSettingsMenu = !_showSettingsMenu),
                     dragPosition: _dragPosition,
-                    onDragChanged: (val) =>
-                        setState(() => _dragPosition = val),
+                    onDragChanged: (val) => setState(() => _dragPosition = val),
                     onDragEnd: (val) {
                       widget.controller
                           .seekTo(Duration(milliseconds: val.toInt()));
@@ -386,7 +385,7 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                         onAnalyticsEvent: widget.onAnalyticsEvent,
                         onEnterFullscreen: widget.onEnterFullscreen,
                         onExitFullscreen: widget.onExitFullscreen,
-                        onMiniPlayerPressed: widget.onMiniPlayerPressed,
+                        onMiniPlayerPressed: onMiniPlayer,
                         showSkipButtons:
                             widget.visibility?.showSkipButtons ?? true,
                         skipDuration: widget.visibility?.skipDuration ??
@@ -423,403 +422,414 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
 
         return Stack(
           children: [
-        if (!widget.isFullScreen)
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: IgnorePointer(
-            ignoring: !_hasTopBarContent,
-            child: Container(
-            padding: const EdgeInsets.only(
-              top: 16,
-              left: 20,
-              right: 20,
-              bottom: 24,
-            ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  widget.styling?.topBarColor ?? const Color(0xCC000000),
-                  (widget.styling?.topBarColor ?? const Color(0xCC000000))
-                      .withValues(alpha: 0.4),
-                  Colors.transparent,
+            if (!widget.isFullScreen)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  ignoring: !_hasTopBarContent,
+                  child: Container(
+                    padding: const EdgeInsets.only(
+                      top: 16,
+                      left: 20,
+                      right: 20,
+                      bottom: 24,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          widget.styling?.topBarColor ??
+                              const Color(0xCC000000),
+                          (widget.styling?.topBarColor ??
+                                  const Color(0xCC000000))
+                              .withValues(alpha: 0.4),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    child: _hasTopBarContent
+                        ? SafeArea(
+                            bottom: false,
+                            top: widget.isFullScreen,
+                            left: widget.isFullScreen,
+                            right: widget.isFullScreen,
+                            child: AdaptiveTopBar(
+                              isFullScreen: widget.isFullScreen,
+                              onExitFullscreen: widget.onExitFullscreen,
+                              isLive: widget.isLive,
+                              viewerCount: widget.viewerCount,
+                              qualities: widget.qualities,
+                              onQualitySelected: widget.onQualitySelected,
+                              onAnalyticsEvent: widget.onAnalyticsEvent,
+                              messages: widget.messages,
+                              styling: widget.styling,
+                              visibility: widget.visibility,
+                              title: widget.title,
+                              subtitle: PlayerChromeUtils.episodeSubtitle(
+                                title: widget.title,
+                                episodeTitle: widget.currentEpisode?.title,
+                              ),
+                              episodes: widget.episodes,
+                              onEpisodesPressed: () => setState(() {
+                                _showEpisodesDrawer = !_showEpisodesDrawer;
+                                _showAudioSubtitlesPopup = false;
+                                _showSpeedStepperPopup = false;
+                                _showSettingsMenu = false;
+                              }),
+                              audioTracks: widget.audioTracks,
+                              subtitles: widget.subtitles,
+                              currentSubtitleTrack: widget.currentSubtitleTrack,
+                              onSubtitleSelected: widget.onSubtitleSelected,
+                              onAudioSubtitlesPressed: () => setState(() {
+                                _showAudioSubtitlesPopup =
+                                    !_showAudioSubtitlesPopup;
+                                _showEpisodesDrawer = false;
+                                _showSpeedStepperPopup = false;
+                                _showSettingsMenu = false;
+                              }),
+                              onSpeedPressed: () => setState(() {
+                                _showSpeedStepperPopup =
+                                    !_showSpeedStepperPopup;
+                                _showEpisodesDrawer = false;
+                                _showAudioSubtitlesPopup = false;
+                                _showSettingsMenu = false;
+                              }),
+                              onSettingsPressed: () => setState(
+                                  () => _showSettingsMenu = !_showSettingsMenu),
+                              onMiniPlayerPressed: onMiniPlayer,
+                              onLockPressed: widget.onToggleScreenLock,
+                            ),
+                          )
+                        : const SizedBox(height: 28),
+                  ),
+                ),
+              ),
+
+            Positioned.fill(
+              child: Column(
+                children: [
+                  if (_showCenterPlayPause)
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: AdaptiveCenterPlayPause(
+                          controller: widget.controller,
+                          styling: widget.styling,
+                          onAnalyticsEvent: widget.onAnalyticsEvent,
+                          isFullScreen: widget.isFullScreen,
+                        ),
+                      ),
+                    )
+                  else
+                    const Spacer(),
+                  bottomControls,
                 ],
               ),
             ),
-            child: _hasTopBarContent
-                ? SafeArea(
-                    bottom: false,
-                    top: widget.isFullScreen,
-                    left: widget.isFullScreen,
-                    right: widget.isFullScreen,
-                    child: AdaptiveTopBar(
-                      isFullScreen: widget.isFullScreen,
-                      onExitFullscreen: widget.onExitFullscreen,
-                      isLive: widget.isLive,
-                      viewerCount: widget.viewerCount,
-                      qualities: widget.qualities,
-                      onQualitySelected: widget.onQualitySelected,
-                      onAnalyticsEvent: widget.onAnalyticsEvent,
-                      messages: widget.messages,
-                      styling: widget.styling,
-                      visibility: widget.visibility,
-                      title: widget.title,
-                      subtitle: PlayerChromeUtils.episodeSubtitle(
-                        title: widget.title,
-                        episodeTitle: widget.currentEpisode?.title,
-                      ),
-                      episodes: widget.episodes,
-                      onEpisodesPressed: () => setState(() {
-                        _showEpisodesDrawer = !_showEpisodesDrawer;
-                        _showAudioSubtitlesPopup = false;
-                        _showSpeedStepperPopup = false;
-                        _showSettingsMenu = false;
-                      }),
-                      audioTracks: widget.audioTracks,
-                      subtitles: widget.subtitles,
-                      currentSubtitleTrack: widget.currentSubtitleTrack,
-                      onSubtitleSelected: widget.onSubtitleSelected,
-                      onAudioSubtitlesPressed: () => setState(() {
-                        _showAudioSubtitlesPopup = !_showAudioSubtitlesPopup;
-                        _showEpisodesDrawer = false;
-                        _showSpeedStepperPopup = false;
-                        _showSettingsMenu = false;
-                      }),
-                      onSpeedPressed: () => setState(() {
-                        _showSpeedStepperPopup = !_showSpeedStepperPopup;
-                        _showEpisodesDrawer = false;
-                        _showAudioSubtitlesPopup = false;
-                        _showSettingsMenu = false;
-                      }),
-                      onSettingsPressed: () => setState(
-                          () => _showSettingsMenu = !_showSettingsMenu),
-                      onMiniPlayerPressed: widget.onMiniPlayerPressed,
-                      onLockPressed: widget.onToggleScreenLock,
-                    ),
-                  )
-                : const SizedBox(height: 28),
-            ),
-          ),
-        ),
 
-        Positioned.fill(
-          child: Column(
-            children: [
-              if (_showCenterPlayPause)
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: AdaptiveCenterPlayPause(
-                      controller: widget.controller,
-                      styling: widget.styling,
-                      onAnalyticsEvent: widget.onAnalyticsEvent,
-                      isFullScreen: widget.isFullScreen,
-                    ),
+            if (widget.isFullScreen &&
+                (widget.visibility?.showScreenLockButton ?? true) &&
+                widget.onToggleScreenLock != null)
+              PositionedDirectional(
+                top: 20,
+                end: 20,
+                child: SafeArea(
+                  child: AdaptiveCirclePillButton(
+                    icon: Icons.lock_outline_rounded,
+                    tooltip: (widget.messages ?? const PlayerTextConfig())
+                                .resolveTextDirection(context) ==
+                            TextDirection.rtl
+                        ? 'قفل الشاشة'
+                        : 'Lock screen',
+                    onTap: widget.onToggleScreenLock!,
+                    color: widget.styling?.iconColor ?? Colors.white,
                   ),
-                )
-              else
-                const Spacer(),
-              bottomControls,
-            ],
-          ),
-        ),
-
-        if (widget.isFullScreen &&
-            (widget.visibility?.showScreenLockButton ?? true) &&
-            widget.onToggleScreenLock != null)
-          PositionedDirectional(
-            top: 20,
-            end: 20,
-            child: SafeArea(
-              child: AdaptiveCirclePillButton(
-                icon: Icons.lock_outline_rounded,
-                tooltip: (widget.messages ?? const PlayerTextConfig())
-                            .resolveTextDirection(context) ==
-                        TextDirection.rtl
-                    ? 'قفل الشاشة'
-                    : 'Lock screen',
-                onTap: widget.onToggleScreenLock!,
-                color: widget.styling?.iconColor ?? Colors.white,
+                ),
               ),
-            ),
-          ),
 
-        if (tabletFit && _panelsOpen)
-          Positioned.fill(
-            child: ResponsiveFilledPanels(
-              showAudioSubtitles: _showAudioSubtitlesPopup,
-              showEpisodes: _showEpisodesDrawer,
-              showSpeed: _showSpeedStepperPopup,
-              showSettings: _showSettingsMenu,
-              controller: widget.controller,
-              audioTracks: widget.audioTracks,
-              currentAudioTrack: widget.currentAudioTrack,
-              onAudioTrackSelected: widget.onAudioTrackSelected,
-              subtitles: widget.subtitles,
-              currentSubtitleTrack: widget.currentSubtitleTrack,
-              onSubtitleSelected: widget.onSubtitleSelected,
-              episodes: widget.episodes,
-              currentEpisode: widget.currentEpisode,
-              onEpisodeSelected: (episode) {
-                widget.onEpisodeSelected?.call(episode);
-                _toggle(() => _showEpisodesDrawer = false);
-              },
-              qualities: widget.qualities,
-              currentQuality: widget.currentQuality,
-              onQualitySelected: widget.onQualitySelected,
-              styling: widget.styling,
-              messages: widget.messages,
-              visibility: widget.visibility,
-              onAnalyticsEvent: widget.onAnalyticsEvent,
-              onCloseAudioSubtitles: () =>
-                  _toggle(() => _showAudioSubtitlesPopup = false),
-              onCloseEpisodes: () => _toggle(() => _showEpisodesDrawer = false),
-              onCloseSpeed: () =>
-                  _toggle(() => _showSpeedStepperPopup = false),
-              onCloseSettings: () => _toggle(() => _showSettingsMenu = false),
-            ),
-          ),
-
-        if (!tabletFit && _showSettingsMenu) ...[
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => setState(() => _showSettingsMenu = false),
-              child: const SizedBox.expand(),
-            ),
-          ),
-          PositionedDirectional(
-            bottom: widget.isFullScreen ? 56 : 48,
-            end: 16,
-            child: Transform.translate(
-              offset: _settingsMenuOffset,
-              child: CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.escape): () {
-                    setState(() => _showSettingsMenu = false);
+            if (tabletFit && _panelsOpen)
+              Positioned.fill(
+                child: ResponsiveFilledPanels(
+                  showAudioSubtitles: _showAudioSubtitlesPopup,
+                  showEpisodes: _showEpisodesDrawer,
+                  showSpeed: _showSpeedStepperPopup,
+                  showSettings: _showSettingsMenu,
+                  controller: widget.controller,
+                  audioTracks: widget.audioTracks,
+                  currentAudioTrack: widget.currentAudioTrack,
+                  onAudioTrackSelected: widget.onAudioTrackSelected,
+                  subtitles: widget.subtitles,
+                  currentSubtitleTrack: widget.currentSubtitleTrack,
+                  onSubtitleSelected: widget.onSubtitleSelected,
+                  episodes: widget.episodes,
+                  currentEpisode: widget.currentEpisode,
+                  onEpisodeSelected: (episode) {
+                    widget.onEpisodeSelected?.call(episode);
+                    _toggle(() => _showEpisodesDrawer = false);
                   },
-                },
-                child: Focus(
-                  autofocus: true,
-                  child: Container(
-                    width: math.min(
-                        widget.isFullScreen ? 330.0 : 300.0,
-                        constraints.maxWidth - 24.0),
-                    constraints: BoxConstraints(
-                      maxHeight: math.min(
-                        widget.isFullScreen ? 380.0 : 280.0,
-                        math.max(140.0, constraints.maxHeight - 64),
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          blurRadius: 20,
-                          offset: const Offset(0, 6),
+                  qualities: widget.qualities,
+                  currentQuality: widget.currentQuality,
+                  onQualitySelected: widget.onQualitySelected,
+                  styling: widget.styling,
+                  messages: widget.messages,
+                  visibility: widget.visibility,
+                  onAnalyticsEvent: widget.onAnalyticsEvent,
+                  onCloseAudioSubtitles: () =>
+                      _toggle(() => _showAudioSubtitlesPopup = false),
+                  onCloseEpisodes: () =>
+                      _toggle(() => _showEpisodesDrawer = false),
+                  onCloseSpeed: () =>
+                      _toggle(() => _showSpeedStepperPopup = false),
+                  onCloseSettings: () =>
+                      _toggle(() => _showSettingsMenu = false),
+                ),
+              ),
+
+            if (!tabletFit && _showSettingsMenu) ...[
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _showSettingsMenu = false),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+              PositionedDirectional(
+                bottom: widget.isFullScreen ? 56 : 48,
+                end: 16,
+                child: Transform.translate(
+                  offset: _settingsMenuOffset,
+                  child: CallbackShortcuts(
+                    bindings: {
+                      const SingleActivator(LogicalKeyboardKey.escape): () {
+                        setState(() => _showSettingsMenu = false);
+                      },
+                    },
+                    child: Focus(
+                      autofocus: true,
+                      child: Container(
+                        width: math.min(widget.isFullScreen ? 330.0 : 300.0,
+                            constraints.maxWidth - 24.0),
+                        constraints: BoxConstraints(
+                          maxHeight: math.min(
+                            widget.isFullScreen ? 380.0 : 280.0,
+                            math.max(140.0, constraints.maxHeight - 64),
+                          ),
                         ),
-                      ],
-                    ),
-                    child: Material(
-                      color: widget.styling?.settingsBackgroundColor ??
-                          const Color(0xF21F1F1F),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              blurRadius: 20,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
                         ),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Sleek drag handle to move the settings dialog freely across screen
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onPanUpdate: (details) =>
-                                _updateSettingsOffset(details.delta, constraints),
-                            onDoubleTap: () =>
-                                setState(() => _settingsMenuOffset = Offset.zero),
-                            child: MouseRegion(
-                              cursor: SystemMouseCursors.move,
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.only(top: 8, bottom: 6),
-                                color: Colors.transparent,
-                                child: Center(
+                        child: Material(
+                          color: widget.styling?.settingsBackgroundColor ??
+                              const Color(0xF21F1F1F),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.12),
+                            ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Sleek drag handle to move the settings dialog freely across screen
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onPanUpdate: (details) => _updateSettingsOffset(
+                                    details.delta, constraints),
+                                onDoubleTap: () => setState(
+                                    () => _settingsMenuOffset = Offset.zero),
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.move,
                                   child: Container(
-                                    width: 38,
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.35),
-                                      borderRadius: BorderRadius.circular(2),
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.only(
+                                        top: 8, bottom: 6),
+                                    color: Colors.transparent,
+                                    child: Center(
+                                      child: Container(
+                                        width: 38,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.35),
+                                          borderRadius:
+                                              BorderRadius.circular(2),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
+                              Flexible(
+                                child: AdaptivePlayerSettingsSheet(
+                                  styling: widget.styling,
+                                  messages: widget.messages,
+                                  visibility: widget.visibility,
+                                  qualities: widget.qualities,
+                                  currentQuality: widget.currentQuality,
+                                  onQualitySelected: (q) {
+                                    widget.onQualitySelected?.call(q);
+                                    setState(() => _showSettingsMenu = false);
+                                  },
+                                  subtitles: widget.subtitles,
+                                  currentSubtitleTrack:
+                                      widget.currentSubtitleTrack,
+                                  onSubtitleSelected: (s) {
+                                    widget.onSubtitleSelected?.call(s);
+                                    setState(() => _showSettingsMenu = false);
+                                  },
+                                  onDismiss: () =>
+                                      setState(() => _showSettingsMenu = false),
+                                  onAnalyticsEvent: widget.onAnalyticsEvent,
+                                ),
+                              ),
+                            ],
                           ),
-                          Flexible(
-                            child: AdaptivePlayerSettingsSheet(
-                              styling: widget.styling,
-                              messages: widget.messages,
-                              visibility: widget.visibility,
-                              qualities: widget.qualities,
-                              currentQuality: widget.currentQuality,
-                              onQualitySelected: (q) {
-                                widget.onQualitySelected?.call(q);
-                                setState(() => _showSettingsMenu = false);
-                              },
-                              subtitles: widget.subtitles,
-                              currentSubtitleTrack: widget.currentSubtitleTrack,
-                              onSubtitleSelected: (s) {
-                                widget.onSubtitleSelected?.call(s);
-                                setState(() => _showSettingsMenu = false);
-                              },
-                              onDismiss: () =>
-                                  setState(() => _showSettingsMenu = false),
-                              onAnalyticsEvent: widget.onAnalyticsEvent,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ],
+            ],
 
-        // Netflix-style Speed Stepper Popup (Image 3)
-        if (!tabletFit && _showSpeedStepperPopup) ...[
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => setState(() => _showSpeedStepperPopup = false),
-              child: const SizedBox.expand(),
-            ),
-          ),
-          PositionedDirectional(
-              bottom: widget.isFullScreen ? 60 : 52,
-              end: 20,
-              child: CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.escape): () {
-                    setState(() => _showSpeedStepperPopup = false);
+            // Netflix-style Speed Stepper Popup (Image 3)
+            if (!tabletFit && _showSpeedStepperPopup) ...[
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _showSpeedStepperPopup = false),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+              PositionedDirectional(
+                bottom: widget.isFullScreen ? 60 : 52,
+                end: 20,
+                child: CallbackShortcuts(
+                  bindings: {
+                    const SingleActivator(LogicalKeyboardKey.escape): () {
+                      setState(() => _showSpeedStepperPopup = false);
+                    },
                   },
-                },
-                child: Focus(
-                  autofocus: true,
-                  child: AdaptiveSpeedStepperPopup(
-                    controller: widget.controller,
-                    styling: widget.styling,
-                    messages: widget.messages,
-                    maxWidth: math.min(420, constraints.maxWidth - 32),
-                    onClose: () =>
-                        setState(() => _showSpeedStepperPopup = false),
+                  child: Focus(
+                    autofocus: true,
+                    child: AdaptiveSpeedStepperPopup(
+                      controller: widget.controller,
+                      styling: widget.styling,
+                      messages: widget.messages,
+                      maxWidth: math.min(420, constraints.maxWidth - 32),
+                      onClose: () =>
+                          setState(() => _showSpeedStepperPopup = false),
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+            ],
 
-        // Netflix-style Dual-Column Audio & Subtitles Popup (Image 1)
-        if (!tabletFit && _showAudioSubtitlesPopup) ...[
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => setState(() => _showAudioSubtitlesPopup = false),
-              child: const SizedBox.expand(),
-            ),
-          ),
-          PositionedDirectional(
-              bottom: widget.isFullScreen ? 60 : 52,
-              end: 20,
-              child: CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.escape): () {
-                    setState(() => _showAudioSubtitlesPopup = false);
+            // Netflix-style Dual-Column Audio & Subtitles Popup (Image 1)
+            if (!tabletFit && _showAudioSubtitlesPopup) ...[
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _showAudioSubtitlesPopup = false),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+              PositionedDirectional(
+                bottom: widget.isFullScreen ? 60 : 52,
+                end: 20,
+                child: CallbackShortcuts(
+                  bindings: {
+                    const SingleActivator(LogicalKeyboardKey.escape): () {
+                      setState(() => _showAudioSubtitlesPopup = false);
+                    },
                   },
-                },
-                child: Focus(
-                  autofocus: true,
-                  child: AdaptiveAudioSubtitlesPopup(
-                    maxWidth: math.min(520, constraints.maxWidth - 32),
-                    maxHeight: math.min(
-                      380,
-                      math.max(160, constraints.maxHeight - 80),
+                  child: Focus(
+                    autofocus: true,
+                    child: AdaptiveAudioSubtitlesPopup(
+                      maxWidth: math.min(520, constraints.maxWidth - 32),
+                      maxHeight: math.min(
+                        380,
+                        math.max(160, constraints.maxHeight - 80),
+                      ),
+                      audioTracks: widget.audioTracks,
+                      currentAudioTrack: widget.currentAudioTrack,
+                      onAudioTrackSelected: (track) {
+                        widget.onAudioTrackSelected?.call(track);
+                        setState(() => _showAudioSubtitlesPopup = false);
+                      },
+                      subtitles: widget.subtitles,
+                      currentSubtitleTrack: widget.currentSubtitleTrack,
+                      onSubtitleSelected: (track) {
+                        widget.onSubtitleSelected?.call(track);
+                        setState(() => _showAudioSubtitlesPopup = false);
+                      },
+                      styling: widget.styling,
+                      messages: widget.messages,
+                      onClose: () =>
+                          setState(() => _showAudioSubtitlesPopup = false),
                     ),
-                    audioTracks: widget.audioTracks,
-                    currentAudioTrack: widget.currentAudioTrack,
-                    onAudioTrackSelected: (track) {
-                      widget.onAudioTrackSelected?.call(track);
-                      setState(() => _showAudioSubtitlesPopup = false);
-                    },
-                    subtitles: widget.subtitles,
-                    currentSubtitleTrack: widget.currentSubtitleTrack,
-                    onSubtitleSelected: (track) {
-                      widget.onSubtitleSelected?.call(track);
-                      setState(() => _showAudioSubtitlesPopup = false);
-                    },
-                    styling: widget.styling,
-                    messages: widget.messages,
-                    onClose: () =>
-                        setState(() => _showAudioSubtitlesPopup = false),
                   ),
                 ),
               ),
-            ),
-        ],
+            ],
 
-        // Netflix-style Episodes Drawer (Image 5)
-        if (!tabletFit && _showEpisodesDrawer && widget.episodes != null) ...[
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => setState(() => _showEpisodesDrawer = false),
-              child: const SizedBox.expand(),
-            ),
-          ),
-          PositionedDirectional(
-              bottom: widget.isFullScreen ? 60 : 52,
-              end: 20,
-              child: CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.escape): () {
-                    setState(() => _showEpisodesDrawer = false);
-                  },
-                },
-                child: Focus(
-                  autofocus: true,
-                  child: AdaptiveEpisodesDrawer(
-                    maxWidth: math.min(440, constraints.maxWidth - 32),
-                    maxHeight: math.min(
-                      520,
-                      math.max(180, constraints.maxHeight - 80),
-                    ),
-                    episodes: widget.episodes!,
-                    currentEpisode: widget.currentEpisode,
-                    onEpisodeSelected: (ep) {
-                      widget.onEpisodeSelected?.call(ep);
+            // Netflix-style Episodes Drawer (Image 5)
+            if (!tabletFit &&
+                _showEpisodesDrawer &&
+                widget.episodes != null) ...[
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() => _showEpisodesDrawer = false),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+              PositionedDirectional(
+                bottom: widget.isFullScreen ? 60 : 52,
+                end: 20,
+                child: CallbackShortcuts(
+                  bindings: {
+                    const SingleActivator(LogicalKeyboardKey.escape): () {
                       setState(() => _showEpisodesDrawer = false);
                     },
-                    styling: widget.styling,
-                    messages: widget.messages,
-                    onClose: () => setState(() => _showEpisodesDrawer = false),
+                  },
+                  child: Focus(
+                    autofocus: true,
+                    child: AdaptiveEpisodesDrawer(
+                      maxWidth: math.min(440, constraints.maxWidth - 32),
+                      maxHeight: math.min(
+                        520,
+                        math.max(180, constraints.maxHeight - 80),
+                      ),
+                      episodes: widget.episodes!,
+                      currentEpisode: widget.currentEpisode,
+                      onEpisodeSelected: (ep) {
+                        widget.onEpisodeSelected?.call(ep);
+                        setState(() => _showEpisodesDrawer = false);
+                      },
+                      styling: widget.styling,
+                      messages: widget.messages,
+                      onClose: () =>
+                          setState(() => _showEpisodesDrawer = false),
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
-      ],
-    );
+            ],
+          ],
+        );
       },
     );
   }
 }
-

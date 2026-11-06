@@ -48,7 +48,8 @@ class AdaptiveVolumeHudOverlay extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.45),
                   borderRadius: BorderRadius.circular(24),
@@ -81,9 +82,8 @@ class AdaptiveVolumeHudOverlay extends StatelessWidget {
                         borderRadius: BorderRadius.circular(3),
                         child: LinearProgressIndicator(
                           value: volume,
-                          backgroundColor:
-                              styling?.volumeSliderInactiveColor ??
-                                  Colors.white24,
+                          backgroundColor: styling?.volumeSliderInactiveColor ??
+                              Colors.white24,
                           valueColor:
                               AlwaysStoppedAnimation<Color>(activeColor),
                           minHeight: 5,

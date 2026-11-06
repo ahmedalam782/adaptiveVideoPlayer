@@ -66,7 +66,8 @@ class VideoConfig {
   final Widget Function(BuildContext context)? loadingBuilder;
 
   /// Custom error widget builder
-  final Widget Function(BuildContext context, String errorMessage)? errorBuilder;
+  final Widget Function(BuildContext context, String errorMessage)?
+      errorBuilder;
 
   /// Optional custom fullscreen service injection (DIP)
   final IFullscreenService? fullscreenService;
@@ -138,6 +139,10 @@ class VideoConfig {
   /// you do not want an extra action.
   final VoidCallback? onScreenshot;
 
+  /// Whether to automatically transition to Picture-in-Picture mode when the app is backgrounded
+  /// while playing. Defaults to `true`.
+  final bool autoPipOnBackground;
+
   /// Complete player configuration using YouTube models
   final YouTubePlayerConfig playerConfig;
 
@@ -175,6 +180,7 @@ class VideoConfig {
     this.enableCache = false,
     this.preventScreenCapture = false,
     this.onScreenshot,
+    this.autoPipOnBackground = true,
     this.playerConfig = const YouTubePlayerConfig(),
   });
 
@@ -222,6 +228,7 @@ class VideoConfig {
     bool? enableCache,
     bool? preventScreenCapture,
     VoidCallback? onScreenshot,
+    bool? autoPipOnBackground,
     YouTubePlayerConfig? playerConfig,
   }) {
     return VideoConfig(
@@ -259,6 +266,7 @@ class VideoConfig {
       enableCache: enableCache ?? this.enableCache,
       preventScreenCapture: preventScreenCapture ?? this.preventScreenCapture,
       onScreenshot: onScreenshot ?? this.onScreenshot,
+      autoPipOnBackground: autoPipOnBackground ?? this.autoPipOnBackground,
       playerConfig: playerConfig ?? this.playerConfig,
     );
   }

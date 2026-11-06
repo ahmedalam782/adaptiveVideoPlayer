@@ -131,9 +131,8 @@ class GradientSliderTrackShape extends SliderTrackShape
         final startFraction =
             (range.start.inMilliseconds / duration.inMilliseconds)
                 .clamp(0.0, 1.0);
-        final endFraction =
-            (range.end.inMilliseconds / duration.inMilliseconds)
-                .clamp(0.0, 1.0);
+        final endFraction = (range.end.inMilliseconds / duration.inMilliseconds)
+            .clamp(0.0, 1.0);
         final double startX;
         final double endX;
         if (textDirection == TextDirection.rtl) {
@@ -173,7 +172,8 @@ class GradientSliderTrackShape extends SliderTrackShape
           ..style = PaintingStyle.fill;
         context.canvas.drawRRect(
           RRect.fromRectAndRadius(
-            Rect.fromLTRB(hoverLeft, trackRect.top, hoverRight, trackRect.bottom),
+            Rect.fromLTRB(
+                hoverLeft, trackRect.top, hoverRight, trackRect.bottom),
             radius,
           ),
           hoverPaint,
@@ -195,7 +195,8 @@ class GradientSliderTrackShape extends SliderTrackShape
                   colors: gradient.colors,
                 )
               : gradient)
-          .createShader(activeTrackRect.width > 0 ? activeTrackRect : trackRect);
+          .createShader(
+              activeTrackRect.width > 0 ? activeTrackRect : trackRect);
 
     if (activeTrackRect.width > 0) {
       context.canvas.drawRRect(

@@ -275,7 +275,8 @@ class PlayerTextConfig {
   /// Deprecated convenience constructor.
   /// To localize the player into Arabic, provide Arabic strings in your app using
   /// [PlayerTextConfig.fromMap] or custom language files as demonstrated in the example app.
-  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
+  @Deprecated(
+      'Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.arabic({
     String? languageCode = 'ar',
     TextDirection? textDirection = TextDirection.rtl,
@@ -370,7 +371,8 @@ class PlayerTextConfig {
 
   /// Deprecated convenience constructor.
   /// To localize into Spanish, provide Spanish translations in your app via [PlayerTextConfig.fromMap].
-  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
+  @Deprecated(
+      'Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.spanish({
     String? languageCode = 'es',
     TextDirection? textDirection = TextDirection.ltr,
@@ -465,7 +467,8 @@ class PlayerTextConfig {
 
   /// Deprecated convenience constructor.
   /// To localize into French, provide French translations in your app via [PlayerTextConfig.fromMap].
-  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
+  @Deprecated(
+      'Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.french({
     String? languageCode = 'fr',
     TextDirection? textDirection = TextDirection.ltr,
@@ -560,7 +563,8 @@ class PlayerTextConfig {
 
   /// Deprecated convenience constructor.
   /// To localize into German, provide German translations in your app via [PlayerTextConfig.fromMap].
-  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
+  @Deprecated(
+      'Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.german({
     String? languageCode = 'de',
     TextDirection? textDirection = TextDirection.ltr,
@@ -655,7 +659,8 @@ class PlayerTextConfig {
 
   /// Deprecated convenience constructor.
   /// To localize into Turkish, provide Turkish translations in your app via [PlayerTextConfig.fromMap].
-  @Deprecated('Use app-level language files (see example). Package defaults strictly to English.')
+  @Deprecated(
+      'Use app-level language files (see example). Package defaults strictly to English.')
   const PlayerTextConfig.turkish({
     String? languageCode = 'tr',
     TextDirection? textDirection = TextDirection.ltr,
@@ -792,8 +797,9 @@ class PlayerTextConfig {
           map['video_unavailable'] ?? def.videoUnavailableText,
       videoNotCompatibleText:
           map['video_not_compatible'] ?? def.videoNotCompatibleText,
-      videoCannotBeLoadedSecurityPolicyText: map['video_security_policy_error'] ??
-          def.videoCannotBeLoadedSecurityPolicyText,
+      videoCannotBeLoadedSecurityPolicyText:
+          map['video_security_policy_error'] ??
+              def.videoCannotBeLoadedSecurityPolicyText,
       playerSettingsText: map['player_settings'] ?? def.playerSettingsText,
       autoPlayText: map['auto_play'] ?? def.autoPlayText,
       loopVideoText: map['loop_video'] ?? def.loopVideoText,
@@ -816,8 +822,7 @@ class PlayerTextConfig {
       miniPlayerText: map['mini_player'] ?? def.miniPlayerText,
       restorePlayerText: map['restore_player'] ?? def.restorePlayerText,
       expandPlayerText: map['expand_player'] ?? def.expandPlayerText,
-      closeMiniPlayerText:
-          map['close_mini_player'] ?? def.closeMiniPlayerText,
+      closeMiniPlayerText: map['close_mini_player'] ?? def.closeMiniPlayerText,
       playText: map['play'] ?? def.playText,
       pauseText: map['pause'] ?? def.pauseText,
       fullscreenText: map['fullscreen'] ?? def.fullscreenText,
@@ -971,32 +976,28 @@ class PlayerTextConfig {
       videoCannotBeLoadedSecurityPolicyText: resolveKey(
           'video_security_policy_error',
           def.videoCannotBeLoadedSecurityPolicyText),
-      playerSettingsText:
-          resolveKey('player_settings', def.playerSettingsText),
+      playerSettingsText: resolveKey('player_settings', def.playerSettingsText),
       autoPlayText: resolveKey('auto_play', def.autoPlayText),
       loopVideoText: resolveKey('loop_video', def.loopVideoText),
       forceHdQualityText:
           resolveKey('force_hd_quality', def.forceHdQualityText),
-      enableCaptionsText:
-          resolveKey('enable_captions', def.enableCaptionsText),
+      enableCaptionsText: resolveKey('enable_captions', def.enableCaptionsText),
       muteAudioText: resolveKey('mute_audio', def.muteAudioText),
       unmuteAudioText: resolveKey('unmute_audio', def.unmuteAudioText),
-      noQualitiesAvailableText: resolveKey(
-          'no_qualities_available', def.noQualitiesAvailableText),
-      noSubtitlesAvailableText: resolveKey(
-          'no_subtitles_available', def.noSubtitlesAvailableText),
+      noQualitiesAvailableText:
+          resolveKey('no_qualities_available', def.noQualitiesAvailableText),
+      noSubtitlesAvailableText:
+          resolveKey('no_subtitles_available', def.noSubtitlesAvailableText),
       qualityText: resolveKey('quality', def.qualityText),
       subtitlesText: resolveKey('subtitles', def.subtitlesText),
-      playbackSpeedText:
-          resolveKey('playback_speed', def.playbackSpeedText),
+      playbackSpeedText: resolveKey('playback_speed', def.playbackSpeedText),
       normalSpeedText: resolveKey('normal_speed', def.normalSpeedText),
       autoText: resolveKey('auto', def.autoText),
       offText: resolveKey('off', def.offText),
       skipBackwardText: resolveKey('skip_backward', def.skipBackwardText),
       skipForwardText: resolveKey('skip_forward', def.skipForwardText),
       miniPlayerText: resolveKey('mini_player', def.miniPlayerText),
-      restorePlayerText:
-          resolveKey('restore_player', def.restorePlayerText),
+      restorePlayerText: resolveKey('restore_player', def.restorePlayerText),
       expandPlayerText: resolveKey('expand_player', def.expandPlayerText),
       closeMiniPlayerText:
           resolveKey('close_mini_player', def.closeMiniPlayerText),
@@ -1004,8 +1005,7 @@ class PlayerTextConfig {
       pauseText: resolveKey('pause', def.pauseText),
       stopVideoText: resolveKey('stop_video', def.stopVideoText),
       fullscreenText: resolveKey('fullscreen', def.fullscreenText),
-      exitFullscreenText:
-          resolveKey('exit_fullscreen', def.exitFullscreenText),
+      exitFullscreenText: resolveKey('exit_fullscreen', def.exitFullscreenText),
       liveText: resolveKey('live', def.liveText),
       goLiveText: resolveKey('go_live', def.goLiveText),
       speed2xText: resolveKey('speed_2x', def.speed2xText),
@@ -1051,32 +1051,27 @@ class PlayerTextConfig {
       videoCannotBeLoadedSecurityPolicyText: translate(
           'video_security_policy_error',
           def.videoCannotBeLoadedSecurityPolicyText),
-      playerSettingsText:
-          translate('player_settings', def.playerSettingsText),
+      playerSettingsText: translate('player_settings', def.playerSettingsText),
       autoPlayText: translate('auto_play', def.autoPlayText),
       loopVideoText: translate('loop_video', def.loopVideoText),
-      forceHdQualityText:
-          translate('force_hd_quality', def.forceHdQualityText),
-      enableCaptionsText:
-          translate('enable_captions', def.enableCaptionsText),
+      forceHdQualityText: translate('force_hd_quality', def.forceHdQualityText),
+      enableCaptionsText: translate('enable_captions', def.enableCaptionsText),
       muteAudioText: translate('mute_audio', def.muteAudioText),
       unmuteAudioText: translate('unmute_audio', def.unmuteAudioText),
-      noQualitiesAvailableText: translate(
-          'no_qualities_available', def.noQualitiesAvailableText),
-      noSubtitlesAvailableText: translate(
-          'no_subtitles_available', def.noSubtitlesAvailableText),
+      noQualitiesAvailableText:
+          translate('no_qualities_available', def.noQualitiesAvailableText),
+      noSubtitlesAvailableText:
+          translate('no_subtitles_available', def.noSubtitlesAvailableText),
       qualityText: translate('quality', def.qualityText),
       subtitlesText: translate('subtitles', def.subtitlesText),
-      playbackSpeedText:
-          translate('playback_speed', def.playbackSpeedText),
+      playbackSpeedText: translate('playback_speed', def.playbackSpeedText),
       normalSpeedText: translate('normal_speed', def.normalSpeedText),
       autoText: translate('auto', def.autoText),
       offText: translate('off', def.offText),
       skipBackwardText: translate('skip_backward', def.skipBackwardText),
       skipForwardText: translate('skip_forward', def.skipForwardText),
       miniPlayerText: translate('mini_player', def.miniPlayerText),
-      restorePlayerText:
-          translate('restore_player', def.restorePlayerText),
+      restorePlayerText: translate('restore_player', def.restorePlayerText),
       expandPlayerText: translate('expand_player', def.expandPlayerText),
       closeMiniPlayerText:
           translate('close_mini_player', def.closeMiniPlayerText),
@@ -1084,8 +1079,7 @@ class PlayerTextConfig {
       pauseText: translate('pause', def.pauseText),
       stopVideoText: translate('stop_video', def.stopVideoText),
       fullscreenText: translate('fullscreen', def.fullscreenText),
-      exitFullscreenText:
-          translate('exit_fullscreen', def.exitFullscreenText),
+      exitFullscreenText: translate('exit_fullscreen', def.exitFullscreenText),
       liveText: translate('live', def.liveText),
       goLiveText: translate('go_live', def.goLiveText),
       speed2xText: translate('speed_2x', def.speed2xText),

@@ -1,3 +1,21 @@
+## 2.0.1
+
+- **Feature (Background Auto-PiP across Native Platforms):**
+  - Added automatic Picture-in-Picture mode when the application is minimized or backgrounded during active playback across all native platforms (**Android, iOS, Windows, macOS, and Linux**).
+  - **Web (Chrome 120+ / Edge)**: Added standard `autopictureinpicture` HTML attribute support with continuous `MutationObserver` synchronization. Supported Chromium browsers now automatically pop out the video into native OS PiP upon switching tabs or navigating away during active playback.
+  - **Windows & macOS**: Seamlessly transitions minimized/backgrounded windows into a compact, always-on-top floating PiP window (`380x214`) positioned at the bottom-right corner without enlarging or getting stuck in full-size.
+  - **iOS 14.2+**: Enabled seamless native inline auto-PiP using `AVPictureInPictureController.canStartPictureInPictureAutomaticallyFromInline`, synchronous background playback coordination, and automatic unmute/mute state handoff.
+  - **Android 12+ (API 31+)**: Enabled native seamless transitions via `PictureInPictureParams.Builder.setAutoEnterEnabled(true)`.
+  - **Android 8.0–11 (API 26–30)**: Added `onUserLeaveHint` listener support in `AdaptiveVideoPlayerPlugin` and example `MainActivity`.
+  - **Linux**: Gracefully transitions to in-app floating mini-player overlay during background lifecycle events.
+- **Enhancement (Universal PiP Controls in Normal Video Player):**
+  - Enabled on-screen Picture-in-Picture (PiP / mini-player) button across all platforms (phones, tablets, desktop, and web) in `NormalVideoPlayer`.
+  - Resolved YouTube desktop PiP re-sync issue on Windows, ensuring the PiP button immediately restores upon closing PiP without requiring fullscreen toggling.
+- **Fix (PiP & Compact Layout Responsive Overflow):**
+  - Resolved `RenderFlex` overflow errors in `MobilePlayerChrome` by dynamically adjusting vertical padding, hiding top bar when height < 95px, and scaling transport controls with `FittedBox`.
+- **Quality Assurance:**
+  - 100% test pass rate across 260 unit and widget tests with zero static analysis warnings.
+
 ## 2.0.0
 
 - **Feature (Anti-Screen Capture Shield):**

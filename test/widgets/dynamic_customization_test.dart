@@ -51,7 +51,8 @@ class _FakeVideoPlayerController extends VideoPlayerController {
 
 void main() {
   group('Dynamic Localization & Directionality Tests', () {
-    testWidgets('PlayerTextConfig resolveTextDirection detects RTL from ambient or config',
+    testWidgets(
+        'PlayerTextConfig resolveTextDirection detects RTL from ambient or config',
         (tester) async {
       // Explicit Arabic preset -> RTL
       await tester.pumpWidget(
@@ -93,16 +94,27 @@ void main() {
               builder: (context) {
                 // Arabic is RTL
                 final arConfig = PlayerTextConfig.fromLanguageCode('ar');
-                expect(arConfig.resolveTextDirection(context), TextDirection.rtl);
+                expect(
+                    arConfig.resolveTextDirection(context), TextDirection.rtl);
                 expect(arConfig.isRtl, true);
 
                 // English is LTR
                 final enConfig = PlayerTextConfig.fromLanguageCode('en');
-                expect(enConfig.resolveTextDirection(context), TextDirection.ltr);
+                expect(
+                    enConfig.resolveTextDirection(context), TextDirection.ltr);
                 expect(enConfig.isRtl, false);
 
                 // Turkish, French, German, Spanish, Italian, Russian are all LTR (same as English)
-                for (final code in ['tr', 'fr', 'de', 'es', 'it', 'ru', 'ja', 'zh']) {
+                for (final code in [
+                  'tr',
+                  'fr',
+                  'de',
+                  'es',
+                  'it',
+                  'ru',
+                  'ja',
+                  'zh'
+                ]) {
                   final cfg = PlayerTextConfig.fromLanguageCode(code);
                   expect(cfg.resolveTextDirection(context), TextDirection.ltr,
                       reason: '$code must have LTR direction like en');
@@ -138,7 +150,8 @@ void main() {
                 );
 
                 expect(trConfig.languageCode, 'tr');
-                expect(trConfig.resolveTextDirection(context), TextDirection.ltr);
+                expect(
+                    trConfig.resolveTextDirection(context), TextDirection.ltr);
                 expect(trConfig.playerSettingsText, 'Ayarlar');
                 expect(trConfig.qualityText, 'Kalite');
                 expect(trConfig.subtitlesText, 'Altyazılar');
@@ -159,7 +172,8 @@ void main() {
                 );
 
                 expect(arabicTrConfig.languageCode, 'ar');
-                expect(arabicTrConfig.resolveTextDirection(context), TextDirection.rtl);
+                expect(arabicTrConfig.resolveTextDirection(context),
+                    TextDirection.rtl);
                 expect(arabicTrConfig.isRtl, true);
                 expect(arabicTrConfig.playText, 'تشغيل');
                 expect(arabicTrConfig.pauseText, 'إيقاف مؤقت');
@@ -175,7 +189,8 @@ void main() {
       );
     });
 
-    testWidgets('AdaptiveBottomBar displays localized tooltips in Arabic and Spanish',
+    testWidgets(
+        'AdaptiveBottomBar displays localized tooltips in Arabic and Spanish',
         (tester) async {
       final controller = _FakeVideoPlayerController();
 
@@ -218,7 +233,8 @@ void main() {
   });
 
   group('Dynamic Visibility Config Tests', () {
-    testWidgets('AdaptiveBottomBar hides volume and time display when visibility flags are false',
+    testWidgets(
+        'AdaptiveBottomBar hides volume and time display when visibility flags are false',
         (tester) async {
       final controller = _FakeVideoPlayerController();
 
@@ -251,7 +267,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveControlsLayer hides center play/pause and progress bar when disabled',
+    testWidgets(
+        'AdaptiveControlsLayer hides center play/pause and progress bar when disabled',
         (tester) async {
       final controller = _FakeVideoPlayerController();
 
@@ -277,7 +294,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptivePlayerSettingsSheet respects quality and subtitle visibility flags',
+    testWidgets(
+        'AdaptivePlayerSettingsSheet respects quality and subtitle visibility flags',
         (tester) async {
       // Both false -> neither shown
       await tester.pumpWidget(
@@ -289,7 +307,8 @@ void main() {
                 showSubtitlesSetting: false,
               ),
               qualities: [
-                VideoQuality(title: '1080p HD', url: 'https://example.com/1080.mp4'),
+                VideoQuality(
+                    title: '1080p HD', url: 'https://example.com/1080.mp4'),
               ],
               subtitles: [
                 SubtitleTrack(id: 'en', title: 'English'),
@@ -312,7 +331,8 @@ void main() {
                 showSubtitlesSetting: false,
               ),
               qualities: [
-                VideoQuality(title: '1080p HD', url: 'https://example.com/1080.mp4'),
+                VideoQuality(
+                    title: '1080p HD', url: 'https://example.com/1080.mp4'),
               ],
               subtitles: [
                 SubtitleTrack(id: 'en', title: 'English'),
@@ -325,7 +345,6 @@ void main() {
       expect(find.text('Quality (Resolution)'), findsOneWidget);
       expect(find.text('Subtitles'), findsNothing);
     });
-
   });
 
   group('Dynamic Styling Config Tests', () {
@@ -360,7 +379,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveProgressBar respects mirrorProgressBarInRtl configuration',
+    testWidgets(
+        'AdaptiveProgressBar respects mirrorProgressBarInRtl configuration',
         (tester) async {
       final controller = _FakeVideoPlayerController();
 
@@ -379,10 +399,12 @@ void main() {
         ),
       );
 
-      Directionality dirWidget = tester.widget(find.descendant(
-        of: find.byType(AdaptiveProgressBar),
-        matching: find.byType(Directionality),
-      ).first);
+      Directionality dirWidget = tester.widget(find
+          .descendant(
+            of: find.byType(AdaptiveProgressBar),
+            matching: find.byType(Directionality),
+          )
+          .first);
       expect(dirWidget.textDirection, TextDirection.rtl);
 
       // Explicit opt-out: mirrorProgressBarInRtl = false -> LTR even in Arabic
@@ -395,16 +417,19 @@ void main() {
               onDragChanged: (_) {},
               onDragEnd: (_) {},
               messages: const PlayerTextConfig.arabic(),
-              playback: const PlayerPlaybackConfig(mirrorProgressBarInRtl: false),
+              playback:
+                  const PlayerPlaybackConfig(mirrorProgressBarInRtl: false),
             ),
           ),
         ),
       );
 
-      dirWidget = tester.widget(find.descendant(
-        of: find.byType(AdaptiveProgressBar),
-        matching: find.byType(Directionality),
-      ).first);
+      dirWidget = tester.widget(find
+          .descendant(
+            of: find.byType(AdaptiveProgressBar),
+            matching: find.byType(Directionality),
+          )
+          .first);
       expect(dirWidget.textDirection, TextDirection.ltr);
 
       // Explicit: mirrorProgressBarInRtl = true in Arabic -> RTL
@@ -417,16 +442,19 @@ void main() {
               onDragChanged: (_) {},
               onDragEnd: (_) {},
               messages: const PlayerTextConfig.arabic(),
-              playback: const PlayerPlaybackConfig(mirrorProgressBarInRtl: true),
+              playback:
+                  const PlayerPlaybackConfig(mirrorProgressBarInRtl: true),
             ),
           ),
         ),
       );
 
-      dirWidget = tester.widget(find.descendant(
-        of: find.byType(AdaptiveProgressBar),
-        matching: find.byType(Directionality),
-      ).first);
+      dirWidget = tester.widget(find
+          .descendant(
+            of: find.byType(AdaptiveProgressBar),
+            matching: find.byType(Directionality),
+          )
+          .first);
       expect(dirWidget.textDirection, TextDirection.rtl);
 
       await controller.dispose();

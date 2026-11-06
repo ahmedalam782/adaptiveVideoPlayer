@@ -36,47 +36,47 @@ class DemoPreviewSpec {
   static DemoPreviewSpec of(DemoPreviewMode mode) {
     return switch (mode) {
       DemoPreviewMode.phone => const DemoPreviewSpec(
-          mode: DemoPreviewMode.phone,
-          window: Size(844, 390),
-          player: Size(800, 450),
-          outerWidth: 836,
-          outerHeight: 490,
-          bezel: EdgeInsets.fromLTRB(18, 18, 18, 22),
-          titleBarHeight: 0,
-          outerRadius: 36,
-          screenRadius: 18,
-          accent: Color(0xFFE50914),
-          title: 'Phone · 844×390',
-          detail: 'Lock, brightness, and labeled actions',
-        ),
+        mode: DemoPreviewMode.phone,
+        window: Size(844, 390),
+        player: Size(800, 450),
+        outerWidth: 836,
+        outerHeight: 490,
+        bezel: EdgeInsets.fromLTRB(18, 18, 18, 22),
+        titleBarHeight: 0,
+        outerRadius: 36,
+        screenRadius: 18,
+        accent: Color(0xFFE50914),
+        title: 'Phone · 844×390',
+        detail: 'Lock, brightness, and labeled actions',
+      ),
       DemoPreviewMode.tablet => const DemoPreviewSpec(
-          mode: DemoPreviewMode.tablet,
-          window: Size(1180, 820),
-          player: Size(1024, 576),
-          outerWidth: 1048,
-          outerHeight: 632,
-          bezel: EdgeInsets.all(12),
-          titleBarHeight: 32,
-          outerRadius: 22,
-          screenRadius: 10,
-          accent: Color(0xFF818CF8),
-          title: 'Tablet',
-          detail: 'Window chrome with panels that fit',
-        ),
+        mode: DemoPreviewMode.tablet,
+        window: Size(1180, 820),
+        player: Size(1024, 576),
+        outerWidth: 1048,
+        outerHeight: 632,
+        bezel: EdgeInsets.all(12),
+        titleBarHeight: 32,
+        outerRadius: 22,
+        screenRadius: 10,
+        accent: Color(0xFF818CF8),
+        title: 'Tablet',
+        detail: 'Window chrome with panels that fit',
+      ),
       DemoPreviewMode.desktop => const DemoPreviewSpec(
-          mode: DemoPreviewMode.desktop,
-          window: Size(1600, 1000),
-          player: Size(1280, 720),
-          outerWidth: 1300,
-          outerHeight: 772,
-          bezel: EdgeInsets.fromLTRB(10, 8, 10, 10),
-          titleBarHeight: 34,
-          outerRadius: 16,
-          screenRadius: 8,
-          accent: Color(0xFF38BDF8),
-          title: 'Desktop & web',
-          detail: 'Window chrome with floating panels',
-        ),
+        mode: DemoPreviewMode.desktop,
+        window: Size(1600, 1000),
+        player: Size(1280, 720),
+        outerWidth: 1300,
+        outerHeight: 772,
+        bezel: EdgeInsets.fromLTRB(10, 8, 10, 10),
+        titleBarHeight: 34,
+        outerRadius: 16,
+        screenRadius: 8,
+        accent: Color(0xFF38BDF8),
+        title: 'Desktop & web',
+        detail: 'Window chrome with floating panels',
+      ),
     };
   }
 
@@ -151,7 +151,9 @@ class DemoModeCard extends StatelessWidget {
             border: Border.all(
               color: selected
                   ? spec.accent
-                  : (isDark ? const Color(0xFF2A3348) : const Color(0xFFE2E8F0)),
+                  : (isDark
+                        ? const Color(0xFF2A3348)
+                        : const Color(0xFFE2E8F0)),
               width: selected ? 1.6 : 1,
             ),
           ),
@@ -166,7 +168,10 @@ class DemoModeCard extends StatelessWidget {
                   spec.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -201,11 +206,7 @@ class DemoPreviewStage extends StatelessWidget {
   final DemoPreviewMode mode;
   final Widget child;
 
-  const DemoPreviewStage({
-    super.key,
-    required this.mode,
-    required this.child,
-  });
+  const DemoPreviewStage({super.key, required this.mode, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -222,9 +223,7 @@ class DemoPreviewStage extends StatelessWidget {
             isDark ? const Color(0xFF0C1018) : const Color(0xFFF8FAFC),
           ],
         ),
-        border: Border.all(
-          color: spec.accent.withValues(alpha: 0.28),
-        ),
+        border: Border.all(color: spec.accent.withValues(alpha: 0.28)),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 14),
@@ -323,11 +322,7 @@ class DemoDeviceFrame extends StatelessWidget {
   final DemoPreviewSpec spec;
   final Widget child;
 
-  const DemoDeviceFrame({
-    super.key,
-    required this.spec,
-    required this.child,
-  });
+  const DemoDeviceFrame({super.key, required this.spec, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -434,11 +429,7 @@ class DemoSurfaceScope extends StatelessWidget {
   final DemoPreviewSpec spec;
   final Widget child;
 
-  const DemoSurfaceScope({
-    super.key,
-    required this.spec,
-    required this.child,
-  });
+  const DemoSurfaceScope({super.key, required this.spec, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +440,10 @@ class DemoSurfaceScope extends StatelessWidget {
       viewInsets: EdgeInsets.zero,
     );
     if (spec.mode == DemoPreviewMode.phone) {
-      return MediaQuery(data: data, child: SizedBox.expand(child: child));
+      return MediaQuery(
+        data: data,
+        child: SizedBox.expand(child: child),
+      );
     }
     return MediaQuery(
       data: data,
@@ -472,91 +466,91 @@ class DemoTryStep {
   static List<DemoTryStep> forMode(DemoPreviewMode mode) {
     return switch (mode) {
       DemoPreviewMode.phone => const [
-          DemoTryStep(
-            icon: Icons.touch_app_rounded,
-            title: 'Show controls',
-            detail: 'Tap the picture',
-          ),
-          DemoTryStep(
-            icon: Icons.lock_rounded,
-            title: 'Lock',
-            detail: 'Then tap the badge to unlock',
-          ),
-          DemoTryStep(
-            icon: Icons.brightness_6_rounded,
-            title: 'Brightness',
-            detail: 'Drag the slider on the right',
-          ),
-          DemoTryStep(
-            icon: Icons.subtitles_rounded,
-            title: 'Audio & subtitles',
-            detail: 'Two columns fill the screen',
-          ),
-          DemoTryStep(
-            icon: Icons.view_carousel_rounded,
-            title: 'Episodes',
-            detail: 'Switch season on Big Buck Bunny',
-          ),
-          DemoTryStep(
-            icon: Icons.speed_rounded,
-            title: 'Speed',
-            detail: 'Slider from 0.5x to 1.5x',
-          ),
-        ],
+        DemoTryStep(
+          icon: Icons.touch_app_rounded,
+          title: 'Show controls',
+          detail: 'Tap the picture',
+        ),
+        DemoTryStep(
+          icon: Icons.lock_rounded,
+          title: 'Lock',
+          detail: 'Then tap the badge to unlock',
+        ),
+        DemoTryStep(
+          icon: Icons.brightness_6_rounded,
+          title: 'Brightness',
+          detail: 'Drag the slider on the right',
+        ),
+        DemoTryStep(
+          icon: Icons.subtitles_rounded,
+          title: 'Audio & subtitles',
+          detail: 'Two columns fill the screen',
+        ),
+        DemoTryStep(
+          icon: Icons.view_carousel_rounded,
+          title: 'Episodes',
+          detail: 'Switch season on Big Buck Bunny',
+        ),
+        DemoTryStep(
+          icon: Icons.speed_rounded,
+          title: 'Speed',
+          detail: 'Slider from 0.5x to 1.5x',
+        ),
+      ],
       DemoPreviewMode.tablet => const [
-          DemoTryStep(
-            icon: Icons.touch_app_rounded,
-            title: 'Show controls',
-            detail: 'Tap the picture',
-          ),
-          DemoTryStep(
-            icon: Icons.swap_horiz_rounded,
-            title: 'Scroll actions',
-            detail: 'The bar keeps every icon',
-          ),
-          DemoTryStep(
-            icon: Icons.subtitles_rounded,
-            title: 'Audio',
-            detail: 'The panel fills the window',
-          ),
-          DemoTryStep(
-            icon: Icons.view_carousel_rounded,
-            title: 'Episodes',
-            detail: 'Horizontal rail inside the window',
-          ),
-          DemoTryStep(
-            icon: Icons.speed_rounded,
-            title: 'Speed',
-            detail: 'Opens as a bottom sheet',
-          ),
-        ],
+        DemoTryStep(
+          icon: Icons.touch_app_rounded,
+          title: 'Show controls',
+          detail: 'Tap the picture',
+        ),
+        DemoTryStep(
+          icon: Icons.swap_horiz_rounded,
+          title: 'Scroll actions',
+          detail: 'The bar keeps every icon',
+        ),
+        DemoTryStep(
+          icon: Icons.subtitles_rounded,
+          title: 'Audio',
+          detail: 'The panel fills the window',
+        ),
+        DemoTryStep(
+          icon: Icons.view_carousel_rounded,
+          title: 'Episodes',
+          detail: 'Horizontal rail inside the window',
+        ),
+        DemoTryStep(
+          icon: Icons.speed_rounded,
+          title: 'Speed',
+          detail: 'Opens as a bottom sheet',
+        ),
+      ],
       DemoPreviewMode.desktop => const [
-          DemoTryStep(
-            icon: Icons.touch_app_rounded,
-            title: 'Show controls',
-            detail: 'Tap the picture',
-          ),
-          DemoTryStep(
-            icon: Icons.subtitles_rounded,
-            title: 'Audio',
-            detail: 'Opens as a floating card',
-          ),
-          DemoTryStep(
-            icon: Icons.video_library_rounded,
-            title: 'Episodes',
-            detail: 'Floating list on Big Buck Bunny',
-          ),
-          DemoTryStep(
-            icon: Icons.speed_rounded,
-            title: 'Speed',
-            detail: 'Floating card, clamped to the player',
-          ),
-          DemoTryStep(
-            icon: Icons.settings_rounded,
-            title: 'Settings',
-            detail: 'Drag the card by its handle',
-          ),
-        ],
+        DemoTryStep(
+          icon: Icons.touch_app_rounded,
+          title: 'Show controls',
+          detail: 'Tap the picture',
+        ),
+        DemoTryStep(
+          icon: Icons.subtitles_rounded,
+          title: 'Audio',
+          detail: 'Opens as a floating card',
+        ),
+        DemoTryStep(
+          icon: Icons.video_library_rounded,
+          title: 'Episodes',
+          detail: 'Floating list on Big Buck Bunny',
+        ),
+        DemoTryStep(
+          icon: Icons.speed_rounded,
+          title: 'Speed',
+          detail: 'Floating card, clamped to the player',
+        ),
+        DemoTryStep(
+          icon: Icons.settings_rounded,
+          title: 'Settings',
+          detail: 'Drag the card by its handle',
+        ),
+      ],
     };
   }
 }

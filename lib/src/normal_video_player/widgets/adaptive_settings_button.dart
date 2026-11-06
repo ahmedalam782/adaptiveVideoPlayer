@@ -45,8 +45,10 @@ class AdaptiveSettingsButton extends StatelessWidget {
     final media = MediaQuery.of(context);
     final screenSize = media.size;
 
-    final rightPos = (screenSize.width - offset.dx - size.width).clamp(16.0, screenSize.width - 340.0);
-    final bottomPos = (screenSize.height - offset.dy + 8.0).clamp(16.0, screenSize.height - 360.0);
+    final rightPos = (screenSize.width - offset.dx - size.width)
+        .clamp(16.0, screenSize.width - 340.0);
+    final bottomPos = (screenSize.height - offset.dy + 8.0)
+        .clamp(16.0, screenSize.height - 360.0);
     final isWide = media.size.width > 600 || isFullScreen;
 
     if (isWide) {

@@ -22,12 +22,14 @@ class TestControlsWidgetState extends State<TestControlsWidget>
 
 void main() {
   group('ControlsVisibilityMixin', () {
-    testWidgets('auto-hides after timeout and responds to show/hide/toggle', (tester) async {
+    testWidgets('auto-hides after timeout and responds to show/hide/toggle',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(home: TestControlsWidget()),
       );
 
-      final state = tester.state<TestControlsWidgetState>(find.byType(TestControlsWidget));
+      final state = tester
+          .state<TestControlsWidgetState>(find.byType(TestControlsWidget));
       expect(state.isControlsVisible, isTrue);
 
       // Wait for autoHideTimeout

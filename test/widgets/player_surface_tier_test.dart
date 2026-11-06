@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:adaptive_video_player/src/normal_video_player/utils/player_surface_tier.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -57,7 +56,8 @@ void main() {
       );
     });
 
-    testWidgets('fullscreen keeps the phone design on a wide window', (tester) async {
+    testWidgets('fullscreen keeps the phone design on a wide window',
+        (tester) async {
       PlayerSurfaceTier? seen;
       await tester.pumpWidget(
         MediaQuery(
@@ -94,6 +94,167 @@ void main() {
         ),
         PlayerSurfaceTier.tablet,
       );
+    });
+  });
+
+  group('isDesktopSurface', () {
+    testWidgets('returns false on phone screen', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      try {
+        bool? result;
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: Size(390, 844)),
+            child: Builder(
+              builder: (context) {
+                result = isDesktopSurface(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        expect(result, false);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('returns false on tablet screen', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      try {
+        bool? result;
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: Size(1180, 820)),
+            child: Builder(
+              builder: (context) {
+                result = isDesktopSurface(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        expect(result, false);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('returns false on Android even with large screen',
+        (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        bool? result;
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: Size(1920, 1080)),
+            child: Builder(
+              builder: (context) {
+                result = isDesktopSurface(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        expect(result, false);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('returns false on iOS even with large screen', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        bool? result;
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: Size(1920, 1080)),
+            child: Builder(
+              builder: (context) {
+                result = isDesktopSurface(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        expect(result, false);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('returns true on wide desktop window on desktop platform',
+        (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      try {
+        bool? result;
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: Size(1920, 1080)),
+            child: Builder(
+              builder: (context) {
+                result = isDesktopSurface(context);
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        );
+        expect(result, true);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('respects PlayerSurfaceScope', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      try {
+        bool? phoneResult;
+        bool? tabletResult;
+        bool? desktopResult;
+
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: Size(1920, 1080)),
+            child: Column(
+              children: [
+                PlayerSurfaceScope(
+                  tier: PlayerSurfaceTier.phone,
+                  child: Builder(
+                    builder: (context) {
+                      phoneResult = isDesktopSurface(context);
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+                PlayerSurfaceScope(
+                  tier: PlayerSurfaceTier.tablet,
+                  child: Builder(
+                    builder: (context) {
+                      tabletResult = isDesktopSurface(context);
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+                PlayerSurfaceScope(
+                  tier: PlayerSurfaceTier.desktop,
+                  child: Builder(
+                    builder: (context) {
+                      desktopResult = isDesktopSurface(context);
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+        expect(phoneResult, false);
+        expect(tabletResult, false);
+        expect(desktopResult, true);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
   });
 }

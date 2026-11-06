@@ -22,6 +22,7 @@ class MainActivity : FlutterActivity() {
     private var pipChannel: MethodChannel? = null
     private var isPipMode = false
     private var isPlaying = true
+    private var autoPipEnabled = true
     private var leavingPip = false
 
     private val pipReceiver = object : BroadcastReceiver() {
@@ -62,12 +63,20 @@ class MainActivity : FlutterActivity() {
                     result.success(isPipMode)
                 }
                 "setPipEnabled" -> {
-                    // Backgrounding the app must not open PiP. enterPip is explicit.
+                    val map = call.arguments as? Map<*, *>
+                    autoPipEnabled = map?.get("autoPip") as? Boolean
+                        ?: map?.get("enabled") as? Boolean
+                        ?: call.argument<Boolean>("autoPip")
+                        ?: call.argument<Boolean>("enabled")
+                        ?: true
+                    updatePipParams()
                     result.success(true)
                 }
                 "updatePlaybackState" -> {
                     val map = call.arguments as? Map<*, *>
-                    val newPlaying = map?.get("isPlaying") as? Boolean ?: true
+                    val newPlaying = map?.get("isPlaying") as? Boolean
+                        ?: call.argument<Boolean>("isPlaying")
+                        ?: true
                     if (newPlaying != isPlaying) {
                         isPlaying = newPlaying
                         updatePipParams()
@@ -163,11 +172,21 @@ class MainActivity : FlutterActivity() {
             builder.setActions(actions)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                builder.setAutoEnterEnabled(false)
+                builder.setAutoEnterEnabled(autoPipEnabled && isPlaying)
+                builder.setSeamlessResizeEnabled(true)
             }
             return builder.build()
         }
         return null
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (autoPipEnabled && isPlaying && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!isInPictureInPictureMode) {
+                enterPipMode()
+            }
+        }
     }
 
     private fun updatePipParams() {
@@ -194,9 +213,6 @@ class MainActivity : FlutterActivity() {
     private fun enterPipMode(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
         if (isInPictureInPictureMode) return true
-        if (!lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
-            return false
-        }
         return try {
             val params = buildPipParams() ?: return false
             setPictureInPictureParams(params)

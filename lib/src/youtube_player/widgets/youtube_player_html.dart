@@ -30,28 +30,33 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         #adaptive-pip-button {
             position: fixed;
             z-index: 2147483647;
-            right: 70px;
-            bottom: 75px;
-            width: 32px;
-            height: 32px;
+            right: 58px;
+            bottom: 12px;
+            width: 36px;
+            height: 36px;
             margin: 0;
             padding: 0;
             border: 0;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.45);
             color: #fff;
             cursor: pointer;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             pointer-events: auto;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+            transition: background 0.15s ease;
+        }
+
+        #adaptive-pip-button:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
 
         @media (min-width: 800px) and (min-height: 500px) {
             #adaptive-pip-button {
-                right: 75px;
-                bottom: 85px;
+                right: 58px;
+                bottom: 12px;
                 width: 36px;
                 height: 36px;
             }
@@ -81,6 +86,63 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             pointer-events: none !important;
             width: 0 !important;
             height: 0 !important;
+        }
+
+        .ytp-settings-menu,
+        .ytp-popup {
+            max-height: calc(100% - 54px) !important;
+            bottom: 48px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-y !important;
+            overscroll-behavior: contain !important;
+            scrollbar-width: thin !important;
+        }
+
+        .ytp-settings-menu .ytp-panel,
+        .ytp-panel {
+            max-height: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-y !important;
+            overscroll-behavior: contain !important;
+            scrollbar-width: thin !important;
+        }
+
+        .ytp-settings-menu .ytp-panel-menu,
+        .ytp-panel-menu {
+            max-height: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-y !important;
+            overscroll-behavior: contain !important;
+            scrollbar-width: thin !important;
+        }
+
+        .ytp-settings-menu::-webkit-scrollbar,
+        .ytp-panel-menu::-webkit-scrollbar,
+        .ytp-panel::-webkit-scrollbar,
+        .ytp-popup::-webkit-scrollbar {
+            width: 6px !important;
+            display: block !important;
+        }
+
+        .ytp-settings-menu::-webkit-scrollbar-thumb,
+        .ytp-panel-menu::-webkit-scrollbar-thumb,
+        .ytp-panel::-webkit-scrollbar-thumb,
+        .ytp-popup::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-radius: 4px !important;
+        }
+
+        .ytp-settings-menu::-webkit-scrollbar-track,
+        .ytp-panel-menu::-webkit-scrollbar-track,
+        .ytp-panel::-webkit-scrollbar-track,
+        .ytp-popup::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.25) !important;
         }
     </style>
 </head>
@@ -436,16 +498,30 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
         }
 
         var pipButton = document.getElementById('adaptive-pip-button');
-        var showMiniPlayerButton = true;
+        var showMiniPlayerButton = false;
         var pipButtonCompact = false;
         var lastPipAnchor = null;
         function setShowMiniPlayer(show) {
             showMiniPlayerButton = !!show;
-            if (!pipButton) return;
-            pipButton.style.display = showMiniPlayerButton ? 'flex' : 'none';
-            pipButton.style.pointerEvents = showMiniPlayerButton ? 'auto' : 'none';
-            if (showMiniPlayerButton) placePipButton(lastPipAnchor);
+            if (showMiniPlayerButton && lastPipAnchor && lastPipAnchor.visible === false) {
+                lastPipAnchor = null;
+            }
+            if (pipButton) {
+                pipButton.style.display = showMiniPlayerButton ? 'flex' : 'none';
+                pipButton.style.pointerEvents = showMiniPlayerButton ? 'auto' : 'none';
+                if (showMiniPlayerButton) placePipButton(lastPipAnchor);
+            }
+            var msg = { type: 'adaptive-set-mini-player', show: showMiniPlayerButton };
+            var frames = document.querySelectorAll('iframe');
+            for (var i = 0; i < frames.length; i++) {
+                try { frames[i].contentWindow.postMessage(msg, '*'); } catch (e) {}
+            }
         }
+        window.addEventListener('resize', function() {
+            if (showMiniPlayerButton && pipButton) {
+                placePipButton(lastPipAnchor);
+            }
+        });
         function setPipButtonCompact(compact) {
             pipButtonCompact = !!compact;
             placePipButton(lastPipAnchor);
@@ -464,7 +540,7 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             }
             var rtl = dirFlag === 'rtl' || !!(data && data.rtl);
             var phone = phoneSized();
-            if (data && data.visible && (pipButtonCompact || phone || rtl)) {
+            if (data && data.visible && typeof data.left === 'number') {
                 var frame = document.querySelector('iframe');
                 var frameBox = frame ? frame.getBoundingClientRect() : { top: 0, left: 0, width: window.innerWidth };
                 var frameWidth = frameBox.width || window.innerWidth;
@@ -493,9 +569,9 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
             }
             pipButton.style.top = 'auto';
             pipButton.style.display = 'flex';
-            var inset = pipButtonCompact ? '60px' : (phone ? '60px' : '75px');
-            var bottom = pipButtonCompact ? '60px' : (phone ? '60px' : '85px');
-            var size = pipButtonCompact ? '40px' : '36px';
+            var inset = pipButtonCompact ? '60px' : (phone ? '75px' : '75px');
+            var bottom = pipButtonCompact ? '10px' : (phone ? '85px' : '85px');
+            var size = pipButtonCompact ? '36px' : '36px';
             pipButton.style.bottom = bottom;
             pipButton.style.width = size;
             pipButton.style.height = size;
@@ -529,9 +605,13 @@ const String kYouTubePlayerHtml = r'''<!DOCTYPE html>
                 return;
             }
             if (data.type !== 'adaptive-pip-anchor' || !pipButton) return;
-            if (!showMiniPlayerButton || data.inline || !data.visible) {
+            if (!showMiniPlayerButton || data.inline) {
                 pipButton.style.display = 'none';
-                if (!data.visible) lastPipAnchor = data;
+                return;
+            }
+            if (!data.visible) {
+                pipButton.style.display = 'none';
+                lastPipAnchor = data;
                 return;
             }
             lastPipAnchor = data;

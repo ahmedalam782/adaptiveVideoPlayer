@@ -72,7 +72,8 @@ class AdaptiveVideoPlayerPlatform {
       android: false, // Natively supported by video_player
       iOS: false, // Natively supported by video_player
       macOS: false, // Natively supported by video_player
-      windows: windowsUseMediaKit, // Uses media_kit (libmpv) to prevent WMF buffering loops
+      windows:
+          windowsUseMediaKit, // Uses media_kit (libmpv) to prevent WMF buffering loops
       linux: true, // Use media_kit backend
     );
   }

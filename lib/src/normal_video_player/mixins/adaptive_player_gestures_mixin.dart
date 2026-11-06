@@ -85,8 +85,9 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
     if (widget.isLive) return;
     if (!(widget.visibility?.showSkipButtons ?? true)) return;
 
-    final playerWidth = (context.findRenderObject() as RenderBox?)?.size.width ??
-        MediaQuery.sizeOf(context).width;
+    final playerWidth =
+        (context.findRenderObject() as RenderBox?)?.size.width ??
+            MediaQuery.sizeOf(context).width;
     final isRtl = (widget.messages?.resolveTextDirection(context) ??
             Directionality.of(context)) ==
         TextDirection.rtl;
@@ -102,8 +103,7 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
     if (isForward) {
       if (showSeekFeedback) triggerSeekFeedback(1, onRestartHideTimer);
       final newPosition = currentPosition + skipDuration;
-      widget.controller
-          .seekTo(newPosition > duration ? duration : newPosition);
+      widget.controller.seekTo(newPosition > duration ? duration : newPosition);
     } else {
       if (showSeekFeedback) triggerSeekFeedback(-1, onRestartHideTimer);
       final newPosition = currentPosition - skipDuration;

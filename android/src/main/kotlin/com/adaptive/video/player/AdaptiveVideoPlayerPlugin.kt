@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
 import android.content.BroadcastReceiver
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -21,15 +22,30 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.plugin.common.PluginRegistry
 
 class AdaptiveVideoPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
     private var securityChannel: MethodChannel? = null
     private var pipChannel: MethodChannel? = null
     private var activity: Activity? = null
+    private var activityBinding: ActivityPluginBinding? = null
     private var context: Context? = null
 
     private val ACTION_PIP_CONTROL = "com.adaptive.video.player.PIP_ACTION"
-    private var isPlaying = true
+    private var isPlaying = false
+    private var autoPipEnabled = true
+    private var userLeaveHintListener: PluginRegistry.UserLeaveHintListener? = null
+
+    private val componentCallbacks = object : ComponentCallbacks2 {
+        override fun onConfigurationChanged(newConfig: Configuration) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val inPip = activity?.isInPictureInPictureMode ?: false
+                pipChannel?.invokeMethod("onPipModeChanged", inPip)
+            }
+        }
+        override fun onLowMemory() {}
+        override fun onTrimMemory(level: Int) {}
+    }
 
     private val pipReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {
@@ -69,19 +85,62 @@ class AdaptiveVideoPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandle
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activityBinding = binding
         activity = binding.activity
+
+        val listener = PluginRegistry.UserLeaveHintListener {
+            if (autoPipEnabled && isPlaying && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val act = activity
+                if (act != null && !act.isInPictureInPictureMode) {
+                    act.runOnUiThread {
+                        try {
+                            val params = buildPipParams()
+                            if (params != null) {
+                                act.enterPictureInPictureMode(params)
+                            }
+                        } catch (_: Exception) {}
+                    }
+                }
+            }
+            true
+        }
+        userLeaveHintListener = listener
+        binding.addOnUserLeaveHintListener(listener)
+
+        try {
+            binding.activity.registerComponentCallbacks(componentCallbacks)
+        } catch (_: Exception) {}
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPlaying) {
+            activity?.runOnUiThread {
+                try {
+                    val params = buildPipParams()
+                    if (params != null) {
+                        activity?.setPictureInPictureParams(params)
+                    }
+                } catch (_: Exception) {}
+            }
+        }
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        activity = null
+        onDetachedFromActivity()
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        activity = binding.activity
+        onAttachedToActivity(binding)
     }
 
     override fun onDetachedFromActivity() {
+        userLeaveHintListener?.let {
+            activityBinding?.removeOnUserLeaveHintListener(it)
+        }
+        userLeaveHintListener = null
+        try {
+            activity?.unregisterComponentCallbacks(componentCallbacks)
+        } catch (_: Exception) {}
         activity = null
+        activityBinding = null
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -137,13 +196,26 @@ class AdaptiveVideoPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandle
                 }
             }
             "setPipEnabled" -> {
-                // Backgrounding the app must not open PiP. enterPip is explicit.
+                autoPipEnabled = call.argument<Boolean>("autoPip")
+                    ?: call.argument<Boolean>("enabled")
+                    ?: true
+                val act = activity
+                if (act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    act.runOnUiThread {
+                        try {
+                            val params = buildPipParams()
+                            if (params != null) {
+                                act.setPictureInPictureParams(params)
+                            }
+                        } catch (_: Exception) {}
+                    }
+                }
                 result.success(true)
             }
             "updatePlaybackState" -> {
                 isPlaying = call.argument<Boolean>("isPlaying") ?: true
                 val act = activity
-                if (act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && act.isInPictureInPictureMode) {
+                if (act != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     act.runOnUiThread {
                         try {
                             val params = buildPipParams()
@@ -227,7 +299,7 @@ class AdaptiveVideoPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandle
             .setActions(actions)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setAutoEnterEnabled(false)
+            builder.setAutoEnterEnabled(autoPipEnabled && isPlaying)
             builder.setSeamlessResizeEnabled(true)
         }
 

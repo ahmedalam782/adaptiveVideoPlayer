@@ -42,6 +42,7 @@ bool enterDesktopPipMode({int width = 380, int height = 214}) {
   try {
     final video = web.document.querySelector('video') as web.HTMLVideoElement?;
     if (video != null && web.document.pictureInPictureElement == null) {
+      video.setAttribute('autopictureinpicture', '');
       video.requestPictureInPicture();
       return true;
     }
@@ -66,6 +67,59 @@ bool isDesktopPipMode() {
     return false;
   }
 }
+
+web.MutationObserver? _autoPipObserver;
+bool _webAutoPipEnabled = false;
+
+void _applyAutoPipToVideos(bool enabled) {
+  try {
+    final videos = web.document.querySelectorAll('video');
+    for (var i = 0; i < videos.length; i++) {
+      final video = videos.item(i) as web.HTMLVideoElement?;
+      if (video != null) {
+        if (enabled) {
+          video.setAttribute('autopictureinpicture', '');
+        } else {
+          video.removeAttribute('autopictureinpicture');
+        }
+      }
+    }
+  } catch (_) {}
+}
+
+/// Enables or disables modern browser Auto-PiP on Web (`autopictureinpicture` attribute on <video>).
+/// Supported natively in Chrome 120+ and Edge upon tab switching or backgrounding during playback.
+void enableWebAutoPictureInPicture(bool enabled) {
+  _webAutoPipEnabled = enabled;
+  try {
+    _applyAutoPipToVideos(enabled);
+
+    if (enabled) {
+      if (_autoPipObserver == null) {
+        _autoPipObserver = web.MutationObserver(
+          ((JSArray<web.MutationRecord> _, web.MutationObserver __) {
+            if (!_webAutoPipEnabled) return;
+            _applyAutoPipToVideos(true);
+          }).toJS,
+        );
+        final root = web.document.documentElement ?? web.document.body;
+        if (root != null) {
+          _autoPipObserver?.observe(
+            root,
+            web.MutationObserverInit(
+              childList: true,
+              subtree: true,
+            ),
+          );
+        }
+      }
+    } else {
+      _autoPipObserver?.disconnect();
+      _autoPipObserver = null;
+    }
+  } catch (_) {}
+}
+
 void restoreDesktopWindowIfStuckInPip() {}
 
 web.HTMLDivElement? _shieldElement;
@@ -216,7 +270,8 @@ void applyDesktopScreenProtection(
         shield.style.transition = 'none';
         shield.style.userSelect = 'none';
 
-        (web.document.body ?? web.document.documentElement)?.appendChild(shield);
+        (web.document.body ?? web.document.documentElement)
+            ?.appendChild(shield);
         _shieldElement = shield;
 
         final style =
@@ -233,7 +288,8 @@ void applyDesktopScreenProtection(
 
         _blurCallback = ((web.Event e) => _handleWindowBlur(e)).toJS;
         _focusCallback = ((web.Event e) => _handleWindowFocus(e)).toJS;
-        _keydownCallback = ((web.KeyboardEvent e) => _handleCaptureKeyDown(e)).toJS;
+        _keydownCallback =
+            ((web.KeyboardEvent e) => _handleCaptureKeyDown(e)).toJS;
         _keyupCallback = ((web.KeyboardEvent e) => _handleCaptureKeyUp(e)).toJS;
         _contextmenuCallback = ((web.MouseEvent e) {
           try {
@@ -250,8 +306,10 @@ void applyDesktopScreenProtection(
         web.window.addEventListener('keydown', _keydownCallback!, true.toJS);
         web.window.addEventListener('keyup', _keyupCallback!, true.toJS);
         web.window.addEventListener('contextmenu', _contextmenuCallback!);
-        web.document.addEventListener('mouseout', _pointerOutCallback!, true.toJS);
-        web.document.addEventListener('mouseover', _pointerOverCallback!, true.toJS);
+        web.document
+            .addEventListener('mouseout', _pointerOutCallback!, true.toJS);
+        web.document
+            .addEventListener('mouseover', _pointerOverCallback!, true.toJS);
       }
     } else {
       if (_blurCallback != null) {
@@ -280,11 +338,13 @@ void applyDesktopScreenProtection(
         _contextmenuCallback = null;
       }
       if (_pointerOutCallback != null) {
-        web.document.removeEventListener('mouseout', _pointerOutCallback!, true.toJS);
+        web.document
+            .removeEventListener('mouseout', _pointerOutCallback!, true.toJS);
         _pointerOutCallback = null;
       }
       if (_pointerOverCallback != null) {
-        web.document.removeEventListener('mouseover', _pointerOverCallback!, true.toJS);
+        web.document
+            .removeEventListener('mouseover', _pointerOverCallback!, true.toJS);
         _pointerOverCallback = null;
       }
       _shieldElement?.remove();
@@ -299,4 +359,3 @@ void applyDesktopScreenProtection(
     }
   } catch (_) {}
 }
-

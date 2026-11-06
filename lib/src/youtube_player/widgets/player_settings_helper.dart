@@ -38,6 +38,8 @@ Future<void> showPlayerSettingsSheet({
 }) {
   return showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: settingsBackgroundColor,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),

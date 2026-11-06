@@ -12,6 +12,7 @@ public class AdaptiveVideoPlayerPlugin: NSObject, FlutterPlugin, AVPictureInPict
   private var pipPlayerLayer: AVPlayerLayer?
   private var pipContainerView: UIView?
   private var isPipActive = false
+  private var autoPipEnabled = true
   private var currentVideoUrl: String?
   private var isPlayingState = true
   private var restoreRequested = false
@@ -59,12 +60,13 @@ public class AdaptiveVideoPlayerPlugin: NSObject, FlutterPlugin, AVPictureInPict
       if let b = call.arguments as? Bool {
         enabled = b
       } else if let dict = call.arguments as? [String: Any] {
-        enabled = dict["enabled"] as? Bool ?? false
+        enabled = dict["autoPip"] as? Bool ?? dict["enabled"] as? Bool ?? false
         url = dict["url"] as? String
       }
+      self.autoPipEnabled = enabled
       DispatchQueue.main.async {
         if #available(iOS 14.2, *) {
-          self.pipController?.canStartPictureInPictureAutomaticallyFromInline = false
+          self.pipController?.canStartPictureInPictureAutomaticallyFromInline = self.autoPipEnabled && self.isPlayingState
         }
         if !enabled {
           self.stopPictureInPicture()
@@ -83,11 +85,24 @@ public class AdaptiveVideoPlayerPlugin: NSObject, FlutterPlugin, AVPictureInPict
         let url = args["url"] as? String
         let pos = args["positionMs"] as? Int
         DispatchQueue.main.async {
+          if #available(iOS 14.2, *) {
+            self.pipController?.canStartPictureInPictureAutomaticallyFromInline = self.autoPipEnabled && isPlaying
+          }
           if let u = url {
             self.setupPipPlayer(urlStr: u, positionMs: pos, autoPlay: isPlaying)
           } else if let pos = pos, let player = self.pipPlayer {
             let cmTime = CMTime(value: CMTimeValue(pos), timescale: 1000)
             player.seek(to: cmTime)
+          }
+          if isPlaying {
+            if !self.isPipActive {
+              self.pipPlayer?.isMuted = true
+              self.pipPlayer?.play()
+            }
+          } else {
+            if !self.isPipActive {
+              self.pipPlayer?.pause()
+            }
           }
         }
       }
@@ -191,14 +206,18 @@ public class AdaptiveVideoPlayerPlugin: NSObject, FlutterPlugin, AVPictureInPict
       pipController = AVPictureInPictureController(playerLayer: layer)
       pipController?.delegate = self
       if #available(iOS 14.2, *) {
-        // Backgrounding the app must not open PiP. PiP starts only from enterPip.
-        pipController?.canStartPictureInPictureAutomaticallyFromInline = false
+        pipController?.canStartPictureInPictureAutomaticallyFromInline = autoPipEnabled && isPlayingState
       }
     }
 
     if let pos = positionMs {
       let cmTime = CMTime(value: CMTimeValue(pos), timescale: 1000)
       player.seek(to: cmTime)
+    }
+
+    if autoPlay {
+      player.isMuted = true
+      player.play()
     }
   }
 
@@ -229,6 +248,7 @@ public class AdaptiveVideoPlayerPlugin: NSObject, FlutterPlugin, AVPictureInPict
 
   private func applyPipPlaybackIntent() {
     if isPlayingState {
+      pipPlayer?.isMuted = false
       pipPlayer?.play()
     } else {
       pipPlayer?.pause()
@@ -245,12 +265,14 @@ public class AdaptiveVideoPlayerPlugin: NSObject, FlutterPlugin, AVPictureInPict
       return
     }
     pipPlayer?.pause()
+    pipPlayer?.isMuted = true
     isPipActive = false
   }
 
   // MARK: - AVPictureInPictureControllerDelegate
   public func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
     isPipActive = true
+    pipPlayer?.isMuted = false
     applyPipPlaybackIntent()
     pipChannel?.invokeMethod("onPipModeChanged", arguments: true)
   }
@@ -281,6 +303,7 @@ public class AdaptiveVideoPlayerPlugin: NSObject, FlutterPlugin, AVPictureInPict
     pipWasPlayingOnStop = false
     didCaptureStopPlayback = false
     pipPlayer?.pause()
+    pipPlayer?.isMuted = true
     pipChannel?.invokeMethod("onPipModeChanged", arguments: false)
     pipChannel?.invokeMethod("onPipSessionEnded", arguments: [
       "positionMs": positionMs,

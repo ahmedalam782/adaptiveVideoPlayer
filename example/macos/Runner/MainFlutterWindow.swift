@@ -288,6 +288,10 @@ class MainFlutterWindow: NSWindow {
   private func enterPipMode(width: CGFloat, height: CGFloat) {
     guard !isPipMode else { return }
 
+    if isMiniaturized {
+      deminiaturize(nil)
+    }
+
     // Remember the windowed frame. Restoring it and then shrinking in the
     // same turn freezes AppKit when PiP starts from fullscreen.
     let restoreFrame = savedFullscreenFrame ?? frame

@@ -63,7 +63,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('PlayerIcon & PlayerIconConfig Unit Tests', () {
-    testWidgets('PlayerIcon.icon builds Icon with custom IconData, color, and size',
+    testWidgets(
+        'PlayerIcon.icon builds Icon with custom IconData, color, and size',
         (tester) async {
       const iconDef = PlayerIcon.icon(
         Icons.rocket_launch,
@@ -88,7 +89,8 @@ void main() {
       expect(iconWidget.size, 32);
     });
 
-    testWidgets('PlayerIcon.widget builds custom Widget (SVG / PNG / Custom container)',
+    testWidgets(
+        'PlayerIcon.widget builds custom Widget (SVG / PNG / Custom container)',
         (tester) async {
       final iconDef = PlayerIcon.widget(
         Container(
@@ -113,7 +115,8 @@ void main() {
       expect(find.byKey(const Key('custom_svg_mock')), findsOneWidget);
     });
 
-    testWidgets('PlayerIcon.builder dynamically receives context, color, and size',
+    testWidgets(
+        'PlayerIcon.builder dynamically receives context, color, and size',
         (tester) async {
       final iconDef = PlayerIcon.builder(
         (context, color, size) => Container(
@@ -157,7 +160,8 @@ void main() {
       expect(assetIcon.color, Colors.red);
     });
 
-    testWidgets('PlayerIcon.resolve falls back to fallbackIcon when PlayerIcon is null',
+    testWidgets(
+        'PlayerIcon.resolve falls back to fallbackIcon when PlayerIcon is null',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -196,7 +200,9 @@ void main() {
   });
 
   group('PlayerStyleConfig & PlayerVisibilityConfig Options', () {
-    test('PlayerStyleConfig has defaults and supports progress circle and volume customization', () {
+    test(
+        'PlayerStyleConfig has defaults and supports progress circle and volume customization',
+        () {
       const style = PlayerStyleConfig();
       expect(style.progressBarThumbRadius, 6.0);
       expect(style.progressBarHoverThumbRadius, 7.5);
@@ -251,8 +257,10 @@ void main() {
     });
   });
 
-  group('Widget Customization Tests (Adaptive Controls with Dynamic Icons)', () {
-    testWidgets('AdaptiveBottomBar displays custom play/pause icons (PNG/SVG/Icon/builder)',
+  group('Widget Customization Tests (Adaptive Controls with Dynamic Icons)',
+      () {
+    testWidgets(
+        'AdaptiveBottomBar displays custom play/pause icons (PNG/SVG/Icon/builder)',
         (tester) async {
       final controller = _FakeVideoPlayerController(isPlaying: false);
 
@@ -264,8 +272,10 @@ void main() {
               isFullScreen: false,
               styling: const PlayerStyleConfig(
                 icons: PlayerIconConfig(
-                  playIcon: PlayerIcon.icon(Icons.play_circle_filled, color: Colors.blue),
-                  pauseIcon: PlayerIcon.icon(Icons.pause_circle_filled, color: Colors.red),
+                  playIcon: PlayerIcon.icon(Icons.play_circle_filled,
+                      color: Colors.blue),
+                  pauseIcon: PlayerIcon.icon(Icons.pause_circle_filled,
+                      color: Colors.red),
                 ),
               ),
             ),
@@ -284,7 +294,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveBottomBar displays and triggers dedicated Stop button when showStopButton is true',
+    testWidgets(
+        'AdaptiveBottomBar displays and triggers dedicated Stop button when showStopButton is true',
         (tester) async {
       final controller = _FakeVideoPlayerController(
         isPlaying: true,
@@ -302,7 +313,8 @@ void main() {
               ),
               styling: const PlayerStyleConfig(
                 icons: PlayerIconConfig(
-                  stopIcon: PlayerIcon.icon(Icons.stop_circle_outlined, color: Colors.deepOrange),
+                  stopIcon: PlayerIcon.icon(Icons.stop_circle_outlined,
+                      color: Colors.deepOrange),
                 ),
               ),
             ),
@@ -324,7 +336,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveBottomBar displays custom skip forward (+10s) and skip backward (-10s) icons',
+    testWidgets(
+        'AdaptiveBottomBar displays custom skip forward (+10s) and skip backward (-10s) icons',
         (tester) async {
       final controller = _FakeVideoPlayerController();
 
@@ -353,7 +366,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveVolumeControl displays custom voice / volume icons based on volume level',
+    testWidgets(
+        'AdaptiveVolumeControl displays custom voice / volume icons based on volume level',
         (tester) async {
       final controller = _FakeVideoPlayerController(volume: 0.0);
 
@@ -364,9 +378,12 @@ void main() {
               controller: controller,
               styling: const PlayerStyleConfig(
                 icons: PlayerIconConfig(
-                  volumeMuteIcon: PlayerIcon.icon(Icons.volume_mute, color: Colors.red),
-                  volumeLowIcon: PlayerIcon.icon(Icons.volume_down, color: Colors.yellow),
-                  volumeHighIcon: PlayerIcon.icon(Icons.volume_up, color: Colors.green),
+                  volumeMuteIcon:
+                      PlayerIcon.icon(Icons.volume_mute, color: Colors.red),
+                  volumeLowIcon:
+                      PlayerIcon.icon(Icons.volume_down, color: Colors.yellow),
+                  volumeHighIcon:
+                      PlayerIcon.icon(Icons.volume_up, color: Colors.green),
                 ),
               ),
             ),
@@ -390,7 +407,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveProgressBar respects circle progress circle customization (thumb radius, shape, track height)',
+    testWidgets(
+        'AdaptiveProgressBar respects circle progress circle customization (thumb radius, shape, track height)',
         (tester) async {
       final controller = _FakeVideoPlayerController();
 
@@ -431,7 +449,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveProgressBar can hide thumb when showProgressBarThumb is false',
+    testWidgets(
+        'AdaptiveProgressBar can hide thumb when showProgressBarThumb is false',
         (tester) async {
       final controller = _FakeVideoPlayerController();
 
@@ -462,9 +481,11 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveBufferingIndicator respects loading indicator circle stroke width, color, and size',
+    testWidgets(
+        'AdaptiveBufferingIndicator respects loading indicator circle stroke width, color, and size',
         (tester) async {
-      final controller = _FakeVideoPlayerController(isBuffering: true, isPlaying: true);
+      final controller =
+          _FakeVideoPlayerController(isBuffering: true, isPlaying: true);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -483,7 +504,8 @@ void main() {
 
       final indicatorFinder = find.byType(CircularProgressIndicator);
       expect(indicatorFinder, findsOneWidget);
-      final indicator = tester.widget<CircularProgressIndicator>(indicatorFinder);
+      final indicator =
+          tester.widget<CircularProgressIndicator>(indicatorFinder);
       expect(indicator.color, Colors.tealAccent);
       expect(indicator.strokeWidth, 5.5);
 
@@ -499,7 +521,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('NormalPlayerLoadingWidget uses custom loadingIndicatorBuilder when provided in PlayerStyleConfig',
+    testWidgets(
+        'NormalPlayerLoadingWidget uses custom loadingIndicatorBuilder when provided in PlayerStyleConfig',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -519,7 +542,8 @@ void main() {
       expect(find.byKey(const Key('custom_loading_text')), findsOneWidget);
     });
 
-    testWidgets('AdaptiveCenterPlayPause uses custom PlayerIcon for play and pause',
+    testWidgets(
+        'AdaptiveCenterPlayPause uses custom PlayerIcon for play and pause',
         (tester) async {
       final controller = _FakeVideoPlayerController(isPlaying: false);
 
@@ -549,7 +573,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveFullscreenButton uses custom fullscreen and exitFullscreen icons',
+    testWidgets(
+        'AdaptiveFullscreenButton uses custom fullscreen and exitFullscreen icons',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -607,7 +632,8 @@ void main() {
       expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
     });
 
-    testWidgets('NormalPlayerErrorWidget uses custom errorIcon from PlayerStyleConfig',
+    testWidgets(
+        'NormalPlayerErrorWidget uses custom errorIcon from PlayerStyleConfig',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -628,7 +654,8 @@ void main() {
       expect(find.text('Failed to load video'), findsOneWidget);
     });
 
-    testWidgets('AdaptiveVolumeHudOverlay renders volume slider and custom voice icons',
+    testWidgets(
+        'AdaptiveVolumeHudOverlay renders volume slider and custom voice icons',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -655,7 +682,8 @@ void main() {
       expect(find.text('75%'), findsOneWidget);
     });
 
-    testWidgets('AdaptiveInlineBottomBar renders unified capsule with inline slider, play, and fullscreen',
+    testWidgets(
+        'AdaptiveInlineBottomBar renders unified capsule with inline slider, play, and fullscreen',
         (tester) async {
       final controller = _FakeVideoPlayerController(
         duration: const Duration(minutes: 4, seconds: 32),

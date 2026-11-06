@@ -9,10 +9,9 @@ extension UnifiedPlayerStateExtensions on PlayerState {
       duration > position ? duration - position : Duration.zero;
 
   /// Progress as a normalized value from 0.0 to 1.0
-  double get progressRatio =>
-      duration.inMilliseconds > 0
-          ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
-          : 0.0;
+  double get progressRatio => duration.inMilliseconds > 0
+      ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
+      : 0.0;
 
   /// Formatted position string (MM:SS or HH:MM:SS)
   String get formattedPosition => position.formatTime();
@@ -31,10 +30,9 @@ extension PlayerCubitStateExtensions on PlayerCubitState {
       duration > position ? duration - position : Duration.zero;
 
   /// Progress as a normalized value from 0.0 to 1.0
-  double get progressRatio =>
-      duration.inMilliseconds > 0
-          ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
-          : 0.0;
+  double get progressRatio => duration.inMilliseconds > 0
+      ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
+      : 0.0;
 
   /// Formatted position string
   String get formattedPosition => position.formatTime();

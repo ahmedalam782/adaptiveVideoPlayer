@@ -9,9 +9,9 @@ bool enterDesktopPipMode({int width = 380, int height = 214}) => false;
 void moveDesktopPipWindow(int deltaX, int deltaY) {}
 void exitDesktopPipMode() {}
 bool isDesktopPipMode() => false;
+void enableWebAutoPictureInPicture(bool enabled) {}
 void restoreDesktopWindowIfStuckInPip() {}
 void applyDesktopScreenProtection(
   bool enabled, {
   void Function()? onScreenshot,
 }) {}
-

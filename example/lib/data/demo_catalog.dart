@@ -13,14 +13,11 @@ const _bbb720pUrl =
     'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1280x720_4000k.mp4';
 const _bbb360pUrl =
     'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_640x360_1000k.mp4';
-const _oceansTrailerUrl =
-    'https://vjs.zencdn.net/v/oceans.mp4';
-const _quranUrl =
-    'https://upload.mp3quran.net/group1_pbuh/maher.mp4';
+const _oceansTrailerUrl = 'https://vjs.zencdn.net/v/oceans.mp4';
+const _quranUrl = 'https://upload.mp3quran.net/group1_pbuh/maher.mp4';
 
 // Real-world Adaptive HLS live and VOD streams (with Web MP4 fallbacks for non-Safari browsers)
-const _muxHlsUrl =
-    'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+const _muxHlsUrl = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 const _muxWebFallbackUrl =
     'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4';
 const _flowerNatureUrl =
@@ -31,14 +28,10 @@ const _akamaiWebFallbackUrl =
     'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps_1920x1080_8000k.mp4';
 
 // Real-world YouTube videos and live streams
-const _youtubeCostaRica4k =
-    'https://www.youtube.com/watch?v=LXb3EKWsInQ';
-const _youtubeBigBuckBunny =
-    'https://www.youtube.com/watch?v=aqz-KE-bpKQ';
-const _youtubeLofiLive =
-    'https://www.youtube.com/watch?v=jfKfPfyJRdk';
-const _youtubeNasaLive =
-    'https://www.youtube.com/watch?v=21X5lGlDOfg';
+const _youtubeCostaRica4k = 'https://www.youtube.com/watch?v=LXb3EKWsInQ';
+const _youtubeBigBuckBunny = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ';
+const _youtubeLofiLive = 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
+const _youtubeNasaLive = 'https://www.youtube.com/watch?v=21X5lGlDOfg';
 
 /// Rich real-world catalog for the studio player showcasing every feature.
 List<StudioSource> studioSources() {
@@ -112,7 +105,9 @@ List<StudioSource> studioSources() {
           VideoQuality(title: '360p SD', url: _bbb360pUrl),
         ],
         initialQuality: const VideoQuality(
-            title: 'Auto (1080p)', url: _bbb1080pUrl),
+          title: 'Auto (1080p)',
+          url: _bbb1080pUrl,
+        ),
         audioTracks: const [
           AudioTrack(
             id: 'en_stereo',
@@ -121,16 +116,8 @@ List<StudioSource> studioSources() {
             isOriginal: true,
             isDefault: true,
           ),
-          AudioTrack(
-            id: 'es_dub',
-            label: 'Español (Doblaje)',
-            language: 'es',
-          ),
-          AudioTrack(
-            id: 'ar_dub',
-            label: 'العربية (دبلجة)',
-            language: 'ar',
-          ),
+          AudioTrack(id: 'es_dub', label: 'Español (Doblaje)', language: 'es'),
+          AudioTrack(id: 'ar_dub', label: 'العربية (دبلجة)', language: 'ar'),
         ],
         currentAudioTrack: const AudioTrack(
           id: 'en_stereo',
@@ -144,7 +131,8 @@ List<StudioSource> studioSources() {
             id: 'bunny_ep1',
             number: 1,
             title: 'Episode 1: Big Buck Bunny (720p)',
-            description: 'Bunny awakens and greets the woodland creatures in HD.',
+            description:
+                'Bunny awakens and greets the woodland creatures in HD.',
             duration: Duration(minutes: 9, seconds: 56),
             watchedProgress: 0.75,
             videoUrl: _bbb720pUrl,
@@ -153,7 +141,8 @@ List<StudioSource> studioSources() {
             id: 'bunny_ep2',
             number: 2,
             title: 'Episode 2: Oceans Documentary',
-            description: 'Deep ocean life and coastal coral reefs in cinema clarity.',
+            description:
+                'Deep ocean life and coastal coral reefs in cinema clarity.',
             duration: Duration(seconds: 46),
             watchedProgress: 0.25,
             videoUrl: _oceansTrailerUrl,
@@ -165,7 +154,8 @@ List<StudioSource> studioSources() {
             description: 'A butterfly flutters peacefully through the garden.',
             duration: Duration(seconds: 10),
             watchedProgress: 0.0,
-            videoUrl: 'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+            videoUrl:
+                'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
           ),
         ],
         currentEpisode: const VideoEpisode(
@@ -211,8 +201,14 @@ Testing adaptive video player streaming features!
         ],
         chapters: const [
           VideoChapter(title: 'Opening & Wake Up', startTime: Duration.zero),
-          VideoChapter(title: 'Meeting the Butterflies', startTime: Duration(seconds: 10)),
-          VideoChapter(title: 'The Forest Journey', startTime: Duration(seconds: 20)),
+          VideoChapter(
+            title: 'Meeting the Butterflies',
+            startTime: Duration(seconds: 10),
+          ),
+          VideoChapter(
+            title: 'The Forest Journey',
+            startTime: Duration(seconds: 20),
+          ),
           VideoChapter(title: 'Finale', startTime: Duration(seconds: 28)),
         ],
       ),
@@ -222,7 +218,8 @@ Testing adaptive video player streaming features!
     StudioSource(
       id: 'sintel',
       label: 'Sintel (Fantasy)',
-      description: 'Acclaimed fantasy animation with dramatic score and action scenes.',
+      description:
+          'Acclaimed fantasy animation with dramatic score and action scenes.',
       icon: Icons.auto_awesome_rounded,
       accentColor: const Color(0xFFF59E0B),
       features: const [
@@ -237,7 +234,10 @@ Testing adaptive video player streaming features!
         enableCache: true,
         chapters: [
           VideoChapter(title: 'Coastal Waves', startTime: Duration.zero),
-          VideoChapter(title: 'Deep Ocean Life', startTime: Duration(seconds: 15)),
+          VideoChapter(
+            title: 'Deep Ocean Life',
+            startTime: Duration(seconds: 15),
+          ),
           VideoChapter(title: 'Coral Reefs', startTime: Duration(seconds: 30)),
         ],
       ),
@@ -263,7 +263,10 @@ Testing adaptive video player streaming features!
         enableCache: true,
         chapters: [
           VideoChapter(title: 'Morning Awakening', startTime: Duration.zero),
-          VideoChapter(title: 'The Forest Journey', startTime: Duration(seconds: 15)),
+          VideoChapter(
+            title: 'The Forest Journey',
+            startTime: Duration(seconds: 15),
+          ),
         ],
       ),
     ),
@@ -272,7 +275,8 @@ Testing adaptive video player streaming features!
     const StudioSource(
       id: 'nature_flower',
       label: 'Nature Flowers (HD MP4)',
-      description: 'Nature blooming time-lapse video hosted on Mozilla CDN with full web CORS.',
+      description:
+          'Nature blooming time-lapse video hosted on Mozilla CDN with full web CORS.',
       icon: Icons.nature_rounded,
       accentColor: Color(0xFF10B981),
       features: [
@@ -338,7 +342,8 @@ Testing adaptive video player streaming features!
     StudioSource(
       id: 'quran_recitation',
       label: 'Quran Recitation (MP4)',
-      description: 'Soulful Quran recitation with synchronized Arabic & English subtitles.',
+      description:
+          'Soulful Quran recitation with synchronized Arabic & English subtitles.',
       icon: Icons.menu_book_rounded,
       accentColor: const Color(0xFF14B8A6),
       features: const [
@@ -372,8 +377,14 @@ Praise be to Allah, Lord of all the worlds.
         ],
         chapters: const [
           VideoChapter(title: 'Surah Opening', startTime: Duration.zero),
-          VideoChapter(title: 'Recitation Part I', startTime: Duration(seconds: 45)),
-          VideoChapter(title: 'Recitation Part II', startTime: Duration(minutes: 2)),
+          VideoChapter(
+            title: 'Recitation Part I',
+            startTime: Duration(seconds: 45),
+          ),
+          VideoChapter(
+            title: 'Recitation Part II',
+            startTime: Duration(minutes: 2),
+          ),
         ],
       ),
     ),
@@ -382,7 +393,8 @@ Praise be to Allah, Lord of all the worlds.
     const StudioSource(
       id: 'yt_costa_rica',
       label: 'Costa Rica 4K (YouTube)',
-      description: 'Ultra HD 4K 60fps wildlife & rainforest showcase on YouTube.',
+      description:
+          'Ultra HD 4K 60fps wildlife & rainforest showcase on YouTube.',
       icon: Icons.smart_display_rounded,
       accentColor: Color(0xFFEF4444),
       features: [
@@ -401,14 +413,11 @@ Praise be to Allah, Lord of all the worlds.
     const StudioSource(
       id: 'yt_bunny',
       label: 'Big Buck Bunny (YouTube)',
-      description: '60fps animation streaming through the embedded YouTube engine.',
+      description:
+          '60fps animation streaming through the embedded YouTube engine.',
       icon: Icons.play_circle_fill_rounded,
       accentColor: Color(0xFFF97316),
-      features: [
-        'YouTube Embed',
-        'Instant Seeking',
-        'Fullscreen Toggle',
-      ],
+      features: ['YouTube Embed', 'Instant Seeking', 'Fullscreen Toggle'],
       config: VideoConfig(
         videoUrl: _youtubeBigBuckBunny,
         title: 'Big Buck Bunny 60fps Animation (YouTube)',
@@ -419,7 +428,8 @@ Praise be to Allah, Lord of all the worlds.
     const StudioSource(
       id: 'yt_lofi_live',
       label: 'Lofi Girl 24/7 (YT Live)',
-      description: 'Worldwide famous 24/7 live stream with relaxing beats & live badge.',
+      description:
+          'Worldwide famous 24/7 live stream with relaxing beats & live badge.',
       icon: Icons.radio_rounded,
       accentColor: Color(0xFF8B5CF6),
       features: [
@@ -440,14 +450,11 @@ Praise be to Allah, Lord of all the worlds.
     const StudioSource(
       id: 'yt_nasa_live',
       label: 'NASA Earth Orbit (YT Live)',
-      description: 'Live International Space Station views of Earth from space.',
+      description:
+          'Live International Space Station views of Earth from space.',
       icon: Icons.public_rounded,
       accentColor: Color(0xFF3B82F6),
-      features: [
-        'Live ISS Space Feed',
-        'Viewer Count',
-        'Live Badge',
-      ],
+      features: ['Live ISS Space Feed', 'Viewer Count', 'Live Badge'],
       config: VideoConfig(
         videoUrl: _youtubeNasaLive,
         isLive: true,

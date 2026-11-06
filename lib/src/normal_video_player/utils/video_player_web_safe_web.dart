@@ -257,7 +257,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> seekTo(Duration position) async {
     if (_playerId == -1) return;
     Duration target = position.isNegative ? Duration.zero : position;
-    if (value.isInitialized && value.duration > Duration.zero && target > value.duration) {
+    if (value.isInitialized &&
+        value.duration > Duration.zero &&
+        target > value.duration) {
       target = value.duration;
     }
     await platform_interface.VideoPlayerPlatform.instance

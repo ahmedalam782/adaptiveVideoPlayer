@@ -75,7 +75,8 @@ void main() {
       expect(find.byIcon(Icons.person), findsOneWidget);
     });
 
-    testWidgets('YouTubeLiveBadge returns empty box when not live and no viewers',
+    testWidgets(
+        'YouTubeLiveBadge returns empty box when not live and no viewers',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(

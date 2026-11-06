@@ -96,6 +96,9 @@ bool isDesktopPipMode() {
   return false;
 }
 
+/// Enables or disables web auto picture-in-picture (no-op on IO platforms).
+void enableWebAutoPictureInPicture(bool enabled) {}
+
 /// Restores the desktop window if it was left in a compact PiP state across Hot Restarts.
 void restoreDesktopWindowIfStuckInPip() {
   if (Platform.isWindows) {
@@ -122,4 +125,3 @@ void applyDesktopScreenProtection(
     log('applyDesktopScreenProtection error: $e');
   }
 }
-

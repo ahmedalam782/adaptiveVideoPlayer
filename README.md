@@ -58,9 +58,9 @@ AdaptiveVideoPlayer(
 - **Cross-Platform Parity** — Unified design and controls across Android, iOS, Windows, macOS, Linux, and Web.
 
 ### 🛡️ Anti-Screen Capture Shield (`preventScreenCapture: true`)
-- **Hardware-Enforced Privacy** — Renders the window solid black during screenshot captures or screen recordings.
+- **OS-Level Privacy** — Asks the OS to render the window black during screenshots or screen recordings where the platform supports it (Android, iOS, Windows). Web uses best-effort DOM deterrents; macOS and Linux fall back safely without protection. No client-side shield can stop a camera pointed at the screen.
 - **Android (`FLAG_SECURE`)** — Blocks screenshots, screen recorders, and app switcher preview leaks.
-- **Windows (`SetWindowDisplayAffinity`)** — Win32 hardware display affinity (`WDA_MONITOR`) blacks out Snipping Tool, OBS, and print screens.
+- **Windows (`SetWindowDisplayAffinity`)** — Win32 display affinity (`WDA_MONITOR`) blacks out Snipping Tool, OBS, and print screens.
 - **Web DOM Shield** — Focus blur detection, clipboard flushing, and print media obscuration.
 
 ### 📺 YouTube Player with Unified Native Architecture
@@ -104,7 +104,7 @@ AdaptiveVideoPlayer(
 | Feature | `adaptive_video_player` | `youtube_player_flutter` | `chewie` | `video_player` |
 |---|:---:|:---:|:---:|:---:|
 | 🎯 Universal Player (YouTube + Direct Streams) | ✅ | ❌ | ❌ | ❌ |
-| 🛡️ Hardware Anti-Screen Capture Shield | ✅ | ❌ | ❌ | ❌ |
+| 🛡️ Anti-Screen Capture Shield (OS-level where supported) | ✅ | ❌ | ❌ | ❌ |
 | 🪟 Full Desktop Support (Windows, macOS, Linux) | ✅ | ❌ | ⚠️ | ⚠️ |
 | 🎛️ YouTube-Style Capsule Pill Controls | ✅ | ❌ | ❌ | ❌ |
 | ⏱️ Timeline Chapter Scrubbing & Tooltip | ✅ | ❌ | ❌ | ❌ |
@@ -115,7 +115,7 @@ AdaptiveVideoPlayer(
 | 📑 Netflix-Style Episodes Queue Drawer | ✅ | ❌ | ❌ | ❌ |
 | 💾 Persistent Disk Caching (Zero Buffering) | ✅ | ❌ | ❌ | ❌ |
 | 🌍 Arabic & English RTL/LTR Localization | ✅ | ❌ | ❌ | ❌ |
-| 🚀 Zero Native Setup Required | ✅ | ❌ | ❌ | ❌ |
+| 🚀 No custom native code for screen protection | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
@@ -231,12 +231,12 @@ Protect premium DRM content and sensitive media from being recorded or screensho
 AdaptiveVideoPlayer(
   config: VideoConfig(
     videoUrl: 'https://example.com/movie.mp4',
-    preventScreenCapture: true, // 100% hardware-enforced black screen on captures
+    preventScreenCapture: true, // black screen on captures where the OS supports it
   ),
 );
 ```
 
-#### 🚀 Zero Native Setup Required:
+#### 🚀 No custom native code needed (platform permissions below still apply):
 - **🤖 Android**: **100% Automatic** — Zero Kotlin/Java setup. Handled by `AdaptiveVideoPlayerPlugin` via `WindowManager.LayoutParams.FLAG_SECURE`. Screen recordings, screenshots, and task switcher preview thumbnails are blocked out.
 - **🍎 iOS**: **100% Automatic** — Zero Swift/Obj-C setup. Handled by `AdaptiveVideoPlayerPlugin` via secure window sublayer containment.
 - **🪟 Windows Desktop**: **100% Automatic** — Zero permissions needed. Invokes Win32 native `SetWindowDisplayAffinity(hwnd, WDA_MONITOR)` via FFI. Snipping Tool, OBS, and Print Screen capture a black rectangle.
@@ -593,7 +593,7 @@ A: Both. Flutter 3.44 and later uses Swift Package Manager by default and builds
 - [x] Video Chapters (`VideoChapter`) with segmented progress bar markers
 - [x] Netflix-style Episodes Drawer with thumbnail progress bars
 - [x] Dual-column Audio Tracks & Subtitles modal
-- [x] Hardware Anti-Screen Capture Shield (`preventScreenCapture: true`)
+- [x] Anti-Screen Capture Shield (`preventScreenCapture: true`)
 - [x] Persistent Disk Caching for offline replay (`CachedVideoPlayerPlus`)
 - [x] In-Memory Bytes Playback (`videoBytes`)
 - [x] True OS-Level Picture-in-Picture & Fullscreen (Android `RemoteAction`s, Windows `HWND_TOPMOST`, Web HTML5)

@@ -27,7 +27,8 @@ void main() {
       // Verify CircularProgressIndicator is present with correct styling
       final indicatorFinder = find.byType(CircularProgressIndicator);
       expect(indicatorFinder, findsOneWidget);
-      final indicator = tester.widget<CircularProgressIndicator>(indicatorFinder);
+      final indicator =
+          tester.widget<CircularProgressIndicator>(indicatorFinder);
       expect(indicator.color, const Color(0xFFE50914));
       expect(indicator.strokeWidth, 4.0);
       expect(indicator.strokeCap, StrokeCap.round);

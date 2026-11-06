@@ -23,7 +23,8 @@ class MobileControlsSurface extends StatelessWidget {
   final PlayerVisibilityConfig? visibility;
   final PlayerPlaybackConfig? playback;
   final List<VideoChapter>? chapters;
-  final void Function(String event, Map<String, dynamic> data)? onAnalyticsEvent;
+  final void Function(String event, Map<String, dynamic> data)?
+      onAnalyticsEvent;
   final String? title;
   final VideoEpisode? currentEpisode;
   final List<VideoEpisode>? episodes;

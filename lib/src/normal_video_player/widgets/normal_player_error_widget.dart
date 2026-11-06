@@ -6,7 +6,8 @@ import '../../youtube_player/models/youtube_player_config.dart';
 class NormalPlayerErrorWidget extends StatelessWidget {
   final String errorMessage;
   final PlayerStyleConfig? styling;
-  final Widget Function(BuildContext context, String errorMessage)? customBuilder;
+  final Widget Function(BuildContext context, String errorMessage)?
+      customBuilder;
   final VoidCallback? onRetry;
 
   const NormalPlayerErrorWidget({

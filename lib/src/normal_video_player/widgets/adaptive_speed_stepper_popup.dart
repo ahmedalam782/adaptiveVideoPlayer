@@ -32,9 +32,10 @@ class ResponsiveSpeedPanel extends StatelessWidget {
   });
 
   String _formatSpeedLabel(double speed, BuildContext context) {
-    final normalWord = (messages?.resolveTextDirection(context) == TextDirection.rtl)
-        ? 'عادية'
-        : 'Normal';
+    final normalWord =
+        (messages?.resolveTextDirection(context) == TextDirection.rtl)
+            ? 'عادية'
+            : 'Normal';
     if (speed == 1.0) {
       return '1x ($normalWord)';
     }
@@ -54,9 +55,7 @@ class ResponsiveSpeedPanel extends StatelessWidget {
         child: ResponsiveSpeedSheet(
           controller: controller,
           onClose: onClose,
-          formatLabel: (speed) => speed == 1.0
-              ? '1x'
-              : '${speed}x',
+          formatLabel: (speed) => speed == 1.0 ? '1x' : '${speed}x',
           normalLabel: isRtl ? 'عادية' : 'Normal',
         ),
       );
@@ -95,7 +94,8 @@ class ResponsiveSpeedPanel extends StatelessWidget {
                 children: [
                   // Header
                   Text(
-                    messages?.playbackSpeedText ?? (isRtl ? 'سرعة العرض' : 'Playback Speed'),
+                    messages?.playbackSpeedText ??
+                        (isRtl ? 'سرعة العرض' : 'Playback Speed'),
                     textAlign: isRtl ? TextAlign.right : TextAlign.left,
                     style: const TextStyle(
                       color: Colors.white,

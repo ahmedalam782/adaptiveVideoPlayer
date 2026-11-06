@@ -109,16 +109,15 @@ class AdaptiveTopBar extends StatelessWidget {
           final isCompact = maxW < 420;
           final buttonSpacing = isCompact ? 6.0 : 8.0;
 
-          final lockButton =
-              (visibility?.showScreenLockButton ?? true) &&
-                      onLockPressed != null
-                  ? AdaptiveCirclePillButton(
-                      icon: Icons.lock_outline_rounded,
-                      tooltip: isRtl ? 'قفل الشاشة' : 'Lock screen',
-                      onTap: onLockPressed!,
-                      color: iconColor,
-                    )
-                  : null;
+          final lockButton = (visibility?.showScreenLockButton ?? true) &&
+                  onLockPressed != null
+              ? AdaptiveCirclePillButton(
+                  icon: Icons.lock_outline_rounded,
+                  tooltip: isRtl ? 'قفل الشاشة' : 'Lock screen',
+                  onTap: onLockPressed!,
+                  color: iconColor,
+                )
+              : null;
 
           // Trailing action buttons (Episodes, Subtitles, Speed, Settings, MiniPlayer)
           final actionButtons = <Widget>[
@@ -144,8 +143,7 @@ class AdaptiveTopBar extends StatelessWidget {
                 onTap: onAudioSubtitlesPressed!,
                 color: iconColor,
               ),
-            if ((visibility?.showSpeedButton ?? true) &&
-                onSpeedPressed != null)
+            if ((visibility?.showSpeedButton ?? true) && onSpeedPressed != null)
               AdaptiveCirclePillButton(
                 playerIcon: styling?.icons.speedIcon,
                 icon: Icons.speed_rounded,
@@ -187,8 +185,8 @@ class AdaptiveTopBar extends StatelessWidget {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.45),
                       borderRadius: BorderRadius.circular(12),
@@ -226,13 +224,12 @@ class AdaptiveTopBar extends StatelessWidget {
 
           // Compute safe space for trailing widgets so they never cause a RenderFlex overflow
           final hasBackButton = _shouldShowBackButton;
-          final leadingWidth = (hasBackButton ? 52.0 : 0.0) +
-              (isLive ? 72.0 : 0.0);
+          final leadingWidth =
+              (hasBackButton ? 52.0 : 0.0) + (isLive ? 72.0 : 0.0);
           final hasTitle = title != null && title!.isNotEmpty;
           final reservedForTitle = hasTitle ? 48.0 : 0.0;
           final maxAllowedTrailing =
-              (maxW - leadingWidth - reservedForTitle - 16.0)
-                  .clamp(0.0, maxW);
+              (maxW - leadingWidth - reservedForTitle - 16.0).clamp(0.0, maxW);
 
           return Row(
             children: [

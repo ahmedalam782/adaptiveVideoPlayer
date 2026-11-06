@@ -65,6 +65,7 @@ class NormalVideoPlayer extends StatefulWidget {
     VideoFileExtension? extension,
     VideoSourceType? sourceType,
     double? aspectRatio,
+    bool autoPipOnBackground = true,
   }) {
     if (config != null) {
       return NormalVideoPlayer._internal(
@@ -93,6 +94,7 @@ class NormalVideoPlayer extends StatefulWidget {
         extension: extension,
         sourceType: sourceType,
         aspectRatio: aspectRatio,
+        autoPipOnBackground: autoPipOnBackground,
         playerConfig: YouTubePlayerConfig(
           style: styling ?? const PlayerStyleConfig(),
           text: messages ?? const PlayerTextConfig(),
@@ -132,11 +134,14 @@ class NormalVideoPlayer extends StatefulWidget {
   String? get title => config.title;
   List<VideoEpisode>? get episodes => config.episodes;
   VideoEpisode? get currentEpisode => config.currentEpisode;
-  void Function(VideoEpisode)? get onEpisodeSelected => config.onEpisodeSelected;
+  void Function(VideoEpisode)? get onEpisodeSelected =>
+      config.onEpisodeSelected;
   VoidCallback? get onNextEpisode => config.onNextEpisode;
   List<AudioTrack>? get audioTracks => config.audioTracks;
   AudioTrack? get currentAudioTrack => config.currentAudioTrack;
-  void Function(AudioTrack)? get onAudioTrackSelected => config.onAudioTrackSelected;
+  void Function(AudioTrack)? get onAudioTrackSelected =>
+      config.onAudioTrackSelected;
+  bool get autoPipOnBackground => config.autoPipOnBackground;
 
   @override
   NormalVideoPlayerState createState() => NormalVideoPlayerState();
@@ -144,6 +149,7 @@ class NormalVideoPlayer extends StatefulWidget {
 
 class NormalVideoPlayerState extends State<NormalVideoPlayer>
     with
+        WidgetsBindingObserver,
         NormalPlayerControllerMixin,
         NormalPlayerSubtitlesMixin,
         NormalPlayerPlaybackResilienceMixin,
@@ -302,6 +308,15 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       );
       ScreenProtectionService.setEnabledFor(
           this, widget.config.preventScreenCapture);
+    }
+
+    if (oldWidget.config.autoPipOnBackground !=
+        widget.config.autoPipOnBackground) {
+      NativePipService.setPipEnabled(
+        widget.config.autoPipOnBackground,
+        url: activePipController?.dataSource,
+      );
+      syncWebAutoPip(widget.config.autoPipOnBackground);
     }
 
     if (isInFullscreen || isInMiniPlayer) {
@@ -529,24 +544,25 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
         );
       },
       child: PopScope(
-      canPop: !isInFullscreen,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        if (isInFullscreen) {
-          _handleCloseFullscreen();
-        }
-      },
-      child: ClipRRect(
-        borderRadius: inNativePip ? BorderRadius.zero : BorderRadius.circular(8),
-        child: Directionality(
-          textDirection: effectiveMessages.resolveTextDirection(context),
-          child: AspectRatio(
-            aspectRatio: resolvedAspectRatio,
-            child: contentChild,
+        canPop: !isInFullscreen,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (isInFullscreen) {
+            _handleCloseFullscreen();
+          }
+        },
+        child: ClipRRect(
+          borderRadius:
+              inNativePip ? BorderRadius.zero : BorderRadius.circular(8),
+          child: Directionality(
+            textDirection: effectiveMessages.resolveTextDirection(context),
+            child: AspectRatio(
+              aspectRatio: resolvedAspectRatio,
+              child: contentChild,
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 
@@ -556,6 +572,7 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
     cancelPlaybackResilience();
     videoPlayerController?.pause();
   }
+
   void seekTo(Duration position) => videoPlayerController?.seekTo(position);
   Duration get currentPosition =>
       videoPlayerController?.value.position ?? Duration.zero;

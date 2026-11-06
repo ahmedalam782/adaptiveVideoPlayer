@@ -11,7 +11,8 @@ class AdaptiveStopButton extends StatelessWidget {
   final VideoPlayerController controller;
   final PlayerStyleConfig? styling;
   final String? tooltip;
-  final void Function(String event, Map<String, dynamic> data)? onAnalyticsEvent;
+  final void Function(String event, Map<String, dynamic> data)?
+      onAnalyticsEvent;
   final Color? pillColor;
 
   const AdaptiveStopButton({
@@ -26,7 +27,9 @@ class AdaptiveStopButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdaptiveCirclePillButton(
-      backgroundColor: pillColor ?? styling?.controlsBackgroundColor ?? const Color(0x8C000000),
+      backgroundColor: pillColor ??
+          styling?.controlsBackgroundColor ??
+          const Color(0x8C000000),
       playerIcon: styling?.icons.stopIcon,
       icon: Icons.stop_rounded,
       tooltip: tooltip ?? PlayerStrings.stop,

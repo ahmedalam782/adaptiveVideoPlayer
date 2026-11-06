@@ -27,7 +27,9 @@ void main() {
       expect(config.controlsBackgroundColor, isNull);
     });
 
-    test('copyWith creates new instance with updated values including new color properties', () {
+    test(
+        'copyWith creates new instance with updated values including new color properties',
+        () {
       const original = PlayerStyleConfig();
       final updated = original.copyWith(
         progressBarPlayedColor: Colors.blue,
@@ -230,7 +232,9 @@ void main() {
       expect(config.skipDuration, const Duration(seconds: 10));
     });
 
-    test('copyWith creates new instance with updated values including new visibility toggles', () {
+    test(
+        'copyWith creates new instance with updated values including new visibility toggles',
+        () {
       const original = PlayerVisibilityConfig();
       final updated = original.copyWith(
         showControls: false,
@@ -275,6 +279,18 @@ void main() {
       expect(updated.showPlaybackSpeedSetting, false);
       expect(updated.showChapterTitle, false);
       expect(updated.skipDuration, const Duration(seconds: 15));
+    });
+
+    test(
+        'showMiniPlayerButton defaults to true across platforms and respects overrides',
+        () {
+      const explicitTrue = PlayerVisibilityConfig(showMiniPlayerButton: true);
+      expect(explicitTrue.showMiniPlayerButton, true);
+
+      const explicitFalse = PlayerVisibilityConfig(showMiniPlayerButton: false);
+      expect(explicitFalse.showMiniPlayerButton, false);
+
+      expect(const PlayerVisibilityConfig().showMiniPlayerButton, true);
     });
   });
 

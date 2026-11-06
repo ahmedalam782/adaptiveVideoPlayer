@@ -90,6 +90,7 @@ class NativePipService {
     if (!Platform.isAndroid && !Platform.isIOS) return;
     try {
       await _channel.invokeMethod('setPipEnabled', {
+        'autoPip': enabled,
         'enabled': enabled,
         if (url != null) 'url': url,
       });

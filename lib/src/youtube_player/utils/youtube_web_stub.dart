@@ -32,4 +32,5 @@ typedef YoutubeWebInfoCallback = void Function({
   bool? isMuted,
 });
 
-void listenToYoutubeWebMessages(String viewId, YoutubeWebInfoCallback callback) {}
+void listenToYoutubeWebMessages(
+    String viewId, YoutubeWebInfoCallback callback) {}

@@ -13,6 +13,7 @@ import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_n
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_play_pause_button.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_speed_stepper_popup.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/adaptive_top_bar.dart';
+import 'package:adaptive_video_player/src/normal_video_player/widgets/responsive/responsive_episodes_rail.dart';
 import 'package:adaptive_video_player/src/youtube_player/models/youtube_player_config.dart';
 
 void main() {
@@ -264,7 +265,9 @@ void main() {
       );
     });
 
-    test('PlayerTextConfig dynamically handles Netflix streaming keys in all modes', () {
+    test(
+        'PlayerTextConfig dynamically handles Netflix streaming keys in all modes',
+        () {
       // 1. fromMap and toMap
       final customMap = {
         'episodes': 'Lista de Episodios',
@@ -295,8 +298,10 @@ void main() {
       expect(dynamicConfig.nextEpisodeText, equals('DYN_next_episode'));
       expect(dynamicConfig.audioText, equals('DYN_audio'));
       expect(dynamicConfig.nowPlayingText, equals('DYN_now_playing'));
-      expect(dynamicConfig.audioDescriptionText, equals('DYN_audio_description'));
-      expect(dynamicConfig.audioAndSubtitlesText, equals('DYN_audio_and_subtitles'));
+      expect(
+          dynamicConfig.audioDescriptionText, equals('DYN_audio_description'));
+      expect(dynamicConfig.audioAndSubtitlesText,
+          equals('DYN_audio_and_subtitles'));
 
       // 3. Convenience arabic constructor
       const arabicConfig = PlayerTextConfig.arabic();
@@ -413,7 +418,9 @@ void main() {
                   onMiniPlayerPressed: () {},
                   onEnterFullscreen: () {},
                   onSettingsPressed: () {},
-                  episodes: const [VideoEpisode(id: '1', number: 1, title: 'Ep 1')],
+                  episodes: const [
+                    VideoEpisode(id: '1', number: 1, title: 'Ep 1')
+                  ],
                   audioTracks: const [AudioTrack(id: 'en', label: 'English')],
                   subtitles: const [SubtitleTrack(id: 'en', title: 'English')],
                 ),
@@ -464,7 +471,9 @@ void main() {
                   onMiniPlayerPressed: () {},
                   onEnterFullscreen: () {},
                   onSettingsPressed: () {},
-                  episodes: const [VideoEpisode(id: '1', number: 1, title: 'Ep 1')],
+                  episodes: const [
+                    VideoEpisode(id: '1', number: 1, title: 'Ep 1')
+                  ],
                   audioTracks: const [AudioTrack(id: 'en', label: 'English')],
                   subtitles: const [SubtitleTrack(id: 'en', title: 'English')],
                 ),
@@ -515,7 +524,9 @@ void main() {
                   onMiniPlayerPressed: () {},
                   onEnterFullscreen: () {},
                   onSettingsPressed: () {},
-                  episodes: const [VideoEpisode(id: '1', number: 1, title: 'Ep 1')],
+                  episodes: const [
+                    VideoEpisode(id: '1', number: 1, title: 'Ep 1')
+                  ],
                   audioTracks: const [AudioTrack(id: 'en', label: 'English')],
                   subtitles: const [SubtitleTrack(id: 'en', title: 'English')],
                 ),
@@ -584,6 +595,45 @@ void main() {
       expect(find.text('The Witcher'), findsOneWidget);
       expect(find.text('Episode 6: Dear Friend'), findsOneWidget);
     });
+
+    testWidgets(
+        'ResponsiveEpisodesRail renders without RenderFlex overflow in compact height (200px)',
+        (tester) async {
+      final episodes = [
+        const VideoEpisode(
+          id: 'ep1',
+          number: 1,
+          title: 'Episode 1: Big Buck Bunny (720p)',
+          duration: Duration(minutes: 9, seconds: 56),
+          description: 'Bunny awakens and greets the woodland creatures in HD.',
+        ),
+        const VideoEpisode(
+          id: 'ep2',
+          number: 2,
+          title: 'Episode 2: Revenge of the Animals',
+          duration: Duration(minutes: 10, seconds: 34),
+          description: 'The forest animals set up elaborate traps.',
+        ),
+      ];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 360,
+              height: 200,
+              child: ResponsiveEpisodesRail(
+                episodes: episodes,
+                currentEpisode: episodes.first,
+                onClose: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('1. Episode 1: Big Buck Bunny (720p)'), findsOneWidget);
+    });
   });
 }
-

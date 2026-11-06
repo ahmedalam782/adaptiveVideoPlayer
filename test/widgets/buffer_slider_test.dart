@@ -21,7 +21,8 @@ void main() {
       expect(painter1.shouldRepaint(painterSame), isFalse);
     });
 
-    testWidgets('GradientSliderTrackShape renders within SliderTheme', (tester) async {
+    testWidgets('GradientSliderTrackShape renders within SliderTheme',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -45,7 +46,9 @@ void main() {
       expect(find.byType(Slider), findsOneWidget);
     });
 
-    testWidgets('GradientSliderTrackShape in RTL paints active track from thumb to right', (tester) async {
+    testWidgets(
+        'GradientSliderTrackShape in RTL paints active track from thumb to right',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

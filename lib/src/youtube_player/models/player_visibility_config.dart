@@ -9,8 +9,19 @@ class PlayerVisibilityConfig {
   /// Whether to show settings button
   final bool showSettingsButton;
 
-  /// Whether to show miniplayer (Picture-in-Picture) button
-  final bool showMiniPlayerButton;
+  final bool? _showMiniPlayerButton;
+
+  /// Whether to show miniplayer (Picture-in-Picture) button.
+  ///
+  /// Defaults to `true` on Windows, Web, and macOS only.
+  /// On other platforms (e.g. Android & iOS), the PiP button is hidden by default
+  /// because automatic background PiP activates when leaving the app.
+  bool get showMiniPlayerButton {
+    if (_showMiniPlayerButton != null) {
+      return _showMiniPlayerButton!;
+    }
+    return true;
+  }
 
   /// Whether to show volume / mute control button
   final bool showVolumeButton;
@@ -128,7 +139,7 @@ class PlayerVisibilityConfig {
     this.showControls = true,
     this.showFullscreenButton = true,
     this.showSettingsButton = true,
-    this.showMiniPlayerButton = true,
+    bool? showMiniPlayerButton,
     this.showVolumeButton = true,
     this.showTimeDisplay = true,
     this.showProgressBar = true,
@@ -166,7 +177,7 @@ class PlayerVisibilityConfig {
     this.skipDuration = const Duration(seconds: 10),
     this.controlsHideTimeout = const Duration(seconds: 3),
     this.volumeFeedbackTimeout = const Duration(milliseconds: 1200),
-  });
+  }) : _showMiniPlayerButton = showMiniPlayerButton;
 
   /// Creates a copy with updated values
   PlayerVisibilityConfig copyWith({
@@ -216,7 +227,7 @@ class PlayerVisibilityConfig {
       showControls: showControls ?? this.showControls,
       showFullscreenButton: showFullscreenButton ?? this.showFullscreenButton,
       showSettingsButton: showSettingsButton ?? this.showSettingsButton,
-      showMiniPlayerButton: showMiniPlayerButton ?? this.showMiniPlayerButton,
+      showMiniPlayerButton: showMiniPlayerButton ?? _showMiniPlayerButton,
       showVolumeButton: showVolumeButton ?? this.showVolumeButton,
       showTimeDisplay: showTimeDisplay ?? this.showTimeDisplay,
       showProgressBar: showProgressBar ?? this.showProgressBar,

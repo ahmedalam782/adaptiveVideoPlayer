@@ -37,8 +37,8 @@ mixin YouTubePlayerPipMixin on State<YouTubeVideoPlayer> {
       return;
     }
 
-    final overlay = Overlay.maybeOf(context, rootOverlay: true) ??
-        Overlay.maybeOf(context);
+    final overlay =
+        Overlay.maybeOf(context, rootOverlay: true) ?? Overlay.maybeOf(context);
     if (overlay == null) return;
 
     onPauseVideo();
@@ -156,7 +156,8 @@ mixin YouTubePlayerPipMixin on State<YouTubeVideoPlayer> {
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            Colors.black.withValues(alpha: 0.80),
+                                            Colors.black
+                                                .withValues(alpha: 0.80),
                                             Colors.transparent,
                                           ],
                                         ),
@@ -166,7 +167,8 @@ mixin YouTubePlayerPipMixin on State<YouTubeVideoPlayer> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Tooltip(
-                                            message: currentText.expandPlayerText,
+                                            message:
+                                                currentText.expandPlayerText,
                                             child: GestureDetector(
                                               behavior: HitTestBehavior.opaque,
                                               onTap: () => closeMobilePip(

@@ -130,7 +130,8 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
         DeviceOrientation.landscapeRight,
       ]);
     } else {
-      await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      await SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.portraitUp]);
     }
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 /// How much room the player surface has for its controls.
@@ -66,7 +67,8 @@ class PlayerSurfaceScope extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(PlayerSurfaceScope oldWidget) => tier != oldWidget.tier;
+  bool updateShouldNotify(PlayerSurfaceScope oldWidget) =>
+      tier != oldWidget.tier;
 }
 
 /// Uses a captured design when one is set, otherwise the live window size.
@@ -76,4 +78,30 @@ PlayerSurfaceTier playerSurfaceTierOf(BuildContext context, Size player) {
         window: MediaQuery.sizeOf(context),
         player: player,
       );
+}
+
+/// Returns true only on desktop surfaces (wide desktop windows).
+///
+/// Returns false on phone and tablet form factors or windows, where
+/// on-screen PiP controls are suppressed.
+bool isDesktopSurface(BuildContext context) {
+  if (!kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS)) {
+    return false;
+  }
+  final scope = PlayerSurfaceScope.maybeOf(context);
+  if (scope != null) return scope == PlayerSurfaceTier.desktop;
+  final window = MediaQuery.sizeOf(context);
+  if (!window.width.isFinite ||
+      !window.height.isFinite ||
+      window.shortestSide <= 0) {
+    return true;
+  }
+  final shortest = window.shortestSide;
+  final longest = window.longestSide;
+  if (shortest < 600) return false; // phone
+  if (shortest <= 1100 && longest <= 1400) return false; // tablet
+  if (longest < 1200) return false; // tablet
+  return true; // desktop
 }

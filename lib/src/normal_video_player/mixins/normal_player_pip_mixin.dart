@@ -11,7 +11,7 @@ import '../utils/video_player_web_safe.dart';
 import '../widgets/normal_mini_player_overlay.dart';
 
 /// Mixin handling Picture-in-Picture (OS native and in-app floating mini-player) for [NormalVideoPlayer].
-mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
+mixin NormalPlayerPipMixin on State<NormalVideoPlayer>, WidgetsBindingObserver {
   static OverlayEntry? activeBackgroundMiniEntry;
   static VideoPlayerController? activeBackgroundMiniController;
 
@@ -38,17 +38,62 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
   bool onLeaveFullscreenForPip();
 
   void initPipListeners() {
+    WidgetsBinding.instance.addObserver(this);
     NativePipService.isInPip.addListener(_onNativePipModeChanged);
     NativePipService.pipAction.addListener(_onPipActionReceived);
     NativePipService.restoredPositionMs.addListener(_onPipPositionRestored);
     NativePipService.pipSessionEnd.addListener(_onPipSessionEnded);
+    NativePipService.setPipEnabled(
+      widget.config.autoPipOnBackground,
+      url: activePipController?.dataSource,
+    );
+    if (kIsWeb) {
+      enableWebAutoPictureInPicture(widget.config.autoPipOnBackground);
+    }
+  }
+
+  void syncWebAutoPip(bool enabled) {
+    if (kIsWeb) {
+      enableWebAutoPictureInPicture(enabled);
+    }
   }
 
   void disposePipListeners() {
+    WidgetsBinding.instance.removeObserver(this);
     NativePipService.isInPip.removeListener(_onNativePipModeChanged);
     NativePipService.pipAction.removeListener(_onPipActionReceived);
     NativePipService.restoredPositionMs.removeListener(_onPipPositionRestored);
     NativePipService.pipSessionEnd.removeListener(_onPipSessionEnded);
+    syncWebAutoPip(false);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!widget.config.autoPipOnBackground) return;
+    // Auto-PiP on app backgrounding / minimize is enabled for Android, iOS, Windows, and macOS.
+    // Web does not support native OS window manipulation.
+    if (kIsWeb) return;
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      final ctrl = activePipController;
+      if (ctrl != null && ctrl.value.isInitialized && ctrl.value.isPlaying) {
+        if (!kIsWeb && Platform.isIOS) {
+          NativePipService.updatePlaybackState(
+            isPlaying: true,
+            url: ctrl.dataSource,
+            positionMs: ctrl.value.position.inMilliseconds,
+          );
+        }
+        if (!NativePipService.isInPip.value && !isInMiniPlayer) {
+          if (state == AppLifecycleState.paused ||
+              state == AppLifecycleState.hidden) {
+            openMiniPlayer();
+          }
+        }
+      }
+    }
   }
 
   void _onPipPositionRestored() {
@@ -151,8 +196,8 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer> {
       }
       return;
     }
-    if (NativePipService.isInPip.value && activePipController != null) {
-      final ctrl = activePipController!;
+    final ctrl = activePipController;
+    if (ctrl != null && ctrl.value.isInitialized) {
       final currentPlaying = ctrl.value.isPlaying;
       if (lastReportedPipPlaying != currentPlaying) {
         lastReportedPipPlaying = currentPlaying;

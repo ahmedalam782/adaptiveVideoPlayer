@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../youtube_player/models/youtube_player_config.dart';
@@ -45,9 +47,10 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
     final currentSeason = PlayerChromeUtils.seasonKey(
       widget.currentEpisode ?? widget.episodes.first,
     );
-    final selectedSeason = (_activeSeason != null && seasons.contains(_activeSeason))
-        ? _activeSeason!
-        : (seasons.contains(currentSeason) ? currentSeason : seasons.first);
+    final selectedSeason =
+        (_activeSeason != null && seasons.contains(_activeSeason))
+            ? _activeSeason!
+            : (seasons.contains(currentSeason) ? currentSeason : seasons.first);
     final visible = groups[selectedSeason] ?? widget.episodes;
     final playedColor =
         widget.styling?.progressBarPlayedColor ?? const Color(0xFFE50914);
@@ -58,7 +61,7 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
         color: const Color(0xF0141414),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
             child: Column(
               children: [
                 Row(
@@ -122,8 +125,11 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
                     const Spacer(),
                     if (widget.onClose != null)
                       IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                         onPressed: widget.onClose,
-                        icon: const Icon(Icons.close_rounded, color: Colors.white),
+                        icon: const Icon(Icons.close_rounded,
+                            color: Colors.white),
                       ),
                   ],
                 ),
@@ -168,93 +174,219 @@ class ResponsiveEpisodeRailCard extends StatelessWidget {
     required this.onTap,
   });
 
+  Widget _buildThumbnail() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ColoredBox(
+          color: isCurrent ? const Color(0xFF3A3A3A) : const Color(0xFF242424),
+          child: episode.thumbnailUrl == null
+              ? const Icon(
+                  Icons.movie_creation_outlined,
+                  color: Colors.white38,
+                  size: 32,
+                )
+              : Image.network(
+                  episode.thumbnailUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.movie_creation_outlined,
+                    color: Colors.white38,
+                    size: 32,
+                  ),
+                ),
+        ),
+        const Center(
+          child: Icon(
+            Icons.play_arrow_rounded,
+            color: Colors.white,
+            size: 36,
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: LinearProgressIndicator(
+            value: episode.watchedProgress.clamp(0.0, 1.0),
+            minHeight: 3,
+            backgroundColor: Colors.white24,
+            color: playedColor,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final length = PlayerChromeUtils.clockLabel(episode.duration);
-    return SizedBox(
-      width: 220,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Stack(
-                  fit: StackFit.expand,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = constraints.maxHeight;
+        final isCompact = availableHeight < 210;
+
+        if (isCompact) {
+          // Horizontal layout when vertical space is restricted (e.g. portrait phone).
+          final thumbWidth = math.min(160.0, (availableHeight - 12) * 16 / 9);
+          final cardWidth = math.max(260.0, thumbWidth + 140.0);
+
+          return SizedBox(
+            width: cardWidth,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: isCurrent
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isCurrent
+                        ? playedColor.withValues(alpha: 0.8)
+                        : Colors.white10,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ColoredBox(
-                      color: isCurrent
-                          ? const Color(0xFF3A3A3A)
-                          : const Color(0xFF242424),
-                      child: episode.thumbnailUrl == null
-                          ? const Icon(Icons.movie_creation_outlined,
-                              color: Colors.white38, size: 36)
-                          : Image.network(
-                              episode.thumbnailUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.movie_creation_outlined,
-                                color: Colors.white38,
-                                size: 36,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: SizedBox(
+                        width: thumbWidth,
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: _buildThumbnail(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${episode.number}. ${episode.title}',
+                            maxLines: availableHeight < 140 ? 1 : 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (length.isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              length,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
                               ),
                             ),
-                    ),
-                    const Center(
-                      child: Icon(Icons.play_arrow_rounded,
-                          color: Colors.white, size: 42),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: LinearProgressIndicator(
-                        value: episode.watchedProgress.clamp(0.0, 1.0),
-                        minHeight: 3,
-                        backgroundColor: Colors.white24,
-                        color: playedColor,
+                          ],
+                          if (availableHeight >= 140 &&
+                              (episode.description ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Flexible(
+                              child: Text(
+                                episode.description!,
+                                maxLines: availableHeight < 165 ? 1 : 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                  fontSize: 11,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '${episode.number}. ${episode.title}',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            if (length.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                length,
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ],
-            if ((episode.description ?? '').isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                episode.description!,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  fontSize: 12,
-                  height: 1.35,
+          );
+        }
+
+        // Spacious layout: vertical stacked card for landscape / tablet / wide views.
+        return SizedBox(
+          width: 220,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: isCurrent
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: isCurrent
+                      ? playedColor.withValues(alpha: 0.8)
+                      : Colors.transparent,
+                  width: 1,
                 ),
               ),
-            ],
-          ],
-        ),
-      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: _buildThumbnail(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${episode.number}. ${episode.title}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (length.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      length,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                  if ((episode.description ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Flexible(
+                      child: Text(
+                        episode.description!,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.75),
+                          fontSize: 12,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

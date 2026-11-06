@@ -26,7 +26,9 @@ class Win32DesktopPipService {
 
   /// Restores the desktop window if it was left in a compact PiP state across a Hot Restart.
   static void restoreIfStuckInPip() {
-    if (!Platform.isWindows || _isWindowsPip || Win32FullscreenService.isFullscreen) {
+    if (!Platform.isWindows ||
+        _isWindowsPip ||
+        Win32FullscreenService.isFullscreen) {
       return;
     }
     try {
@@ -78,7 +80,8 @@ class Win32DesktopPipService {
             final setWindowPos = user32.lookupFunction<
                 Int32 Function(
                     IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-                int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+                int Function(
+                    int, int, int, int, int, int, int)>('SetWindowPos');
             setWindowPos(
               hwnd,
               hwndNoTopMost,
@@ -141,6 +144,23 @@ class Win32DesktopPipService {
           int Function(int, Pointer<WINDOWPLACEMENT>)>('GetWindowPlacement');
       getWindowPlacement(hwnd, _pipSavedPlacement!);
 
+      final isIconicFn = user32.lookupFunction<
+          Int32 Function(IntPtr), int Function(int)>('IsIconic');
+      final isMin = isIconicFn(hwnd) != 0;
+
+      if (isMin && _pipSavedPlacement != null) {
+        final normW = _pipSavedPlacement!.ref.rcNormalPosition.right -
+            _pipSavedPlacement!.ref.rcNormalPosition.left;
+        final normH = _pipSavedPlacement!.ref.rcNormalPosition.bottom -
+            _pipSavedPlacement!.ref.rcNormalPosition.top;
+        if (normW > 440 && normH > 280) {
+          _pipSavedLeft = _pipSavedPlacement!.ref.rcNormalPosition.left;
+          _pipSavedTop = _pipSavedPlacement!.ref.rcNormalPosition.top;
+          _pipSavedWidth = normW;
+          _pipSavedHeight = normH;
+        }
+      }
+
       final monitorFromWindow = user32.lookupFunction<
           IntPtr Function(IntPtr, Uint32),
           int Function(int, int)>('MonitorFromWindow');
@@ -166,12 +186,25 @@ class Win32DesktopPipService {
       _isWindowsPip = true;
       NativePipService.isInPip.value = true;
 
-      runWhenSchedulerIdle(() {
+      void applyPipWindow() {
         if (!_isWindowsPip) return;
         try {
-          final borderlessPipStyle =
-              ((_pipSavedStyle & ~wsOverlappedWindow) | wsPopup | wsVisible)
-                  .toSigned(32);
+          if (isMin) {
+            final showWindow = user32.lookupFunction<
+                Int32 Function(IntPtr, Int32),
+                int Function(int, int)>('ShowWindow');
+            showWindow(hwnd, swRestore);
+          }
+
+          final borderlessPipStyle = ((_pipSavedStyle &
+                      ~(wsOverlappedWindow |
+                          wsMaximize |
+                          wsMinimize |
+                          wsCaption |
+                          wsThickFrame)) |
+                  wsPopup |
+                  wsVisible)
+              .toSigned(32);
           setWindowLong(user32, hwnd, gwlStyle, borderlessPipStyle);
 
           final setWindowPos = user32.lookupFunction<
@@ -186,7 +219,20 @@ class Win32DesktopPipService {
             _pipWindowY,
             _pipWindowWidth,
             _pipWindowHeight,
-            swpNoOwnerZOrder | swpFrameChanged,
+            swpNoOwnerZOrder |
+                swpFrameChanged |
+                swpShowWindow |
+                swpNoActivate,
+          );
+
+          setWindowPos(
+            hwnd,
+            hwndTopMost,
+            _pipWindowX,
+            _pipWindowY,
+            _pipWindowWidth,
+            _pipWindowHeight,
+            swpNoOwnerZOrder | swpShowWindow | swpNoActivate,
           );
 
           log('Entered Windows always-on-top Picture-in-Picture mode');
@@ -194,7 +240,13 @@ class Win32DesktopPipService {
           _isWindowsPip = false;
           log('Error applying Windows PiP window: $e');
         }
-      });
+      }
+
+      if (isMin) {
+        applyPipWindow();
+      } else {
+        runWhenSchedulerIdle(applyPipWindow);
+      }
 
       return true;
     } catch (e) {
@@ -257,6 +309,9 @@ class Win32DesktopPipService {
       runWhenSchedulerIdle(() {
         try {
           if (savedPlacement != null) {
+            if (savedPlacement.ref.showCmd == 2) {
+              savedPlacement.ref.showCmd = swShowNormal;
+            }
             final setWindowPlacement = user32.lookupFunction<
                 Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
                 int Function(
@@ -265,9 +320,17 @@ class Win32DesktopPipService {
             calloc.free(savedPlacement);
           }
 
-          if (savedStyle != 0) {
-            setWindowLong(user32, hwnd, gwlStyle, savedStyle);
-          }
+          final normalStyle = (((savedStyle == 0 ? wsOverlappedWindow : savedStyle) &
+                      ~(wsPopup | wsMinimize)) |
+                  wsOverlappedWindow |
+                  wsVisible)
+              .toSigned(32);
+          setWindowLong(user32, hwnd, gwlStyle, normalStyle);
+
+          final showWindow = user32.lookupFunction<
+              Int32 Function(IntPtr, Int32),
+              int Function(int, int)>('ShowWindow');
+          showWindow(hwnd, swRestore);
 
           final setWindowPos = user32.lookupFunction<
               Int32 Function(
@@ -281,7 +344,7 @@ class Win32DesktopPipService {
             savedTop,
             savedWidth,
             savedHeight,
-            swpNoOwnerZOrder | swpFrameChanged,
+            swpNoOwnerZOrder | swpFrameChanged | swpShowWindow,
           );
 
           log('Exited Windows Picture-in-Picture mode');

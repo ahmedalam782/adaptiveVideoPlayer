@@ -30,7 +30,9 @@ class NativePlayerAdapter implements IVideoPlayerController {
   })  : _controller = controller,
         _qualities = qualities,
         _currentQuality = initialQuality ??
-            (qualities != null && qualities.isNotEmpty ? qualities.first : null),
+            (qualities != null && qualities.isNotEmpty
+                ? qualities.first
+                : null),
         _subtitles = subtitles,
         _currentSubtitle = initialSubtitle,
         _isLive = isLive,
@@ -168,13 +170,15 @@ class NativePlayerAdapter implements IVideoPlayerController {
   @override
   Future<void> changeQuality(VideoQuality quality) async {
     _currentQuality = quality;
-    _stateNotifier.value = _stateNotifier.value.copyWith(currentQuality: quality);
+    _stateNotifier.value =
+        _stateNotifier.value.copyWith(currentQuality: quality);
   }
 
   @override
   Future<void> changeSubtitle(SubtitleTrack? track) async {
     _currentSubtitle = track;
-    _stateNotifier.value = _stateNotifier.value.copyWith(currentSubtitle: track);
+    _stateNotifier.value =
+        _stateNotifier.value.copyWith(currentSubtitle: track);
   }
 
   @override

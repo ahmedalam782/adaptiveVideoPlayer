@@ -29,8 +29,7 @@ mixin VolumeFeedbackMixin<T extends StatefulWidget> on State<T> {
     setState(() {
       feedbackVolume = volume.clamp(0.0, 1.0);
     });
-    _volumeFeedbackTimer =
-        Timer(customTimeout ?? volumeFeedbackTimeout, () {
+    _volumeFeedbackTimer = Timer(customTimeout ?? volumeFeedbackTimeout, () {
       if (mounted) {
         setState(() {
           feedbackVolume = null;

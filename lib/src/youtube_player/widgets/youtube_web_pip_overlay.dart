@@ -240,7 +240,8 @@ class _YouTubeWebPipOverlayState extends State<YouTubeWebPipOverlay> {
                 IconButton(
                   iconSize: 20,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+                  constraints:
+                      const BoxConstraints(minWidth: 26, minHeight: 26),
                   icon: Icon(
                     _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                     color: Colors.white,
@@ -250,15 +251,18 @@ class _YouTubeWebPipOverlayState extends State<YouTubeWebPipOverlay> {
                 IconButton(
                   iconSize: 18,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-                  icon: const Icon(Icons.aspect_ratio_rounded, color: Colors.white),
+                  constraints:
+                      const BoxConstraints(minWidth: 26, minHeight: 26),
+                  icon: const Icon(Icons.aspect_ratio_rounded,
+                      color: Colors.white),
                   tooltip: 'Restore',
                   onPressed: () => setState(() => _isMinimized = false),
                 ),
                 IconButton(
                   iconSize: 18,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+                  constraints:
+                      const BoxConstraints(minWidth: 26, minHeight: 26),
                   icon: const Icon(Icons.close_rounded, color: Colors.white),
                   tooltip: widget.closeTooltip,
                   onPressed: widget.onClose,

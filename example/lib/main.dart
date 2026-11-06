@@ -36,9 +36,6 @@ class WindowsStableScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(
-      'WindowsStableScale build ${MediaQuery.of(context).size.width} ${MediaQuery.of(context).size.height}',
-    );
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.windows) {
       return child;
     }

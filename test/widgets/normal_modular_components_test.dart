@@ -70,7 +70,9 @@ class _FakeVideoPlayerController extends VideoPlayerController {
 
 void main() {
   group('Normal Video Player Modular Components Tests', () {
-    testWidgets('NormalFullscreenOverlay renders child in directionality and scaffold', (tester) async {
+    testWidgets(
+        'NormalFullscreenOverlay renders child in directionality and scaffold',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: NormalFullscreenOverlay(
@@ -83,7 +85,8 @@ void main() {
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
-    testWidgets('NormalPlayerLoadingWidget renders default spinner', (tester) async {
+    testWidgets('NormalPlayerLoadingWidget renders default spinner',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -95,7 +98,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('NormalPlayerLoadingWidget respects customBuilder', (tester) async {
+    testWidgets('NormalPlayerLoadingWidget respects customBuilder',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -110,7 +114,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('NormalPlayerErrorWidget renders error icon and message', (tester) async {
+    testWidgets('NormalPlayerErrorWidget renders error icon and message',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -125,7 +130,8 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('NormalPlayerErrorWidget respects customBuilder', (tester) async {
+    testWidgets('NormalPlayerErrorWidget respects customBuilder',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -141,7 +147,8 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsNothing);
     });
 
-    testWidgets('AdaptiveFullscreenButton toggles callback correctly', (tester) async {
+    testWidgets('AdaptiveFullscreenButton toggles callback correctly',
+        (tester) async {
       bool enterCalled = false;
       bool exitCalled = false;
 
@@ -189,7 +196,9 @@ void main() {
       expect(find.byIcon(Icons.settings), findsOneWidget);
     });
 
-    test('NormalFullscreenCoordinator handles initial state and close when not open', () {
+    test(
+        'NormalFullscreenCoordinator handles initial state and close when not open',
+        () {
       final coordinator = NormalFullscreenCoordinator();
       expect(coordinator.isInFullscreen, isFalse);
 
@@ -201,7 +210,9 @@ void main() {
       expect(coordinator.isInFullscreen, isFalse);
     });
 
-    testWidgets('NormalFullscreenCoordinator opens overlay and rebuildOverlay updates content', (tester) async {
+    testWidgets(
+        'NormalFullscreenCoordinator opens overlay and rebuildOverlay updates content',
+        (tester) async {
       final coordinator = NormalFullscreenCoordinator();
       String currentQuality = '720p';
 
@@ -244,7 +255,9 @@ void main() {
       coordinator.dispose();
     });
 
-    testWidgets('Draggable handle responds to pan gestures and double-tap reset', (tester) async {
+    testWidgets(
+        'Draggable handle responds to pan gestures and double-tap reset',
+        (tester) async {
       Offset offset = Offset.zero;
       await tester.pumpWidget(
         MaterialApp(
@@ -283,7 +296,8 @@ void main() {
       );
 
       expect(offset, Offset.zero);
-      await tester.drag(find.byKey(const ValueKey('drag_handle')), const Offset(-50, -30));
+      await tester.drag(
+          find.byKey(const ValueKey('drag_handle')), const Offset(-50, -30));
       await tester.pumpAndSettle();
       expect(offset != Offset.zero, isTrue);
       expect(offset.dx < 0, isTrue);
@@ -297,7 +311,9 @@ void main() {
       expect(offset, Offset.zero);
     });
 
-    testWidgets('AdaptivePlayerSettingsSheet renders without overflow in tight constraints and flips RTL in Arabic', (tester) async {
+    testWidgets(
+        'AdaptivePlayerSettingsSheet renders without overflow in tight constraints and flips RTL in Arabic',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -307,12 +323,18 @@ void main() {
                 height: 150,
                 child: AdaptivePlayerSettingsSheet(
                   qualities: const [
-                    VideoQuality(title: '1080p Full HD', url: 'https://example.com/1080.mp4'),
-                    VideoQuality(title: '720p HD', url: 'https://example.com/720.mp4'),
+                    VideoQuality(
+                        title: '1080p Full HD',
+                        url: 'https://example.com/1080.mp4'),
+                    VideoQuality(
+                        title: '720p HD', url: 'https://example.com/720.mp4'),
                   ],
-                  currentQuality: const VideoQuality(title: '1080p Full HD', url: 'https://example.com/1080.mp4'),
+                  currentQuality: const VideoQuality(
+                      title: '1080p Full HD',
+                      url: 'https://example.com/1080.mp4'),
                   subtitles: const [
-                    SubtitleTrack(id: 'en', title: 'English', content: 'WEBVTT'),
+                    SubtitleTrack(
+                        id: 'en', title: 'English', content: 'WEBVTT'),
                   ],
                 ),
               ),
@@ -357,7 +379,9 @@ void main() {
       expect(Directionality.of(titleContext), TextDirection.rtl);
     });
 
-    testWidgets('AdaptiveBottomBar renders -10s, play/pause, and +10s buttons in LTR even inside RTL parent', (tester) async {
+    testWidgets(
+        'AdaptiveBottomBar renders -10s, play/pause, and +10s buttons in LTR even inside RTL parent',
+        (tester) async {
       final controller = _FakeVideoPlayerController();
 
       await tester.pumpWidget(
@@ -382,13 +406,16 @@ void main() {
 
       // Verify RTL order: in RTL direction, rewind (-10s / later) is first on the right and forward (+10s / increase) is second on the left
       final rewindX = tester.getCenter(find.byIcon(Icons.replay_10_rounded)).dx;
-      final forwardX = tester.getCenter(find.byIcon(Icons.forward_10_rounded)).dx;
+      final forwardX =
+          tester.getCenter(find.byIcon(Icons.forward_10_rounded)).dx;
       expect(rewindX > forwardX, isTrue);
 
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveBottomBar hides skip buttons when showSkipButtons is false or isLive is true', (tester) async {
+    testWidgets(
+        'AdaptiveBottomBar hides skip buttons when showSkipButtons is false or isLive is true',
+        (tester) async {
       final controller = _FakeVideoPlayerController();
 
       // Test showSkipButtons: false
@@ -427,7 +454,9 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveBottomBar tapping -10 and +10 calls seekTo and fires analytics', (tester) async {
+    testWidgets(
+        'AdaptiveBottomBar tapping -10 and +10 calls seekTo and fires analytics',
+        (tester) async {
       final controller = _FakeVideoPlayerController();
 
       String? lastEvent;
@@ -456,7 +485,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveCenterPlayPause renders and responds to tap', (tester) async {
+    testWidgets('AdaptiveCenterPlayPause renders and responds to tap',
+        (tester) async {
       final controller = _FakeVideoPlayerController();
 
       await tester.pumpWidget(
@@ -475,7 +505,8 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveProgressBar displays timestamp pill during scrubbing', (tester) async {
+    testWidgets('AdaptiveProgressBar displays timestamp pill during scrubbing',
+        (tester) async {
       final controller = _FakeVideoPlayerController(
         duration: const Duration(seconds: 120),
         position: const Duration(seconds: 30),
@@ -503,7 +534,9 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('BaseAdaptiveVideoPlayer Hold-to-2x Speed activates on long press and restores on release', (tester) async {
+    testWidgets(
+        'BaseAdaptiveVideoPlayer Hold-to-2x Speed activates on long press and restores on release',
+        (tester) async {
       final controller = _FakeVideoPlayerController();
 
       await tester.pumpWidget(
@@ -538,7 +571,9 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('AdaptiveProgressBar displays active chapter title and timestamp in scrubbing pill', (tester) async {
+    testWidgets(
+        'AdaptiveProgressBar displays active chapter title and timestamp in scrubbing pill',
+        (tester) async {
       final controller = _FakeVideoPlayerController(
         duration: const Duration(seconds: 120),
         position: const Duration(seconds: 30),
@@ -572,7 +607,9 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('NormalMiniPlayerOverlay renders controls and triggers expand/close callbacks', (tester) async {
+    testWidgets(
+        'NormalMiniPlayerOverlay renders controls and triggers expand/close callbacks',
+        (tester) async {
       final controller = _FakeVideoPlayerController();
       bool expanded = false;
       bool closed = false;
@@ -605,7 +642,9 @@ void main() {
       await controller.dispose();
     });
 
-    testWidgets('PipPlaybackChrome handles 2D diagonal drag updates without assertion errors', (tester) async {
+    testWidgets(
+        'PipPlaybackChrome handles 2D diagonal drag updates without assertion errors',
+        (tester) async {
       DragUpdateDetails? receivedDetails;
 
       await tester.pumpWidget(
@@ -632,7 +671,8 @@ void main() {
       );
 
       final center = tester.getCenter(find.byType(PipPlaybackChrome));
-      final gesture = await tester.startGesture(center, kind: PointerDeviceKind.mouse, buttons: kPrimaryMouseButton);
+      final gesture = await tester.startGesture(center,
+          kind: PointerDeviceKind.mouse, buttons: kPrimaryMouseButton);
       await gesture.moveBy(const Offset(25, 35));
       await tester.pump();
 
@@ -643,7 +683,9 @@ void main() {
       await gesture.up();
     });
 
-    testWidgets('AdaptiveTopBar renders top-end actions when showActionsInTopBar is true', (tester) async {
+    testWidgets(
+        'AdaptiveTopBar renders top-end actions when showActionsInTopBar is true',
+        (tester) async {
       bool settingsPressed = false;
       bool speedPressed = false;
 

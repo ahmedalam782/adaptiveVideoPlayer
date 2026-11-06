@@ -311,7 +311,12 @@ Featuring Netflix circular loader and top-end actions!
           children: [
             Icon(Icons.add_link_rounded, color: Colors.cyanAccent),
             SizedBox(width: 8),
-            Text('Custom Video Stream URL', style: TextStyle(fontSize: 18)),
+            Expanded(
+              child: Text(
+                'Custom Video Stream URL',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
           ],
         ),
         content: Column(

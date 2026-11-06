@@ -37,9 +37,8 @@ class PlayerChromeUtils {
 
   static double nearestSpeed(double speed, List<double> speeds) {
     return speeds.reduce(
-      (best, candidate) => (candidate - speed).abs() < (best - speed).abs()
-          ? candidate
-          : best,
+      (best, candidate) =>
+          (candidate - speed).abs() < (best - speed).abs() ? candidate : best,
     );
   }
 

@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlayerState and PlayerCubitState Extensions', () {
-    test('UnifiedPlayerStateExtensions computes progress and remaining strings', () {
+    test('UnifiedPlayerStateExtensions computes progress and remaining strings',
+        () {
       const state = PlayerState(
         position: Duration(seconds: 30),
         duration: Duration(seconds: 120),
@@ -17,7 +18,9 @@ void main() {
       expect(state.formattedRemaining, '01:30');
     });
 
-    test('PlayerCubitStateExtensions computes properties and converts to unified state', () {
+    test(
+        'PlayerCubitStateExtensions computes properties and converts to unified state',
+        () {
       const cubitState = PlayerCubitState(
         position: Duration(seconds: 45),
         duration: Duration(seconds: 90),

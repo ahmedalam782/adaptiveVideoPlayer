@@ -4,7 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('VideoFileExtension enum tests', () {
     test('detects standard MP4 video format', () {
-      final format = VideoFileExtension.fromPath('https://example.com/video.mp4');
+      final format =
+          VideoFileExtension.fromPath('https://example.com/video.mp4');
       expect(format, VideoFileExtension.mp4);
       expect(format?.extension, '.mp4');
       expect(format?.mimeType, 'video/mp4');
@@ -12,7 +13,8 @@ void main() {
     });
 
     test('detects HLS streaming format (.m3u8)', () {
-      final format = VideoFileExtension.fromPath('https://example.com/master.m3u8');
+      final format =
+          VideoFileExtension.fromPath('https://example.com/master.m3u8');
       expect(format, VideoFileExtension.hls);
       expect(format?.extension, '.m3u8');
       expect(format?.mimeType, 'application/x-mpegURL');
@@ -20,7 +22,8 @@ void main() {
     });
 
     test('detects DASH streaming format (.mpd)', () {
-      final format = VideoFileExtension.fromPath('https://example.com/manifest.mpd');
+      final format =
+          VideoFileExtension.fromPath('https://example.com/manifest.mpd');
       expect(format, VideoFileExtension.dash);
       expect(format?.isStreaming, isTrue);
     });
@@ -48,7 +51,8 @@ void main() {
         VideoSourceType.network,
       );
       expect(
-        VideoSourceType.detect(source: '/storage/emulated/0/video.mp4', isFile: true),
+        VideoSourceType.detect(
+            source: '/storage/emulated/0/video.mp4', isFile: true),
         VideoSourceType.file,
       );
       expect(
@@ -56,7 +60,8 @@ void main() {
         VideoSourceType.bytes,
       );
       expect(
-        VideoSourceType.detect(source: 'https://youtube.com/watch?v=123', isYouTube: true),
+        VideoSourceType.detect(
+            source: 'https://youtube.com/watch?v=123', isYouTube: true),
         VideoSourceType.youtube,
       );
       expect(

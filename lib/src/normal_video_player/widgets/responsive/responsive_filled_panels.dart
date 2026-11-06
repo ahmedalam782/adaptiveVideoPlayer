@@ -34,7 +34,8 @@ class ResponsiveFilledPanels extends StatelessWidget {
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
   final PlayerVisibilityConfig? visibility;
-  final void Function(String event, Map<String, dynamic> data)? onAnalyticsEvent;
+  final void Function(String event, Map<String, dynamic> data)?
+      onAnalyticsEvent;
   final VoidCallback? onCloseAudioSubtitles;
   final VoidCallback? onCloseEpisodes;
   final VoidCallback? onCloseSpeed;
@@ -136,7 +137,8 @@ class ResponsiveFilledPanels extends StatelessWidget {
               child: GestureDetector(
                 onTap: () {},
                 child: Material(
-                  color: styling?.settingsBackgroundColor ?? const Color(0xF21F1F1F),
+                  color: styling?.settingsBackgroundColor ??
+                      const Color(0xF21F1F1F),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       maxWidth: constraints.maxWidth,

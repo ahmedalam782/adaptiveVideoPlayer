@@ -17,7 +17,8 @@ class YouTubePlayerAdapter implements IVideoPlayerController {
   final String? viewerCount;
   final YoutubePlayerNotifier _notifier;
   final ValueNotifier<PlayerState> _stateNotifier;
-  final GlobalKey<YouTubeVideoPlayerState> _playerKey = GlobalKey<YouTubeVideoPlayerState>();
+  final GlobalKey<YouTubeVideoPlayerState> _playerKey =
+      GlobalKey<YouTubeVideoPlayerState>();
   bool _isDisposed = false;
 
   YouTubePlayerAdapter({
@@ -41,7 +42,8 @@ class YouTubePlayerAdapter implements IVideoPlayerController {
   PlayerState get state => _stateNotifier.value;
 
   @override
-  List<VideoQuality>? get qualities => null; // Managed inside YouTube player internally
+  List<VideoQuality>? get qualities =>
+      null; // Managed inside YouTube player internally
 
   @override
   VideoQuality? get currentQuality => null;

@@ -56,13 +56,13 @@ class DemoStreamStrip extends StatelessWidget {
             icon: stream.isYouTube
                 ? Icons.smart_display_rounded
                 : (stream.isLive
-                    ? Icons.sensors_rounded
-                    : Icons.movie_filter_rounded),
+                      ? Icons.sensors_rounded
+                      : Icons.movie_filter_rounded),
             accent: stream.isYouTube
                 ? const Color(0xFFEF4444)
                 : (stream.isLive
-                    ? const Color(0xFFF43F5E)
-                    : const Color(0xFF818CF8)),
+                      ? const Color(0xFFF43F5E)
+                      : const Color(0xFF818CF8)),
             selected: stream.selected,
             onTap: stream.onTap,
           );
@@ -109,7 +109,9 @@ class DemoStreamCard extends StatelessWidget {
               border: Border.all(
                 color: selected
                     ? accent
-                    : (isDark ? const Color(0xFF2A3348) : const Color(0xFFE2E8F0)),
+                    : (isDark
+                          ? const Color(0xFF2A3348)
+                          : const Color(0xFFE2E8F0)),
               ),
             ),
             child: Padding(
@@ -140,7 +142,9 @@ class DemoStreamCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11,
-                            color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                            color: isDark
+                                ? Colors.white54
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ],

@@ -29,7 +29,9 @@ void main() {
       expect(ScreenProtectionService.isProtectedNotifier.value, false);
     });
 
-    test('multi-owner reference counting keeps protection active until all unregister', () async {
+    test(
+        'multi-owner reference counting keeps protection active until all unregister',
+        () async {
       final owner1 = Object();
       final owner2 = Object();
 
@@ -68,7 +70,8 @@ void main() {
       expect(ScreenProtectionService.isProtected, false);
     });
 
-    test('convenience methods enable, disable, and setEnabled work as expected', () async {
+    test('convenience methods enable, disable, and setEnabled work as expected',
+        () async {
       await ScreenProtectionService.enable();
       expect(ScreenProtectionService.isProtected, true);
 

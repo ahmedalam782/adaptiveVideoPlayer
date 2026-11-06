@@ -17,7 +17,8 @@ class MobilePlayerChrome extends StatelessWidget {
   final PlayerVisibilityConfig? visibility;
   final PlayerPlaybackConfig? playback;
   final List<VideoChapter>? chapters;
-  final void Function(String event, Map<String, dynamic> data)? onAnalyticsEvent;
+  final void Function(String event, Map<String, dynamic> data)?
+      onAnalyticsEvent;
   final String? title;
   final VideoEpisode? currentEpisode;
   final List<VideoEpisode>? episodes;
@@ -82,9 +83,17 @@ class MobilePlayerChrome extends StatelessWidget {
         builder: (context, constraints) {
           // Phone chrome stays up while either side is still at least 100px.
           final phoneBox =
-              constraints.maxHeight >= 100 && constraints.maxWidth >= 100;
+              constraints.maxHeight >= 120 && constraints.maxWidth >= 100;
           final short = !phoneBox;
           final showLabels = phoneBox;
+          final showTopBar = constraints.maxHeight >= 95;
+          final showCenterTransport = constraints.maxHeight >= 55;
+          final showProgressBar = effectiveVisibility.showProgressBar &&
+              !isLive &&
+              constraints.maxHeight >= 25;
+          final verticalPadding = constraints.maxHeight < 80 ? 2.0 : 8.0;
+          final horizontalPadding = constraints.maxWidth < 120 ? 6.0 : 12.0;
+
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -106,40 +115,49 @@ class MobilePlayerChrome extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  verticalPadding,
+                  horizontalPadding,
+                  verticalPadding,
+                ),
                 child: Column(
                   children: [
-                    MobileTopBar(
-                      headline: PlayerChromeUtils.headline(
-                        title: title,
-                        episodeTitle: currentEpisode?.title,
-                      ),
-                      isRtl: isRtl,
-                      isFullScreen: isFullScreen,
-                      isLive: isLive,
-                      styling: styling,
-                      messages: messages,
-                      visibility: effectiveVisibility,
-                      audioTracks: audioTracks,
-                      subtitles: subtitles,
-                      onExitFullscreen: onExitFullscreen,
-                      onEnterFullscreen: onEnterFullscreen,
-                      onMiniPlayerPressed: onMiniPlayerPressed,
-                      onAudioSubtitlesPressed: onAudioSubtitlesPressed,
-                      onLockPressed: onLockPressed,
-                    ),
-                    Expanded(
-                      child: MobileCenterTransport(
-                        controller: controller,
+                    if (showTopBar)
+                      MobileTopBar(
+                        headline: PlayerChromeUtils.headline(
+                          title: title,
+                          episodeTitle: currentEpisode?.title,
+                        ),
+                        isRtl: isRtl,
+                        isFullScreen: isFullScreen,
+                        isLive: isLive,
                         styling: styling,
                         messages: messages,
                         visibility: effectiveVisibility,
-                        isLive: isLive,
-                        compact: short,
-                        onAnalyticsEvent: onAnalyticsEvent,
+                        audioTracks: audioTracks,
+                        subtitles: subtitles,
+                        onExitFullscreen: onExitFullscreen,
+                        onEnterFullscreen: onEnterFullscreen,
+                        onMiniPlayerPressed: onMiniPlayerPressed,
+                        onAudioSubtitlesPressed: onAudioSubtitlesPressed,
+                        onLockPressed: onLockPressed,
                       ),
-                    ),
-                    if (effectiveVisibility.showProgressBar && !isLive)
+                    if (showCenterTransport)
+                      Expanded(
+                        child: MobileCenterTransport(
+                          controller: controller,
+                          styling: styling,
+                          messages: messages,
+                          visibility: effectiveVisibility,
+                          isLive: isLive,
+                          compact: short,
+                          onAnalyticsEvent: onAnalyticsEvent,
+                        ),
+                      )
+                    else
+                      const Spacer(),
+                    if (showProgressBar)
                       AdaptiveProgressBar(
                         controller: controller,
                         dragPosition: dragPosition,
@@ -312,7 +330,8 @@ class MobileCenterTransport extends StatelessWidget {
   final PlayerVisibilityConfig visibility;
   final bool isLive;
   final bool compact;
-  final void Function(String event, Map<String, dynamic> data)? onAnalyticsEvent;
+  final void Function(String event, Map<String, dynamic> data)?
+      onAnalyticsEvent;
 
   const MobileCenterTransport({
     super.key,
@@ -332,7 +351,9 @@ class MobileCenterTransport extends StatelessWidget {
     final skip = visibility.skipDuration;
 
     return Center(
-      child: Row(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showSkip)
@@ -344,7 +365,8 @@ class MobileCenterTransport extends StatelessWidget {
               ),
             if (visibility.showCenterPlayPause) ...[
               SizedBox(width: compact ? 28 : 40),
-              MobilePlayIcon(controller: controller, styling: styling, compact: compact),
+              MobilePlayIcon(
+                  controller: controller, styling: styling, compact: compact),
               SizedBox(width: compact ? 28 : 40),
             ],
             if (showSkip)
@@ -356,6 +378,7 @@ class MobileCenterTransport extends StatelessWidget {
               ),
           ],
         ),
+      ),
     );
   }
 
@@ -513,7 +536,8 @@ class MobileActionRow extends StatelessWidget {
         ValueListenableBuilder<VideoPlayerValue>(
           valueListenable: controller,
           builder: (context, value, _) {
-            final rateLabel = PlayerChromeUtils.playbackRateLabel(value.playbackSpeed);
+            final rateLabel =
+                PlayerChromeUtils.playbackRateLabel(value.playbackSpeed);
             return MobileLabeledAction(
               icon: Icons.speed_rounded,
               label: isRtl ? 'السرعة ($rateLabel)' : 'Speed ($rateLabel)',
@@ -525,7 +549,8 @@ class MobileActionRow extends StatelessWidget {
       if (visibility.showSettingsButton && onSettingsPressed != null)
         MobileLabeledAction(
           icon: Icons.settings_outlined,
-          label: messages?.playerSettingsText ?? (isRtl ? 'الإعدادات' : 'Settings'),
+          label: messages?.playerSettingsText ??
+              (isRtl ? 'الإعدادات' : 'Settings'),
           showLabel: showLabels,
           onTap: onSettingsPressed!,
         ),

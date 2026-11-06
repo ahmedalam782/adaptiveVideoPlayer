@@ -245,7 +245,8 @@ class AdaptiveBottomBar extends StatelessWidget {
                           AdaptiveStopButton(
                             controller: controller,
                             styling: styling,
-                            tooltip: messages?.stopVideoText ?? PlayerStrings.stop,
+                            tooltip:
+                                messages?.stopVideoText ?? PlayerStrings.stop,
                             onAnalyticsEvent: onAnalyticsEvent,
                             pillColor: _pillColor,
                           ),
@@ -256,25 +257,25 @@ class AdaptiveBottomBar extends StatelessWidget {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                                AdaptiveCirclePillButton(
-                                  backgroundColor: _pillColor,
-                                  playerIcon: styling?.icons.skipBackwardIcon,
-                                  icon: Icons.replay_10_rounded,
-                                  tooltip: messages?.skipBackwardText ??
-                                      PlayerStrings.seekBackward,
-                                  onTap: () => _seekRelative(-skipDuration),
-                                ),
-                                const SizedBox(width: 6),
-                                AdaptiveCirclePillButton(
-                                  backgroundColor: _pillColor,
-                                  playerIcon: styling?.icons.skipForwardIcon,
-                                  icon: Icons.forward_10_rounded,
-                                  tooltip: messages?.skipForwardText ??
-                                      PlayerStrings.seekForward,
-                                  onTap: () => _seekRelative(skipDuration),
-                                ),
-                              ],
-                            ),
+                              AdaptiveCirclePillButton(
+                                backgroundColor: _pillColor,
+                                playerIcon: styling?.icons.skipBackwardIcon,
+                                icon: Icons.replay_10_rounded,
+                                tooltip: messages?.skipBackwardText ??
+                                    PlayerStrings.seekBackward,
+                                onTap: () => _seekRelative(-skipDuration),
+                              ),
+                              const SizedBox(width: 6),
+                              AdaptiveCirclePillButton(
+                                backgroundColor: _pillColor,
+                                playerIcon: styling?.icons.skipForwardIcon,
+                                icon: Icons.forward_10_rounded,
+                                tooltip: messages?.skipForwardText ??
+                                    PlayerStrings.seekForward,
+                                onTap: () => _seekRelative(skipDuration),
+                              ),
+                            ],
+                          ),
                         ],
 
                         if (canShowVolume) ...[
@@ -297,7 +298,8 @@ class AdaptiveBottomBar extends StatelessWidget {
                           SizedBox(width: isCompact ? 4 : 8),
                           ConstrainedBox(
                             constraints: BoxConstraints(
-                              maxWidth: (availableWidth * 0.35).clamp(60.0, 180.0),
+                              maxWidth:
+                                  (availableWidth * 0.35).clamp(60.0, 180.0),
                             ),
                             child: AdaptiveGlassmorphicContainer(
                               height: 38,
@@ -352,161 +354,194 @@ class AdaptiveBottomBar extends StatelessWidget {
                                   scrollDirection: Axis.horizontal,
                                   reverse: true,
                                   child: AdaptiveGlassmorphicContainer(
-                        height: 38,
-                        borderRadius: 24,
-                        blur: 10,
-                        color: _pillColor,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isCompact ? 6.0 : 8.0,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (isWide) ...[
-                              if (showLoop) ...[
-                                AdaptiveLoopToggle(
-                                  controller: controller,
-                                  isLooping: value.isLooping,
-                                  styling: styling,
-                                  messages: messages,
-                                ),
-                                const SizedBox(width: 2),
-                              ],
-                              if (showSubtitlesQuick) ...[
-                                AdaptiveSubtitlesButton(
-                                  subtitles: subtitles,
-                                  currentSubtitleTrack: currentSubtitleTrack,
-                                  onSubtitleSelected: onSubtitleSelected,
-                                  onSettingsPressed: onSettingsPressed,
-                                  styling: styling,
-                                  messages: messages,
-                                ),
-                                const SizedBox(width: 2),
-                              ],
-                            ],
-                            // Next Episode Button (>|)
-                            if (canShowNextEpisode)
-                              AdaptiveNextEpisodeButton(
-                                onNextEpisode: onNextEpisode,
-                                styling: styling,
-                                messages: messages,
-                              ),
+                                    height: 38,
+                                    borderRadius: 24,
+                                    blur: 10,
+                                    color: _pillColor,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: isCompact ? 6.0 : 8.0,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (isWide) ...[
+                                          if (showLoop) ...[
+                                            AdaptiveLoopToggle(
+                                              controller: controller,
+                                              isLooping: value.isLooping,
+                                              styling: styling,
+                                              messages: messages,
+                                            ),
+                                            const SizedBox(width: 2),
+                                          ],
+                                          if (showSubtitlesQuick) ...[
+                                            AdaptiveSubtitlesButton(
+                                              subtitles: subtitles,
+                                              currentSubtitleTrack:
+                                                  currentSubtitleTrack,
+                                              onSubtitleSelected:
+                                                  onSubtitleSelected,
+                                              onSettingsPressed:
+                                                  onSettingsPressed,
+                                              styling: styling,
+                                              messages: messages,
+                                            ),
+                                            const SizedBox(width: 2),
+                                          ],
+                                        ],
+                                        // Next Episode Button (>|)
+                                        if (canShowNextEpisode)
+                                          AdaptiveNextEpisodeButton(
+                                            onNextEpisode: onNextEpisode,
+                                            styling: styling,
+                                            messages: messages,
+                                          ),
 
-                            // Episodes Drawer Button
-                            if (canShowEpisodes) ...[
-                              Tooltip(
-                                message: messages?.episodesText ?? 'Episodes',
-                                waitDuration: const Duration(milliseconds: 500),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: onEpisodesPressed,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-                                    child: Icon(
-                                      Icons.video_library_outlined,
-                                      color: styling?.iconColor ?? Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                                        // Episodes Drawer Button
+                                        if (canShowEpisodes) ...[
+                                          Tooltip(
+                                            message: messages?.episodesText ??
+                                                'Episodes',
+                                            waitDuration: const Duration(
+                                                milliseconds: 500),
+                                            child: GestureDetector(
+                                              behavior: HitTestBehavior.opaque,
+                                              onTap: onEpisodesPressed,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 4),
+                                                child: Icon(
+                                                  Icons.video_library_outlined,
+                                                  color: styling?.iconColor ??
+                                                      Colors.white,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
 
-                            // Dual-Column Audio & Subtitles Button
-                            if (canShowAudioSubtitles) ...[
-                              Tooltip(
-                                message: messages?.audioAndSubtitlesText ?? 'Audio & Subtitles',
-                                waitDuration: const Duration(milliseconds: 500),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: onAudioSubtitlesPressed,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-                                    child: Icon(
-                                      Icons.subtitles_outlined,
-                                      color: styling?.iconColor ?? Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                                        // Dual-Column Audio & Subtitles Button
+                                        if (canShowAudioSubtitles) ...[
+                                          Tooltip(
+                                            message: messages
+                                                    ?.audioAndSubtitlesText ??
+                                                'Audio & Subtitles',
+                                            waitDuration: const Duration(
+                                                milliseconds: 500),
+                                            child: GestureDetector(
+                                              behavior: HitTestBehavior.opaque,
+                                              onTap: onAudioSubtitlesPressed,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 4),
+                                                child: Icon(
+                                                  Icons.subtitles_outlined,
+                                                  color: styling?.iconColor ??
+                                                      Colors.white,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
 
-                            // Discrete Speed Stepper Button
-                            if (canShowSpeed) ...[
-                              Tooltip(
-                                message: messages?.playbackSpeedText ?? 'Playback Speed',
-                                waitDuration: const Duration(milliseconds: 500),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: onSpeedPressed,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-                                    child: Icon(
-                                      Icons.speed_rounded,
-                                      color: styling?.iconColor ?? Colors.white,
-                                      size: 20,
+                                        // Discrete Speed Stepper Button
+                                        if (canShowSpeed) ...[
+                                          Tooltip(
+                                            message:
+                                                messages?.playbackSpeedText ??
+                                                    'Playback Speed',
+                                            waitDuration: const Duration(
+                                                milliseconds: 500),
+                                            child: GestureDetector(
+                                              behavior: HitTestBehavior.opaque,
+                                              onTap: onSpeedPressed,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 4),
+                                                child: Icon(
+                                                  Icons.speed_rounded,
+                                                  color: styling?.iconColor ??
+                                                      Colors.white,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        if (showSettings)
+                                          AdaptiveSettingsButton(
+                                            isFullScreen: isFullScreen,
+                                            styling: styling,
+                                            messages: messages,
+                                            qualities: qualities,
+                                            currentQuality: currentQuality,
+                                            onQualitySelected:
+                                                onQualitySelected,
+                                            subtitles: subtitles,
+                                            currentSubtitleTrack:
+                                                currentSubtitleTrack,
+                                            onSubtitleSelected:
+                                                onSubtitleSelected,
+                                            onAnalyticsEvent: onAnalyticsEvent,
+                                            onPressed: onSettingsPressed,
+                                          ),
+                                        if (canShowMiniPlayer) ...[
+                                          SizedBox(width: isCompact ? 4 : 8),
+                                          Tooltip(
+                                            message: messages?.miniPlayerText ??
+                                                PlayerStrings.miniPlayer,
+                                            waitDuration: const Duration(
+                                                milliseconds: 500),
+                                            child: GestureDetector(
+                                              behavior: HitTestBehavior.opaque,
+                                              onTap: onMiniPlayerPressed,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 4.0,
+                                                  vertical: 4.0,
+                                                ),
+                                                child: Builder(
+                                                  builder: (context) {
+                                                    return PlayerIcon.resolve(
+                                                      context,
+                                                      icon: styling?.icons
+                                                          .miniPlayerIcon,
+                                                      fallbackIcon: Icons
+                                                          .picture_in_picture_alt_rounded,
+                                                      defaultColor:
+                                                          styling?.iconColor ??
+                                                              Colors.white,
+                                                      defaultSize: 19,
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        if (showFullscreen) ...[
+                                          SizedBox(width: isCompact ? 4 : 8),
+                                          AdaptiveFullscreenButton(
+                                            isFullScreen: isFullScreen,
+                                            styling: styling,
+                                            messages: messages,
+                                            onEnterFullscreen:
+                                                onEnterFullscreen,
+                                            onExitFullscreen: onExitFullscreen,
+                                          ),
+                                        ],
+                                      ],
                                     ),
                                   ),
-                                ),
-                              ),
-                            ],
-                            if (showSettings)
-                              AdaptiveSettingsButton(
-                                isFullScreen: isFullScreen,
-                                styling: styling,
-                                messages: messages,
-                                qualities: qualities,
-                                currentQuality: currentQuality,
-                                onQualitySelected: onQualitySelected,
-                                subtitles: subtitles,
-                                currentSubtitleTrack: currentSubtitleTrack,
-                                onSubtitleSelected: onSubtitleSelected,
-                                onAnalyticsEvent: onAnalyticsEvent,
-                                onPressed: onSettingsPressed,
-                              ),
-                            if (canShowMiniPlayer) ...[
-                              SizedBox(width: isCompact ? 4 : 8),
-                              Tooltip(
-                                message: messages?.miniPlayerText ?? PlayerStrings.miniPlayer,
-                                waitDuration: const Duration(milliseconds: 500),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: onMiniPlayerPressed,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4.0,
-                                      vertical: 4.0,
-                                    ),
-                                    child: Builder(
-                                      builder: (context) {
-                                        return PlayerIcon.resolve(
-                                          context,
-                                          icon: styling?.icons.miniPlayerIcon,
-                                          fallbackIcon:
-                                              Icons.picture_in_picture_alt_rounded,
-                                          defaultColor: styling?.iconColor ?? Colors.white,
-                                          defaultSize: 19,
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            if (showFullscreen) ...[
-                              SizedBox(width: isCompact ? 4 : 8),
-                              AdaptiveFullscreenButton(
-                                isFullScreen: isFullScreen,
-                                styling: styling,
-                                messages: messages,
-                                onEnterFullscreen: onEnterFullscreen,
-                                onExitFullscreen: onExitFullscreen,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
                                 ),
                               ),
                             ),

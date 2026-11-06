@@ -59,7 +59,8 @@ class _ResponsiveAudioSubtitlesPanelState
   @override
   void initState() {
     super.initState();
-    _selectedAudio = widget.currentAudioTrack ?? widget.audioTracks?.firstOrNull;
+    _selectedAudio =
+        widget.currentAudioTrack ?? widget.audioTracks?.firstOrNull;
     _selectedSub = widget.currentSubtitleTrack;
   }
 

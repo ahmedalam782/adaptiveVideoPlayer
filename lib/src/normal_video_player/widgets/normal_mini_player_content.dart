@@ -89,13 +89,14 @@ class NormalMiniPlayerContent extends StatelessWidget {
                   ),
                   if (controlsVisible)
                     PipPlaybackChrome(
+                      initiallyVisible: controlsVisible,
                       isPlaying: value.isPlaying,
                       progress: progress,
                       textDirection: messages?.resolveTextDirection(context),
                       closeTooltip: messages?.closeMiniPlayerText ??
                           PlayerStrings.closeMiniPlayer,
-                      expandTooltip: messages?.expandPlayerText ??
-                          PlayerStrings.expand,
+                      expandTooltip:
+                          messages?.expandPlayerText ?? PlayerStrings.expand,
                       playTooltip: messages?.playText ?? PlayerStrings.play,
                       pauseTooltip: messages?.pauseText ?? PlayerStrings.pause,
                       onClose: onClose,

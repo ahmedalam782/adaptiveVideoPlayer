@@ -13,14 +13,21 @@ void main() {
     // ──────────── isYouTubeUrl ────────────
     group('isYouTubeUrl', () {
       test('identifies valid youtube URLs', () {
-        expect(PlayerUtils.isYouTubeUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), true);
+        expect(
+            PlayerUtils.isYouTubeUrl(
+                'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+            true);
         expect(PlayerUtils.isYouTubeUrl('https://youtu.be/dQw4w9WgXcQ'), true);
-        expect(PlayerUtils.isYouTubeUrl('https://youtube-nocookie.com/embed/dQw4w9WgXcQ'), true);
+        expect(
+            PlayerUtils.isYouTubeUrl(
+                'https://youtube-nocookie.com/embed/dQw4w9WgXcQ'),
+            true);
         expect(PlayerUtils.isYouTubeUrl('dQw4w9WgXcQ'), true);
       });
 
       test('identifies non-youtube URLs', () {
-        expect(PlayerUtils.isYouTubeUrl('https://example.com/video.mp4'), false);
+        expect(
+            PlayerUtils.isYouTubeUrl('https://example.com/video.mp4'), false);
         expect(PlayerUtils.isYouTubeUrl('https://vimeo.com/12345'), false);
         expect(PlayerUtils.isYouTubeUrl(''), false);
       });
@@ -30,7 +37,8 @@ void main() {
     group('extractVideoId', () {
       test('extracts from standard watch url', () {
         expect(
-          PlayerUtils.extractVideoId('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+          PlayerUtils.extractVideoId(
+              'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
           'dQw4w9WgXcQ',
         );
       });
@@ -44,14 +52,16 @@ void main() {
 
       test('extracts from embed url', () {
         expect(
-          PlayerUtils.extractVideoId('https://www.youtube.com/embed/dQw4w9WgXcQ'),
+          PlayerUtils.extractVideoId(
+              'https://www.youtube.com/embed/dQw4w9WgXcQ'),
           'dQw4w9WgXcQ',
         );
       });
 
       test('extracts from shorts url', () {
         expect(
-          PlayerUtils.extractVideoId('https://www.youtube.com/shorts/dQw4w9WgXcQ'),
+          PlayerUtils.extractVideoId(
+              'https://www.youtube.com/shorts/dQw4w9WgXcQ'),
           'dQw4w9WgXcQ',
         );
       });

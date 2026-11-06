@@ -76,6 +76,7 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
   late bool _forceHD;
   late bool _enableCaption;
   late bool _isMuted;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -87,6 +88,12 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
     _isMuted = widget.isMuted;
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   TextDirection _resolveTextDirection(BuildContext context) {
     if (widget.textDirection != null) {
       return widget.textDirection!;
@@ -96,7 +103,8 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
     )) {
       return TextDirection.rtl;
     }
-    final lang = Localizations.maybeLocaleOf(context)?.languageCode.toLowerCase();
+    final lang =
+        Localizations.maybeLocaleOf(context)?.languageCode.toLowerCase();
     if (lang == 'ar' || lang == 'he' || lang == 'fa' || lang == 'ur') {
       return TextDirection.rtl;
     }
@@ -106,139 +114,189 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final textDirection = _resolveTextDirection(context);
+    final mediaQuery = MediaQuery.maybeOf(context);
+    final maxSheetHeight = (mediaQuery?.size.height ?? 600.0) * 0.85;
+
     return Directionality(
       textDirection: textDirection,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: maxSheetHeight,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(Icons.settings, color: widget.iconColor, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    widget.playerSettingsText,
-                    style: widget.titleTextStyle ??
-                        TextStyle(
-                          color: widget.textColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+              const SizedBox(height: 8),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: widget.textColor.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.close,
-                      color: widget.iconColor.withValues(alpha: 0.7),
-                      size: 24,
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.settings, color: widget.iconColor, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        widget.playerSettingsText,
+                        style: widget.titleTextStyle ??
+                            TextStyle(
+                              color: widget.textColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.close,
+                          color: widget.iconColor.withValues(alpha: 0.7),
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: Scrollbar(
+                  controller: _scrollController,
+                  thumbVisibility: true,
+                  radius: const Radius.circular(4),
+                  thickness: 4,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (widget.showAutoPlaySetting) ...[
+                          SettingItem(
+                            icon: Icons.play_circle_outline,
+                            title: widget.autoPlayText,
+                            value: _autoPlay,
+                            iconColor: widget.iconColor,
+                            textColor: widget.textColor,
+                            backgroundColor: widget.settingItemBackgroundColor,
+                            switchInactiveThumbColor:
+                                widget.switchInactiveThumbColor,
+                            switchInactiveTrackColor:
+                                widget.switchInactiveTrackColor,
+                            textStyle: widget.itemTextStyle,
+                            onChanged: (value) {
+                              setState(() => _autoPlay = value);
+                              widget.onAutoPlayChanged(value);
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (widget.showLoopSetting) ...[
+                          SettingItem(
+                            icon: Icons.loop,
+                            title: widget.loopVideoText,
+                            value: _loop,
+                            iconColor: widget.iconColor,
+                            textColor: widget.textColor,
+                            backgroundColor: widget.settingItemBackgroundColor,
+                            switchInactiveThumbColor:
+                                widget.switchInactiveThumbColor,
+                            switchInactiveTrackColor:
+                                widget.switchInactiveTrackColor,
+                            textStyle: widget.itemTextStyle,
+                            onChanged: (value) {
+                              setState(() => _loop = value);
+                              widget.onLoopChanged(value);
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (widget.showForceHDSetting) ...[
+                          SettingItem(
+                            icon: Icons.high_quality,
+                            title: widget.forceHdQualityText,
+                            value: _forceHD,
+                            iconColor: widget.iconColor,
+                            textColor: widget.textColor,
+                            backgroundColor: widget.settingItemBackgroundColor,
+                            switchInactiveThumbColor:
+                                widget.switchInactiveThumbColor,
+                            switchInactiveTrackColor:
+                                widget.switchInactiveTrackColor,
+                            textStyle: widget.itemTextStyle,
+                            onChanged: (value) {
+                              setState(() => _forceHD = value);
+                              widget.onForceHDChanged(value);
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (widget.showCaptionsSetting) ...[
+                          SettingItem(
+                            icon: Icons.closed_caption,
+                            title: widget.enableCaptionsText,
+                            value: _enableCaption,
+                            iconColor: widget.iconColor,
+                            textColor: widget.textColor,
+                            backgroundColor: widget.settingItemBackgroundColor,
+                            switchInactiveThumbColor:
+                                widget.switchInactiveThumbColor,
+                            switchInactiveTrackColor:
+                                widget.switchInactiveTrackColor,
+                            textStyle: widget.itemTextStyle,
+                            onChanged: (value) {
+                              setState(() => _enableCaption = value);
+                              widget.onEnableCaptionChanged(value);
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (widget.showMuteSetting) ...[
+                          SettingItem(
+                            icon: _isMuted ? Icons.volume_off : Icons.volume_up,
+                            title: widget.muteAudioText,
+                            value: _isMuted,
+                            iconColor: widget.iconColor,
+                            textColor: widget.textColor,
+                            backgroundColor: widget.settingItemBackgroundColor,
+                            switchInactiveThumbColor:
+                                widget.switchInactiveThumbColor,
+                            switchInactiveTrackColor:
+                                widget.switchInactiveTrackColor,
+                            textStyle: widget.itemTextStyle,
+                            onChanged: (value) {
+                              setState(() => _isMuted = value);
+                              widget.onMutedChanged(value);
+                            },
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (widget.showAutoPlaySetting) ...[
-              SettingItem(
-                icon: Icons.play_circle_outline,
-                title: widget.autoPlayText,
-                value: _autoPlay,
-                iconColor: widget.iconColor,
-                textColor: widget.textColor,
-                backgroundColor: widget.settingItemBackgroundColor,
-                switchInactiveThumbColor: widget.switchInactiveThumbColor,
-                switchInactiveTrackColor: widget.switchInactiveTrackColor,
-                textStyle: widget.itemTextStyle,
-                onChanged: (value) {
-                  setState(() => _autoPlay = value);
-                  widget.onAutoPlayChanged(value);
-                },
-              ),
-              const SizedBox(height: 12),
-            ],
-            if (widget.showLoopSetting) ...[
-              SettingItem(
-                icon: Icons.loop,
-                title: widget.loopVideoText,
-                value: _loop,
-                iconColor: widget.iconColor,
-                textColor: widget.textColor,
-                backgroundColor: widget.settingItemBackgroundColor,
-                switchInactiveThumbColor: widget.switchInactiveThumbColor,
-                switchInactiveTrackColor: widget.switchInactiveTrackColor,
-                textStyle: widget.itemTextStyle,
-                onChanged: (value) {
-                  setState(() => _loop = value);
-                  widget.onLoopChanged(value);
-                },
-              ),
-              const SizedBox(height: 12),
-            ],
-            if (widget.showForceHDSetting) ...[
-              SettingItem(
-                icon: Icons.high_quality,
-                title: widget.forceHdQualityText,
-                value: _forceHD,
-                iconColor: widget.iconColor,
-                textColor: widget.textColor,
-                backgroundColor: widget.settingItemBackgroundColor,
-                switchInactiveThumbColor: widget.switchInactiveThumbColor,
-                switchInactiveTrackColor: widget.switchInactiveTrackColor,
-                textStyle: widget.itemTextStyle,
-                onChanged: (value) {
-                  setState(() => _forceHD = value);
-                  widget.onForceHDChanged(value);
-                },
-              ),
-              const SizedBox(height: 12),
-            ],
-            if (widget.showCaptionsSetting) ...[
-              SettingItem(
-                icon: Icons.closed_caption,
-                title: widget.enableCaptionsText,
-                value: _enableCaption,
-                iconColor: widget.iconColor,
-                textColor: widget.textColor,
-                backgroundColor: widget.settingItemBackgroundColor,
-                switchInactiveThumbColor: widget.switchInactiveThumbColor,
-                switchInactiveTrackColor: widget.switchInactiveTrackColor,
-                textStyle: widget.itemTextStyle,
-                onChanged: (value) {
-                  setState(() => _enableCaption = value);
-                  widget.onEnableCaptionChanged(value);
-                },
-              ),
-              const SizedBox(height: 12),
-            ],
-            if (widget.showMuteSetting) ...[
-              SettingItem(
-                icon: _isMuted ? Icons.volume_off : Icons.volume_up,
-                title: widget.muteAudioText,
-                value: _isMuted,
-                iconColor: widget.iconColor,
-                textColor: widget.textColor,
-                backgroundColor: widget.settingItemBackgroundColor,
-                switchInactiveThumbColor: widget.switchInactiveThumbColor,
-                switchInactiveTrackColor: widget.switchInactiveTrackColor,
-                textStyle: widget.itemTextStyle,
-                onChanged: (value) {
-                  setState(() => _isMuted = value);
-                  widget.onMutedChanged(value);
-                },
               ),
             ],
-            const SizedBox(height: 16),
-          ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

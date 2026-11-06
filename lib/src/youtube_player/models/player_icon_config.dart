@@ -47,7 +47,8 @@ class PlayerIcon {
       : this(widget: widget, color: color, size: size);
 
   /// Creates a [PlayerIcon] using a builder that dynamically receives [context], [color], and [size]
-  const PlayerIcon.builder(PlayerIconBuilder builder, {Color? color, double? size})
+  const PlayerIcon.builder(PlayerIconBuilder builder,
+      {Color? color, double? size})
       : this(builder: builder, color: color, size: size);
 
   /// Creates a [PlayerIcon] displaying a local raster asset (e.g. PNG, JPEG, WEBP)

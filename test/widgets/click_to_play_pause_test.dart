@@ -29,8 +29,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
     }
 
-    testWidgets(
-        'Single click with mouse plays video when currently paused',
+    testWidgets('Single click with mouse plays video when currently paused',
         (tester) async {
       final events = <String>[];
 

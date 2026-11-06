@@ -1,6 +1,8 @@
 import 'dart:collection';
 import 'dart:developer';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -200,8 +202,12 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   /// Pass false while the video is already in a PiP window so the button
   /// does not sit on top of the mini player.
   void setMiniPlayerButtonVisible(bool show) {
+    final effectiveShow = show &&
+        widget.config.visibility.showControls &&
+        widget.config.visibility.showMiniPlayerButton &&
+        !NativePipService.isInPip.value;
     _webViewController?.evaluateJavascript(
-      source: YouTubeJsCommands.setShowMiniPlayer(show),
+      source: YouTubeJsCommands.setShowMiniPlayer(effectiveShow),
     );
   }
 
@@ -275,6 +281,11 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     return InAppWebView(
       key: _inAppWebViewKey,
       webViewEnvironment: _sharedWebViewEnvironment,
+      gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+        Factory<OneSequenceGestureRecognizer>(
+          () => EagerGestureRecognizer(),
+        ),
+      },
       initialUrlRequest: URLRequest(
         url: WebUri(_serverUrl!),
         headers: const {

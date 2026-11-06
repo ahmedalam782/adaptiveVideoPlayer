@@ -151,6 +151,9 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
     return ListView(
       key: const ValueKey('main_menu'),
       shrinkWrap: true,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
         if (showQuality)
@@ -315,6 +318,9 @@ class AdaptiveSettingsQualitiesMenu extends StatelessWidget {
     return ListView(
       key: const ValueKey('qualities_menu'),
       shrinkWrap: true,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
       children: [
         ResponsiveSettingsBackHeader(
@@ -370,6 +376,9 @@ class AdaptiveSettingsSubtitlesMenu extends StatelessWidget {
     return ListView(
       key: const ValueKey('subtitles_menu'),
       shrinkWrap: true,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
       children: [
         ResponsiveSettingsBackHeader(

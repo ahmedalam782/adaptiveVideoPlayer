@@ -44,9 +44,7 @@ class AdaptiveCirclePillButton extends StatelessWidget {
               height: 38,
               decoration: BoxDecoration(
                 color: backgroundColor.withValues(
-                  alpha: backgroundColor.a < 0.01
-                      ? 0.40
-                      : backgroundColor.a,
+                  alpha: backgroundColor.a < 0.01 ? 0.40 : backgroundColor.a,
                 ),
                 shape: BoxShape.circle,
                 border: Border.all(

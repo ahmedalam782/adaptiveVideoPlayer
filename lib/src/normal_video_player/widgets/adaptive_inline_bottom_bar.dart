@@ -29,7 +29,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
   final SubtitleTrack? currentSubtitleTrack;
   final void Function(SubtitleTrack?)? onSubtitleSelected;
   final List<VideoChapter>? chapters;
-  final void Function(String event, Map<String, dynamic> data)? onAnalyticsEvent;
+  final void Function(String event, Map<String, dynamic> data)?
+      onAnalyticsEvent;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
   final VoidCallback? onSettingsPressed;
@@ -121,9 +122,11 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveVisibility = visibility ?? const PlayerVisibilityConfig();
-    final playedColor = styling?.progressBarPlayedColor ?? const Color(0xFF00A3FF);
+    final playedColor =
+        styling?.progressBarPlayedColor ?? const Color(0xFF00A3FF);
     final handleColor = styling?.progressBarHandleColor ?? playedColor;
-    final containerColor = styling?.controlsBackgroundColor ?? const Color(0xFF1B313F);
+    final containerColor =
+        styling?.controlsBackgroundColor ?? const Color(0xFF1B313F);
     final iconColor = styling?.iconColor ?? Colors.white;
     final textColor = styling?.textColor ?? Colors.white;
 
@@ -154,7 +157,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
           final showSettings = !inTopBar &&
               effectiveVisibility.showSettingsButton &&
               constraints.maxWidth > 280;
-          final showProgressBar = effectiveVisibility.showProgressBar && !isLive;
+          final showProgressBar =
+              effectiveVisibility.showProgressBar && !isLive;
 
           final dynamicHeight =
               styling?.bottomBarHeight ?? (isCompact ? 42.0 : 46.0);
@@ -170,8 +174,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                 horizontal: isCompact ? 10.0 : 14.0,
                 vertical: 2.0,
               );
-          final dynamicRadius = styling?.bottomBarBorderRadius ??
-              BorderRadius.circular(16);
+          final dynamicRadius =
+              styling?.bottomBarBorderRadius ?? BorderRadius.circular(16);
 
           return Padding(
             padding: dynamicMargin,
@@ -182,8 +186,9 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                 final position = value.position;
                 final duration = value.duration;
 
-                final currentMs = (dragPosition ?? position.inMilliseconds.toDouble())
-                    .clamp(0.0, duration.inMilliseconds.toDouble());
+                final currentMs =
+                    (dragPosition ?? position.inMilliseconds.toDouble())
+                        .clamp(0.0, duration.inMilliseconds.toDouble());
                 final maxMs = duration.inMilliseconds > 0
                     ? duration.inMilliseconds.toDouble()
                     : 0.0;
@@ -216,7 +221,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                             if (isPlaying) {
                               controller.pause();
                               onAnalyticsEvent?.call(PlayerEvents.videoPaused, {
-                                PlayerEvents.paramPosition: controller.value.position.inSeconds,
+                                PlayerEvents.paramPosition:
+                                    controller.value.position.inSeconds,
                               });
                             } else {
                               if (value.position >= value.duration &&
@@ -225,7 +231,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                               }
                               controller.play();
                               onAnalyticsEvent?.call(PlayerEvents.videoPlayed, {
-                                PlayerEvents.paramPosition: controller.value.position.inSeconds,
+                                PlayerEvents.paramPosition:
+                                    controller.value.position.inSeconds,
                               });
                             }
                           },
@@ -252,19 +259,22 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                       if (effectiveVisibility.showStopButton) ...[
                         const SizedBox(width: 4),
                         Tooltip(
-                          message: messages?.stopVideoText ?? PlayerStrings.stop,
+                          message:
+                              messages?.stopVideoText ?? PlayerStrings.stop,
                           waitDuration: const Duration(milliseconds: 500),
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
                               controller.pause();
                               controller.seekTo(Duration.zero);
-                              onAnalyticsEvent?.call(PlayerEvents.videoStopped, {
+                              onAnalyticsEvent
+                                  ?.call(PlayerEvents.videoStopped, {
                                 PlayerEvents.paramPosition: 0,
                               });
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
                               child: PlayerIcon.resolve(
                                 context,
                                 icon: styling?.icons.stopIcon,
@@ -288,7 +298,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                             behavior: HitTestBehavior.opaque,
                             onTap: onNextEpisode,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
                               child: PlayerIcon.resolve(
                                 context,
                                 icon: styling?.icons.nextEpisodeIcon,
@@ -307,45 +318,49 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                              Tooltip(
-                                message: messages?.skipBackwardText ?? 'Rewind 10s',
-                                waitDuration: const Duration(milliseconds: 500),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => _seekRelative(-skipDuration),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                    child: PlayerIcon.resolve(
-                                      context,
-                                      icon: styling?.icons.skipBackwardIcon,
-                                      fallbackIcon: Icons.replay_10_rounded,
-                                      defaultColor: iconColor,
-                                      defaultSize: 20,
-                                    ),
+                            Tooltip(
+                              message:
+                                  messages?.skipBackwardText ?? 'Rewind 10s',
+                              waitDuration: const Duration(milliseconds: 500),
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _seekRelative(-skipDuration),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
+                                  child: PlayerIcon.resolve(
+                                    context,
+                                    icon: styling?.icons.skipBackwardIcon,
+                                    fallbackIcon: Icons.replay_10_rounded,
+                                    defaultColor: iconColor,
+                                    defaultSize: 20,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 2),
-                              Tooltip(
-                                message: messages?.skipForwardText ?? 'Forward 10s',
-                                waitDuration: const Duration(milliseconds: 500),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => _seekRelative(skipDuration),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                    child: PlayerIcon.resolve(
-                                      context,
-                                      icon: styling?.icons.skipForwardIcon,
-                                      fallbackIcon: Icons.forward_10_rounded,
-                                      defaultColor: iconColor,
-                                      defaultSize: 20,
-                                    ),
+                            ),
+                            const SizedBox(width: 2),
+                            Tooltip(
+                              message:
+                                  messages?.skipForwardText ?? 'Forward 10s',
+                              waitDuration: const Duration(milliseconds: 500),
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => _seekRelative(skipDuration),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
+                                  child: PlayerIcon.resolve(
+                                    context,
+                                    icon: styling?.icons.skipForwardIcon,
+                                    fallbackIcon: Icons.forward_10_rounded,
+                                    defaultColor: iconColor,
+                                    defaultSize: 20,
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
+                        ),
                       ],
 
                       SizedBox(width: isCompact ? 3.0 : 6.0),
@@ -354,49 +369,49 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                       if (showTime) ...[
                         FittedBox(
                           fit: BoxFit.scaleDown,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _formatDuration(position),
+                                style: (styling?.timeTextStyle ??
+                                        TextStyle(
+                                          fontSize: isCompact ? 11.5 : 12.5,
+                                          fontWeight: FontWeight.w600,
+                                        ))
+                                    .copyWith(color: textColor),
+                              ),
+                              if (!isUltraCompact) ...[
                                 Text(
-                                  _formatDuration(position),
+                                  ' / ',
+                                  style: (styling?.timeTextStyle ??
+                                          TextStyle(
+                                            fontSize: isCompact ? 11.5 : 12.5,
+                                            fontWeight: FontWeight.w500,
+                                          ))
+                                      .copyWith(
+                                    color: textColor.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  _formatDuration(duration),
                                   style: (styling?.timeTextStyle ??
                                           TextStyle(
                                             fontSize: isCompact ? 11.5 : 12.5,
                                             fontWeight: FontWeight.w600,
                                           ))
-                                      .copyWith(color: textColor),
+                                      .copyWith(
+                                    color: textColor.withValues(
+                                      alpha: 0.9,
+                                    ),
+                                  ),
                                 ),
-                                if (!isUltraCompact) ...[
-                                  Text(
-                                    ' / ',
-                                    style: (styling?.timeTextStyle ??
-                                            TextStyle(
-                                              fontSize: isCompact ? 11.5 : 12.5,
-                                              fontWeight: FontWeight.w500,
-                                            ))
-                                        .copyWith(
-                                          color: textColor.withValues(
-                                            alpha: 0.7,
-                                          ),
-                                        ),
-                                  ),
-                                  Text(
-                                    _formatDuration(duration),
-                                    style: (styling?.timeTextStyle ??
-                                            TextStyle(
-                                              fontSize: isCompact ? 11.5 : 12.5,
-                                              fontWeight: FontWeight.w600,
-                                            ))
-                                        .copyWith(
-                                          color: textColor.withValues(
-                                            alpha: 0.9,
-                                          ),
-                                        ),
-                                  ),
-                                ],
                               ],
-                            ),
+                            ],
                           ),
+                        ),
                         SizedBox(width: isCompact ? 4.0 : 8.0),
                       ],
 
@@ -405,27 +420,33 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                         Expanded(
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              trackHeight: styling?.progressBarTrackHeight ?? 3.5,
+                              trackHeight:
+                                  styling?.progressBarTrackHeight ?? 3.5,
                               thumbShape: styling?.progressBarThumbShape ??
                                   ((styling?.showProgressBarThumb ?? true)
                                       ? RoundSliderThumbShape(
                                           enabledThumbRadius:
-                                              styling?.progressBarThumbRadius ?? 6.0,
+                                              styling?.progressBarThumbRadius ??
+                                                  6.0,
                                           pressedElevation: 3.0,
                                         )
                                       : const RoundSliderThumbShape(
                                           enabledThumbRadius: 0.0)),
                               overlayShape: RoundSliderOverlayShape(
-                                overlayRadius: styling?.progressBarOverlayRadius ?? 12.0,
+                                overlayRadius:
+                                    styling?.progressBarOverlayRadius ?? 12.0,
                               ),
                               activeTrackColor: playedColor,
-                              inactiveTrackColor: styling?.progressBarBackgroundColor ??
-                                  Colors.white.withValues(alpha: 0.22),
+                              inactiveTrackColor:
+                                  styling?.progressBarBackgroundColor ??
+                                      Colors.white.withValues(alpha: 0.22),
                               thumbColor: handleColor,
                               trackShape: GradientSliderTrackShape(
-                                gradient: LinearGradient(colors: [playedColor, handleColor]),
+                                gradient: LinearGradient(
+                                    colors: [playedColor, handleColor]),
                                 buffered: value.buffered,
-                                bufferedColor: styling?.progressBarBufferedColor,
+                                bufferedColor:
+                                    styling?.progressBarBufferedColor,
                                 duration: value.duration,
                                 chapters: chapters,
                               ),
@@ -436,12 +457,14 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                               max: maxMs,
                               onChanged: (val) {
                                 onDragChanged?.call(val);
-                                controller.seekTo(Duration(milliseconds: val.round()));
+                                controller.seekTo(
+                                    Duration(milliseconds: val.round()));
                               },
                               onChangeEnd: (val) {
                                 onDragEnd?.call(val);
                                 onAnalyticsEvent?.call(PlayerEvents.videoSeek, {
-                                  PlayerEvents.paramToPosition: (val / 1000).round(),
+                                  PlayerEvents.paramToPosition:
+                                      (val / 1000).round(),
                                 });
                               },
                             ),
@@ -461,217 +484,229 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                      // 4. Volume Control
-                      if (showVolume) ...[
-                        SizedBox(width: isCompact ? 3.0 : 6.0),
-                        AdaptiveVolumeControl(
-                          controller: controller,
-                          styling: styling,
-                          messages: messages,
-                          allowExpand: constraints.maxWidth > 420,
-                        ),
-                      ],
+                              // 4. Volume Control
+                              if (showVolume) ...[
+                                SizedBox(width: isCompact ? 3.0 : 6.0),
+                                AdaptiveVolumeControl(
+                                  controller: controller,
+                                  styling: styling,
+                                  messages: messages,
+                                  allowExpand: constraints.maxWidth > 420,
+                                ),
+                              ],
 
-                      // Optional Centered/Inline Title (if wide enough)
-                      if (effectiveVisibility.showCenteredTitle &&
-                          title != null &&
-                          title!.isNotEmpty &&
-                          constraints.maxWidth > 700) ...[
-                        SizedBox(width: isCompact ? 2.0 : 4.0),
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: constraints.maxWidth > 950 ? 150 : 80,
-                          ),
-                          child: Tooltip(
-                            message: title!,
-                            child: Text(
-                              title!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: textColor.withValues(alpha: 0.85),
-                                fontSize: isCompact ? 11 : 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                              // Optional Centered/Inline Title (if wide enough)
+                              if (effectiveVisibility.showCenteredTitle &&
+                                  title != null &&
+                                  title!.isNotEmpty &&
+                                  constraints.maxWidth > 700) ...[
+                                SizedBox(width: isCompact ? 2.0 : 4.0),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth:
+                                        constraints.maxWidth > 950 ? 150 : 80,
+                                  ),
+                                  child: Tooltip(
+                                    message: title!,
+                                    child: Text(
+                                      title!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color:
+                                            textColor.withValues(alpha: 0.85),
+                                        fontSize: isCompact ? 11 : 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
 
-                      // Optional Loop Toggle
-                      if (!inTopBar &&
-                          effectiveVisibility.showLoopSetting &&
-                          !isLive &&
-                          constraints.maxWidth > 760) ...[
-                        SizedBox(width: isCompact ? 2.0 : 4.0),
-                        AdaptiveLoopToggle(
-                          controller: controller,
-                          isLooping: value.isLooping,
-                          styling: styling,
-                          messages: messages,
-                        ),
-                      ],
+                              // Optional Loop Toggle
+                              if (!inTopBar &&
+                                  effectiveVisibility.showLoopSetting &&
+                                  !isLive &&
+                                  constraints.maxWidth > 760) ...[
+                                SizedBox(width: isCompact ? 2.0 : 4.0),
+                                AdaptiveLoopToggle(
+                                  controller: controller,
+                                  isLooping: value.isLooping,
+                                  styling: styling,
+                                  messages: messages,
+                                ),
+                              ],
 
-                      // Optional Quick Subtitles Toggle
-                      if (!inTopBar &&
-                          effectiveVisibility.showCaptionsSetting &&
-                          constraints.maxWidth > 780) ...[
-                        SizedBox(width: isCompact ? 2.0 : 4.0),
-                        AdaptiveSubtitlesButton(
-                          subtitles: subtitles,
-                          currentSubtitleTrack: currentSubtitleTrack,
-                          onSubtitleSelected: onSubtitleSelected,
-                          onSettingsPressed: onSettingsPressed,
-                          styling: styling,
-                          messages: messages,
-                        ),
-                      ],
+                              // Optional Quick Subtitles Toggle
+                              if (!inTopBar &&
+                                  effectiveVisibility.showCaptionsSetting &&
+                                  constraints.maxWidth > 780) ...[
+                                SizedBox(width: isCompact ? 2.0 : 4.0),
+                                AdaptiveSubtitlesButton(
+                                  subtitles: subtitles,
+                                  currentSubtitleTrack: currentSubtitleTrack,
+                                  onSubtitleSelected: onSubtitleSelected,
+                                  onSettingsPressed: onSettingsPressed,
+                                  styling: styling,
+                                  messages: messages,
+                                ),
+                              ],
 
-                      // Discrete Playback Speed Button
-                      if (!inTopBar &&
-                          effectiveVisibility.showSpeedButton &&
-                          onSpeedPressed != null) ...[
-                        SizedBox(width: isCompact ? 2.0 : 4.0),
-                        Tooltip(
-                          message: messages?.playbackSpeedText ?? 'Playback Speed',
-                          waitDuration: const Duration(milliseconds: 500),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: onSpeedPressed,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isCompact ? 2.0 : 4.0,
-                                vertical: 4.0,
-                              ),
-                              child: PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.speedIcon,
-                                fallbackIcon: Icons.speed_rounded,
-                                defaultColor: iconColor,
-                                defaultSize: isCompact ? 18 : 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                              // Discrete Playback Speed Button
+                              if (!inTopBar &&
+                                  effectiveVisibility.showSpeedButton &&
+                                  onSpeedPressed != null) ...[
+                                SizedBox(width: isCompact ? 2.0 : 4.0),
+                                Tooltip(
+                                  message: messages?.playbackSpeedText ??
+                                      'Playback Speed',
+                                  waitDuration:
+                                      const Duration(milliseconds: 500),
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: onSpeedPressed,
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isCompact ? 2.0 : 4.0,
+                                        vertical: 4.0,
+                                      ),
+                                      child: PlayerIcon.resolve(
+                                        context,
+                                        icon: styling?.icons.speedIcon,
+                                        fallbackIcon: Icons.speed_rounded,
+                                        defaultColor: iconColor,
+                                        defaultSize: isCompact ? 18 : 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
 
-                      // Dual-Column Audio & Subtitles Button
-                      if (!inTopBar &&
-                          effectiveVisibility.showAudioSubtitlesButton &&
-                          onAudioSubtitlesPressed != null &&
-                          ((audioTracks != null && audioTracks!.isNotEmpty) ||
-                              (subtitles != null && subtitles!.isNotEmpty))) ...[
-                        SizedBox(width: isCompact ? 2.0 : 4.0),
-                        Tooltip(
-                          message: messages?.audioAndSubtitlesText ??
-                              'Audio & Subtitles',
-                          waitDuration: const Duration(milliseconds: 500),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: onAudioSubtitlesPressed,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isCompact ? 2.0 : 4.0,
-                                vertical: 4.0,
-                              ),
-                              child: PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.audioSubtitlesIcon,
-                                fallbackIcon: Icons.subtitles_outlined,
-                                defaultColor: iconColor,
-                                defaultSize: isCompact ? 18 : 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                              // Dual-Column Audio & Subtitles Button
+                              if (!inTopBar &&
+                                  effectiveVisibility
+                                      .showAudioSubtitlesButton &&
+                                  onAudioSubtitlesPressed != null &&
+                                  ((audioTracks != null &&
+                                          audioTracks!.isNotEmpty) ||
+                                      (subtitles != null &&
+                                          subtitles!.isNotEmpty))) ...[
+                                SizedBox(width: isCompact ? 2.0 : 4.0),
+                                Tooltip(
+                                  message: messages?.audioAndSubtitlesText ??
+                                      'Audio & Subtitles',
+                                  waitDuration:
+                                      const Duration(milliseconds: 500),
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: onAudioSubtitlesPressed,
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isCompact ? 2.0 : 4.0,
+                                        vertical: 4.0,
+                                      ),
+                                      child: PlayerIcon.resolve(
+                                        context,
+                                        icon: styling?.icons.audioSubtitlesIcon,
+                                        fallbackIcon: Icons.subtitles_outlined,
+                                        defaultColor: iconColor,
+                                        defaultSize: isCompact ? 18 : 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
 
-                      // Episodes Drawer Button
-                      if (!inTopBar &&
-                          effectiveVisibility.showEpisodesButton &&
-                          episodes != null &&
-                          episodes!.isNotEmpty &&
-                          onEpisodesPressed != null) ...[
-                        SizedBox(width: isCompact ? 2.0 : 4.0),
-                        Tooltip(
-                          message: messages?.episodesText ?? 'Episodes',
-                          waitDuration: const Duration(milliseconds: 500),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: onEpisodesPressed,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isCompact ? 2.0 : 4.0,
-                                vertical: 4.0,
-                              ),
-                              child: PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.episodesIcon,
-                                fallbackIcon: Icons.video_library_outlined,
-                                defaultColor: iconColor,
-                                defaultSize: isCompact ? 18 : 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                              // Episodes Drawer Button
+                              if (!inTopBar &&
+                                  effectiveVisibility.showEpisodesButton &&
+                                  episodes != null &&
+                                  episodes!.isNotEmpty &&
+                                  onEpisodesPressed != null) ...[
+                                SizedBox(width: isCompact ? 2.0 : 4.0),
+                                Tooltip(
+                                  message: messages?.episodesText ?? 'Episodes',
+                                  waitDuration:
+                                      const Duration(milliseconds: 500),
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: onEpisodesPressed,
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isCompact ? 2.0 : 4.0,
+                                        vertical: 4.0,
+                                      ),
+                                      child: PlayerIcon.resolve(
+                                        context,
+                                        icon: styling?.icons.episodesIcon,
+                                        fallbackIcon:
+                                            Icons.video_library_outlined,
+                                        defaultColor: iconColor,
+                                        defaultSize: isCompact ? 18 : 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
 
-                      // Optional Settings Button
-                      if (showSettings) ...[
-                        SizedBox(width: isCompact ? 2.0 : 4.0),
-                        AdaptiveSettingsButton(
-                          isFullScreen: isFullScreen,
-                          styling: styling,
-                          messages: messages,
-                          qualities: qualities,
-                          currentQuality: currentQuality,
-                          onQualitySelected: onQualitySelected,
-                          subtitles: subtitles,
-                          currentSubtitleTrack: currentSubtitleTrack,
-                          onSubtitleSelected: onSubtitleSelected,
-                          onAnalyticsEvent: onAnalyticsEvent,
-                          onPressed: onSettingsPressed,
-                        ),
-                      ],
+                              // Optional Settings Button
+                              if (showSettings) ...[
+                                SizedBox(width: isCompact ? 2.0 : 4.0),
+                                AdaptiveSettingsButton(
+                                  isFullScreen: isFullScreen,
+                                  styling: styling,
+                                  messages: messages,
+                                  qualities: qualities,
+                                  currentQuality: currentQuality,
+                                  onQualitySelected: onQualitySelected,
+                                  subtitles: subtitles,
+                                  currentSubtitleTrack: currentSubtitleTrack,
+                                  onSubtitleSelected: onSubtitleSelected,
+                                  onAnalyticsEvent: onAnalyticsEvent,
+                                  onPressed: onSettingsPressed,
+                                ),
+                              ],
 
-                      // Optional MiniPlayer Button
-                      if (showMiniPlayer) ...[
-                        SizedBox(width: isCompact ? 2.0 : 4.0),
-                        Tooltip(
-                          message: messages?.miniPlayerText ?? 'Miniplayer',
-                          waitDuration: const Duration(milliseconds: 500),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: onMiniPlayerPressed,
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isCompact ? 2.0 : 4.0,
-                                vertical: 4.0,
-                              ),
-                              child: PlayerIcon.resolve(
-                                context,
-                                icon: styling?.icons.miniPlayerIcon,
-                                fallbackIcon:
-                                    Icons.picture_in_picture_alt_rounded,
-                                defaultColor: iconColor,
-                                defaultSize: isCompact ? 18 : 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                              // Optional MiniPlayer Button
+                              if (showMiniPlayer) ...[
+                                SizedBox(width: isCompact ? 2.0 : 4.0),
+                                Tooltip(
+                                  message:
+                                      messages?.miniPlayerText ?? 'Miniplayer',
+                                  waitDuration:
+                                      const Duration(milliseconds: 500),
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: onMiniPlayerPressed,
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isCompact ? 2.0 : 4.0,
+                                        vertical: 4.0,
+                                      ),
+                                      child: PlayerIcon.resolve(
+                                        context,
+                                        icon: styling?.icons.miniPlayerIcon,
+                                        fallbackIcon: Icons
+                                            .picture_in_picture_alt_rounded,
+                                        defaultColor: iconColor,
+                                        defaultSize: isCompact ? 18 : 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
 
-                      // 5. Fullscreen Button
-                      if (showFullscreen) ...[
-                        SizedBox(width: isCompact ? 3.0 : 6.0),
-                        AdaptiveFullscreenButton(
-                          isFullScreen: isFullScreen,
-                          styling: styling,
-                          messages: messages,
-                          onEnterFullscreen: onEnterFullscreen,
-                          onExitFullscreen: onExitFullscreen,
-                        ),
-                      ],
+                              // 5. Fullscreen Button
+                              if (showFullscreen) ...[
+                                SizedBox(width: isCompact ? 3.0 : 6.0),
+                                AdaptiveFullscreenButton(
+                                  isFullScreen: isFullScreen,
+                                  styling: styling,
+                                  messages: messages,
+                                  onEnterFullscreen: onEnterFullscreen,
+                                  onExitFullscreen: onExitFullscreen,
+                                ),
+                              ],
                             ],
                           ),
                         ),

@@ -38,7 +38,8 @@ class ResponsiveEpisodesPanel extends StatefulWidget {
   });
 
   @override
-  State<ResponsiveEpisodesPanel> createState() => _ResponsiveEpisodesPanelState();
+  State<ResponsiveEpisodesPanel> createState() =>
+      _ResponsiveEpisodesPanelState();
 }
 
 /// Previous name. Prefer [ResponsiveEpisodesPanel].

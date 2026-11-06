@@ -1,4 +1,4 @@
-  import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../youtube_player/models/youtube_player_config.dart';
 import '../utils/fullscreen_utils_export.dart';
 import '../utils/video_player_web_safe.dart';

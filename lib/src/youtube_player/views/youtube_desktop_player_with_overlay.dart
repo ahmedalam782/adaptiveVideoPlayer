@@ -92,9 +92,11 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
             fullscreenManager.closePip(pauseOnClose: false);
           }
         },
-        const SingleActivator(LogicalKeyboardKey.arrowRight): () => onSeekBy(10),
+        const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
+            onSeekBy(10),
         const SingleActivator(LogicalKeyboardKey.keyL): () => onSeekBy(10),
-        const SingleActivator(LogicalKeyboardKey.arrowLeft): () => onSeekBy(-10),
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
+            onSeekBy(-10),
         const SingleActivator(LogicalKeyboardKey.keyJ): () => onSeekBy(-10),
         const SingleActivator(LogicalKeyboardKey.space): onTogglePlayPause,
         const SingleActivator(LogicalKeyboardKey.keyK): onTogglePlayPause,
@@ -197,12 +199,14 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                         styling: config.style,
                         fallbackColor: const Color(0x6C000000),
                       ),
-                      if (isLive || viewerCount != null || liveBadgeBuilder != null)
+                      if (isLive ||
+                          viewerCount != null ||
+                          liveBadgeBuilder != null)
                         PositionedDirectional(
                           top: 12,
                           start: 12,
                           child: (liveBadgeBuilder ?? config.liveBadgeBuilder)
-                              ?.call(
+                                  ?.call(
                                 context,
                                 isLive: isLive,
                                 viewerCount: viewerCount,
@@ -220,7 +224,8 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                           child: PipPlaybackChrome(
                             isPlaying: isPlaying,
                             progress: pipProgress,
-                            textDirection: config.text.resolveTextDirection(context),
+                            textDirection:
+                                config.text.resolveTextDirection(context),
                             closeTooltip: config.text.closeMiniPlayerText,
                             expandTooltip: config.text.expandPlayerText,
                             playTooltip: config.text.playText,

@@ -14,8 +14,8 @@ mixin AdaptivePlayerVisibilityMixin on State<BaseAdaptiveVideoPlayer> {
   void startHideTimer() {
     hideTimer?.cancel();
     if (holdControlsOpen) return;
-    final timeout = widget.visibility?.controlsHideTimeout ??
-        const Duration(seconds: 3);
+    final timeout =
+        widget.visibility?.controlsHideTimeout ?? const Duration(seconds: 3);
     hideTimer = Timer(timeout, () {
       if (mounted && widget.controller.value.isPlaying) {
         setState(() => controlsVisible = false);

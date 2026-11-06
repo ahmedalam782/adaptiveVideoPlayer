@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Descriptor for a supported language in the application.
@@ -19,11 +19,20 @@ class AppLanguage {
 /// All supported languages in the example app, backed by JSON files in assets/translations/
 const List<AppLanguage> supportedLanguages = [
   AppLanguage(code: 'en', englishName: 'English', nativeName: 'English'),
-  AppLanguage(code: 'ar', englishName: 'Arabic', nativeName: 'العربية', isRtl: true),
+  AppLanguage(
+    code: 'ar',
+    englishName: 'Arabic',
+    nativeName: 'العربية',
+    isRtl: true,
+  ),
   AppLanguage(code: 'es', englishName: 'Spanish', nativeName: 'Español'),
   AppLanguage(code: 'fr', englishName: 'French', nativeName: 'Français'),
   AppLanguage(code: 'de', englishName: 'German', nativeName: 'Deutsch'),
-  AppLanguage(code: 'zh', englishName: 'Chinese (Simplified)', nativeName: '简体中文'),
+  AppLanguage(
+    code: 'zh',
+    englishName: 'Chinese (Simplified)',
+    nativeName: '简体中文',
+  ),
   AppLanguage(code: 'ja', englishName: 'Japanese', nativeName: '日本語'),
   AppLanguage(code: 'ko', englishName: 'Korean', nativeName: '한국어'),
   AppLanguage(code: 'ru', englishName: 'Russian', nativeName: 'Русский'),
@@ -32,7 +41,11 @@ const List<AppLanguage> supportedLanguages = [
   AppLanguage(code: 'tr', englishName: 'Turkish', nativeName: 'Türkçe'),
   AppLanguage(code: 'it', englishName: 'Italian', nativeName: 'Italiano'),
   AppLanguage(code: 'ur', englishName: 'Urdu', nativeName: 'اردو', isRtl: true),
-  AppLanguage(code: 'id', englishName: 'Indonesian', nativeName: 'Bahasa Indonesia'),
+  AppLanguage(
+    code: 'id',
+    englishName: 'Indonesian',
+    nativeName: 'Bahasa Indonesia',
+  ),
 ];
 
 /// A luxury glassmorphic modal bottom sheet for picking the app / player display language.
@@ -111,7 +124,10 @@ class LanguagePickerSheet extends StatelessWidget {
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white70,
+                        ),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
@@ -129,10 +145,8 @@ class LanguagePickerSheet extends StatelessWidget {
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: supportedLanguages.length,
-                      separatorBuilder: (context, _) => const Divider(
-                        color: Colors.white12,
-                        height: 1,
-                      ),
+                      separatorBuilder: (context, _) =>
+                          const Divider(color: Colors.white12, height: 1),
                       itemBuilder: (context, i) {
                         final lang = supportedLanguages[i];
                         final isSelected = lang.code == currentLanguageCode;
@@ -151,12 +165,16 @@ class LanguagePickerSheet extends StatelessWidget {
                                 height: 38,
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? Colors.cyanAccent.withValues(alpha: 0.22)
+                                      ? Colors.cyanAccent.withValues(
+                                          alpha: 0.22,
+                                        )
                                       : Colors.white.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: isSelected
-                                        ? Colors.cyanAccent.withValues(alpha: 0.6)
+                                        ? Colors.cyanAccent.withValues(
+                                            alpha: 0.6,
+                                          )
                                         : Colors.white.withValues(alpha: 0.15),
                                   ),
                                 ),
@@ -177,9 +195,12 @@ class LanguagePickerSheet extends StatelessWidget {
                           title: Text(
                             lang.nativeName,
                             style: TextStyle(
-                              fontWeight:
-                                  isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? Colors.cyanAccent : Colors.white,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? Colors.cyanAccent
+                                  : Colors.white,
                               fontSize: 15,
                             ),
                           ),

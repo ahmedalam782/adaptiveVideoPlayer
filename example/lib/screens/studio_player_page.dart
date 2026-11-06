@@ -112,7 +112,8 @@ class _StudioStageState extends State<StudioStage> {
       _ => source.viewerCount,
     };
 
-    final isYouTube = widget.source.id.startsWith('youtube') ||
+    final isYouTube =
+        widget.source.id.startsWith('youtube') ||
         widget.source.id.startsWith('yt_') ||
         source.isYouTube;
     final effectiveControlsBg = isYouTube ? const Color(0x6C000000) : _barColor;
@@ -184,7 +185,8 @@ class _StudioStageState extends State<StudioStage> {
     }
     final player = AdaptiveVideoPlayer(key: _playerKey, config: config);
 
-    final androidFillsScreenForPip = !kIsWeb &&
+    final androidFillsScreenForPip =
+        !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.android &&
         NativePipService.isInPip.value;
     if (androidFillsScreenForPip) {
@@ -244,8 +246,11 @@ class _StudioStageState extends State<StudioStage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.play_circle_outline_rounded,
-                      color: Color(0xFFEF4444), size: 20),
+                  const Icon(
+                    Icons.play_circle_outline_rounded,
+                    color: Color(0xFFEF4444),
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -254,7 +259,9 @@ class _StudioStageState extends State<StudioStage> {
                           : 'Tap video to play, or tap "Autoplay ON" for zero-click start.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: widget.isDark ? Colors.white70 : const Color(0xFF334155),
+                        color: widget.isDark
+                            ? Colors.white70
+                            : const Color(0xFF334155),
                       ),
                     ),
                   ),
@@ -267,8 +274,13 @@ class _StudioStageState extends State<StudioStage> {
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () => setState(() => _autoPlay = true),
-                      child: const Text('Autoplay ON',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Autoplay ON',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -453,7 +465,9 @@ class _StudioStageState extends State<StudioStage> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _toggle('Top bar actions', _visibility.showActionsInTopBar, (v) {
+                  _toggle('Top bar actions', _visibility.showActionsInTopBar, (
+                    v,
+                  ) {
                     _visibility = _visibility.copyWith(showActionsInTopBar: v);
                   }, source.accentColor),
                   _toggle('Play overlay', _visibility.showCenterPlayPause, (v) {
@@ -486,15 +500,28 @@ class _StudioStageState extends State<StudioStage> {
                   _toggle('Stop', _visibility.showStopButton, (v) {
                     _visibility = _visibility.copyWith(showStopButton: v);
                   }, source.accentColor),
-                  _toggle('Next episode', _visibility.showNextEpisodeButton, (v) {
-                    _visibility = _visibility.copyWith(showNextEpisodeButton: v);
+                  _toggle('Next episode', _visibility.showNextEpisodeButton, (
+                    v,
+                  ) {
+                    _visibility = _visibility.copyWith(
+                      showNextEpisodeButton: v,
+                    );
                   }, source.accentColor),
-                  _toggle('Episodes drawer', _visibility.showEpisodesButton, (v) {
+                  _toggle('Episodes drawer', _visibility.showEpisodesButton, (
+                    v,
+                  ) {
                     _visibility = _visibility.copyWith(showEpisodesButton: v);
                   }, source.accentColor),
-                  _toggle('Audio & Subtitles', _visibility.showAudioSubtitlesButton, (v) {
-                    _visibility = _visibility.copyWith(showAudioSubtitlesButton: v);
-                  }, source.accentColor),
+                  _toggle(
+                    'Audio & Subtitles',
+                    _visibility.showAudioSubtitlesButton,
+                    (v) {
+                      _visibility = _visibility.copyWith(
+                        showAudioSubtitlesButton: v,
+                      );
+                    },
+                    source.accentColor,
+                  ),
                   _toggle('Speed button', _visibility.showSpeedButton, (v) {
                     _visibility = _visibility.copyWith(showSpeedButton: v);
                   }, source.accentColor),
@@ -569,7 +596,9 @@ class _StudioStageState extends State<StudioStage> {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Video disk cache cleared successfully.'),
+                              content: Text(
+                                'Video disk cache cleared successfully.',
+                              ),
                               duration: Duration(seconds: 2),
                             ),
                           );
@@ -582,7 +611,8 @@ class _StudioStageState extends State<StudioStage> {
                     accent: source.accentColor,
                     isDark: widget.isDark,
                     onTap: () => setState(
-                        () => _preventScreenCapture = !_preventScreenCapture),
+                      () => _preventScreenCapture = !_preventScreenCapture,
+                    ),
                   ),
                   if (widget.source.id.startsWith('yt_') || source.isYouTube)
                     _Choice(
@@ -592,9 +622,11 @@ class _StudioStageState extends State<StudioStage> {
                       selected: !_visibility.showControls,
                       accent: source.accentColor,
                       isDark: widget.isDark,
-                      onTap: () => setState(() => _visibility = _visibility.copyWith(
-                            showControls: !_visibility.showControls,
-                          )),
+                      onTap: () => setState(
+                        () => _visibility = _visibility.copyWith(
+                          showControls: !_visibility.showControls,
+                        ),
+                      ),
                     ),
                 ],
               ),

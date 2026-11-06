@@ -160,8 +160,7 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
       return;
     }
     _focusNode.requestFocus();
-    final enableClickToPlay =
-        widget.visibility?.clickToPlayPause ?? true;
+    final enableClickToPlay = widget.visibility?.clickToPlayPause ?? true;
 
     if (!enableClickToPlay) {
       toggleControls();
@@ -310,9 +309,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
         alignment: Alignment.center,
         children: [
           Center(
-            child: isCover
-                ? SizedBox.expand(child: videoContent)
-                : videoContent,
+            child:
+                isCover ? SizedBox.expand(child: videoContent) : videoContent,
           ),
 
           ValueListenableBuilder<double>(
@@ -405,14 +403,12 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                     onTap: _handleSingleTap,
                     onDoubleTapDown: _screenLocked
                         ? null
-                        : (details) =>
-                            handleDoubleTap(details, startHideTimer),
+                        : (details) => handleDoubleTap(details, startHideTimer),
                     onDoubleTap: () {},
                     onLongPressStart:
                         _screenLocked ? null : handleLongPressStart,
                     onLongPressEnd: _screenLocked ? null : handleLongPressEnd,
-                    onLongPressCancel:
-                        _screenLocked ? null : stopHold2xSpeed,
+                    onLongPressCancel: _screenLocked ? null : stopHold2xSpeed,
                   ),
                   AnimatedOpacity(
                     opacity: controlsVisible ? 1 : 0,
@@ -496,9 +492,10 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
               // Phone chrome lays the scrubber under an 8px pad, a 76px
               // action row (omitted below 100px of height or width), and a
               // 22px track. Keep the prompt in the gap above that track.
-              bottom: constraints.maxHeight >= 100 && constraints.maxWidth >= 100
-                  ? 124
-                  : 48,
+              bottom:
+                  constraints.maxHeight >= 100 && constraints.maxWidth >= 100
+                      ? 124
+                      : 48,
               end: 12,
               child: ValueListenableBuilder<VideoPlayerValue>(
                 valueListenable: widget.controller,
@@ -515,9 +512,10 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                   if (remaining > const Duration(seconds: 20)) {
                     return const SizedBox.shrink();
                   }
-                  final isRtl = (widget.messages?.resolveTextDirection(context) ??
-                          Directionality.maybeOf(context)) ==
-                      TextDirection.rtl;
+                  final isRtl =
+                      (widget.messages?.resolveTextDirection(context) ??
+                              Directionality.maybeOf(context)) ==
+                          TextDirection.rtl;
                   return MobileNextEpisodePrompt(
                     nextLabel: widget.messages?.nextEpisodeText ??
                         (isRtl ? 'الحلقة التالية' : 'Next Episode'),
@@ -542,8 +540,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
         return _keyboardHandler.handleKeyEvent(node, event);
       },
       child: MouseRegion(
-        cursor:
-            controlsVisible ? SystemMouseCursors.basic : SystemMouseCursors.none,
+        cursor: controlsVisible
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.none,
         onHover: (_) {
           startHideTimer();
           if (!controlsVisible) {

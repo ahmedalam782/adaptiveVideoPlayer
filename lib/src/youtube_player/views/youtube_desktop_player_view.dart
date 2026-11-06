@@ -62,10 +62,12 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     NativePipService.isInPip.addListener(_onNativePipModeChanged);
     NativePipService.pipAction.addListener(_onPipActionReceived);
-    if (_usesWebViewPip) {
-      WidgetsBinding.instance.addObserver(this);
+    if (!kIsWeb && Platform.isAndroid) {
+      NativePipService.setPipEnabled(true);
+    } else if (_usesWebViewPip) {
       // The hidden AVPlayer would start a second video and reload it.
       NativePipService.setPipEnabled(false);
       NativePipService.closePip();
@@ -74,16 +76,31 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_usesWebViewPip) return;
     if (state == AppLifecycleState.resumed) {
       _backgroundPipRequested = false;
       return;
     }
-    if (state == AppLifecycleState.inactive &&
-        !_backgroundPipRequested &&
-        _isPlaying) {
-      _backgroundPipRequested = true;
-      widget.desktopWebViewKey.currentState?.enterPictureInPicture();
+    if (_usesWebViewPip) {
+      if ((state == AppLifecycleState.inactive ||
+              state == AppLifecycleState.paused ||
+              state == AppLifecycleState.hidden) &&
+          !_backgroundPipRequested &&
+          _isPlaying) {
+        _backgroundPipRequested = true;
+        widget.desktopWebViewKey.currentState?.enterPictureInPicture();
+      }
+      return;
+    }
+    if (!kIsWeb && Platform.isAndroid) {
+      if ((state == AppLifecycleState.paused ||
+              state == AppLifecycleState.inactive ||
+              state == AppLifecycleState.hidden) &&
+          !_backgroundPipRequested &&
+          _isPlaying &&
+          !NativePipService.isInPip.value) {
+        _backgroundPipRequested = true;
+        NativePipService.enterPip();
+      }
     }
   }
 
@@ -105,6 +122,12 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
       widget.fullscreenManager.closePip(pauseOnClose: false);
     }
     _syncMiniPlayerButtonForPip();
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) _syncMiniPlayerButtonForPip();
+    });
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) _syncMiniPlayerButtonForPip();
+    });
     setState(() {});
   }
 
@@ -326,6 +349,9 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
             _isHovered = true;
           }
         });
+        if (!kIsWeb && Platform.isAndroid) {
+          NativePipService.updatePlaybackState(isPlaying: playing);
+        }
         if (playing) {
           _scheduleHideControls();
         } else {
@@ -344,8 +370,9 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
 
   @override
   void dispose() {
-    if (_usesWebViewPip) {
-      WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
+    if (!kIsWeb && Platform.isAndroid) {
+      NativePipService.updatePlaybackState(isPlaying: false);
     }
     NativePipService.isInPip.removeListener(_onNativePipModeChanged);
     NativePipService.pipAction.removeListener(_onPipActionReceived);

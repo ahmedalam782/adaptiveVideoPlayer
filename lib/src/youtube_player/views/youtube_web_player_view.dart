@@ -1,16 +1,14 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../normal_video_player/utils/fullscreen_utils_export.dart';
 import '../models/youtube_player_config.dart';
 import '../utils/youtube_web_export.dart';
-import '../widgets/youtube_desktop_style_button.dart';
 import '../widgets/youtube_live_badge.dart';
 import '../widgets/youtube_web_iframe_view.dart';
 
 /// Renders the Flutter Web YouTube player view with the iframe, live badge,
-/// keyboard shortcuts, hover detection, and floating action capsule (PiP and Fullscreen buttons).
+/// and keyboard shortcuts.
 class YouTubeWebPlayerView extends StatefulWidget {
   final String viewId;
   final String videoId;
@@ -50,53 +48,18 @@ class YouTubeWebPlayerView extends StatefulWidget {
 }
 
 class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
-  bool _isHovered = true;
-  Timer? _controlsHideTimer;
-
   @override
   void initState() {
     super.initState();
-    _scheduleHideControls();
     listenToFullscreenChange((_) {
       if (mounted) setState(() {});
     });
-  }
-
-  void _onMouseActivity() {
-    if (!mounted) return;
-    if (!_isHovered) {
-      setState(() {
-        _isHovered = true;
-      });
-    }
-    _scheduleHideControls();
-  }
-
-  void _scheduleHideControls() {
-    _controlsHideTimer?.cancel();
-    _controlsHideTimer = Timer(const Duration(milliseconds: 2600), () {
-      if (mounted) {
-        setState(() {
-          _isHovered = false;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _controlsHideTimer?.cancel();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final effectiveDir = widget.config.text.resolveTextDirection(context);
     final isFullscreenNow = widget.isInFullscreen || isYoutubeWebFullscreen();
-    final showFullscreen = widget.config.visibility.showControls &&
-        widget.config.visibility.showFullscreenButton;
-    final showPip = widget.config.visibility.showControls &&
-        widget.config.visibility.showMiniPlayerButton;
     final showLiveBadge = widget.isLive ||
         widget.viewerCount != null ||
         widget.liveBadgeBuilder != null;
@@ -124,109 +87,37 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
         autofocus: true,
         child: Directionality(
           textDirection: effectiveDir,
-          child: MouseRegion(
-            onEnter: (_) => _onMouseActivity(),
-            onHover: (_) => _onMouseActivity(),
-            onExit: (_) {
-              if (mounted) {
-                _scheduleHideControls();
-              }
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(isFullscreenNow ? 0 : 8),
-              child: AspectRatio(
-                aspectRatio: targetAspect,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    YouTubeWebIframeView(
-                      key: ValueKey(widget.viewId),
-                      viewId: widget.viewId,
-                    ),
-                    if (showLiveBadge)
-                      PositionedDirectional(
-                        top: 12,
-                        start: 12,
-                        child: (widget.liveBadgeBuilder ??
-                                    widget.config.liveBadgeBuilder)
-                                ?.call(
-                              context,
-                              isLive: widget.isLive,
-                              viewerCount: widget.viewerCount,
-                            ) ??
-                            YouTubeLiveBadge(
-                              isLive: widget.isLive,
-                              viewerCount: widget.viewerCount,
-                              liveText: widget.config.text.liveText,
-                              iconColor: widget.config.style.iconColor,
-                              textColor: widget.config.style.textColor,
-                            ),
-                      ),
-                    if (showFullscreen || showPip)
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: AnimatedOpacity(
-                          opacity: _isHovered ? 1.0 : 0.85,
-                          duration: const Duration(milliseconds: 220),
-                          child: Container(
-                            height: 36,
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 4.0),
-                            decoration: BoxDecoration(
-                              color: const Color(0xAA000000),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.25),
-                                width: 0.8,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (showPip)
-                                    YouTubeDesktopStyleButton(
-                                      playerIcon: widget
-                                          .config.style.icons.miniPlayerIcon,
-                                      fallbackIcon: Icons
-                                          .picture_in_picture_alt_rounded,
-                                      tooltip: widget.config.text.miniPlayerText,
-                                      onTap: widget.onOpenPip,
-                                      size: 21,
-                                    ),
-                                  if (showFullscreen)
-                                    YouTubeDesktopStyleButton(
-                                      playerIcon: isFullscreenNow
-                                          ? widget.config.style.icons
-                                              .exitFullscreenIcon
-                                          : widget.config.style.icons
-                                              .fullscreenIcon,
-                                      fallbackIcon: isFullscreenNow
-                                          ? Icons.fullscreen_exit_rounded
-                                          : Icons.open_in_full_rounded,
-                                      tooltip: isFullscreenNow
-                                          ? widget.config.text.exitFullscreenText
-                                          : widget.config.text.fullscreenText,
-                                      onTap: widget.onToggleFullscreen,
-                                      size: 21,
-                                    ),
-                                ],
-                              ),
-                            ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(isFullscreenNow ? 0 : 8),
+            child: AspectRatio(
+              aspectRatio: targetAspect,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  YouTubeWebIframeView(
+                    key: ValueKey(widget.viewId),
+                    viewId: widget.viewId,
+                  ),
+                  if (showLiveBadge)
+                    PositionedDirectional(
+                      top: 12,
+                      start: 12,
+                      child: (widget.liveBadgeBuilder ??
+                                  widget.config.liveBadgeBuilder)
+                              ?.call(
+                            context,
+                            isLive: widget.isLive,
+                            viewerCount: widget.viewerCount,
+                          ) ??
+                          YouTubeLiveBadge(
+                            isLive: widget.isLive,
+                            viewerCount: widget.viewerCount,
+                            liveText: widget.config.text.liveText,
+                            iconColor: widget.config.style.iconColor,
+                            textColor: widget.config.style.textColor,
                           ),
-                        ),
-                      ),
-                  ],
-                ),
+                    ),
+                ],
               ),
             ),
           ),
