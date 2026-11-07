@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Preview the adaptive_video_player branch changes and prepare its release.">
+<title>Adaptive Video Player · v2.0.1 preview</title>
+<style>
+:root{color-scheme:dark;--bg:#080f19;--card:#111d2d;--line:#2b3c50;--ink:#eef5fb;--muted:#b0c1d4;--cyan:#55e0ed;--mint:#8bf0c7}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:30px}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,sans-serif}a{color:var(--cyan);text-underline-offset:4px}a:hover{color:white}:focus-visible{outline:3px solid var(--mint);outline-offset:5px}
+header{border-bottom:1px solid var(--line);background:#0d1724}nav{max-width:1150px;margin:auto;display:flex;gap:24px;align-items:center;padding:20px 28px;flex-wrap:wrap}nav strong{margin-right:auto}nav a{font-size:14px}main{max-width:1150px;margin:auto;padding:55px 28px}section{margin:60px 0}h1{font-size:clamp(38px,6vw,68px);letter-spacing:-.045em;line-height:1.08;margin:22px 0}h2{font-size:30px;line-height:1.2;letter-spacing:-.03em}h3{font-size:19px;line-height:1.35}p{max-width:850px}small,.muted{color:var(--muted)}.eyebrow{text-transform:uppercase;color:var(--mint);font-size:12px;font-weight:750;letter-spacing:.14em}.lead{color:var(--muted);font-size:20px;max-width:750px}.pill{border:1px solid var(--line);border-radius:30px;display:inline-block;padding:6px 14px;font-size:13px;color:var(--mint)}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0}.button,button{display:inline-block;font:inherit;font-size:14px;font-weight:700;padding:11px 18px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);text-decoration:none;cursor:pointer}.primary{background:var(--cyan);color:#06151b;border-color:var(--cyan)}.button:hover,button:hover{border-color:var(--cyan)}figure{margin:28px 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:16px}figcaption{font-size:13px;color:var(--muted);margin:10px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}.card p{color:var(--muted);font-size:15px}.num{font-size:32px;font-weight:750;letter-spacing:-.04em;color:var(--cyan)}.note{border-left:3px solid var(--mint);padding:8px 18px;color:var(--muted);background:#101e28}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:15px}th,td{padding:16px 12px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}th{color:var(--mint)}pre{background:#050b12;border:1px solid var(--line);padding:20px;border-radius:10px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:#d5e8f9}code{font-family:Consolas,monospace}label.check{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);cursor:pointer}input[type=checkbox]{width:20px;height:20px;flex-shrink:0;accent-color:var(--cyan);margin-top:3px}.check span{flex:1}progress{width:100%;height:12px;accent-color:var(--cyan)}.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}footer{border-top:1px solid var(--line);padding:28px;color:var(--muted);text-align:center;font-size:13px}#copy-status{display:block;min-height:28px;color:var(--mint)}.post{white-space:pre-wrap;font-size:15px}.step{color:var(--mint);font-size:13px;font-weight:700}
+@media(max-width:760px){main{padding:32px 18px}.grid,.two{grid-template-columns:1fr}nav{gap:14px;padding:18px}nav strong{width:100%}section{margin:42px 0}th,td{padding:12px 8px}h2{font-size:26px}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{body{background:white;color:black}header,button,.actions{display:none}.card,pre{background:#f4f4f4;color:black;break-inside:avoid}a,small,.muted,.lead,.note{color:#333}section{margin:25px 0}}
+</style>
+</head>
+<body>
+<header><nav aria-label="Page navigation"><strong>▶ adaptive_video_player</strong><a href="#platform-designs">Platform designs</a><a href="#changes">What's changed</a><a href="#try">Try it</a><a href="#launch">Launch</a><a href="#post">LinkedIn</a></nav></header>
+<main>
+<section aria-labelledby="title" style="margin-top:0">
+<span class="pill">v2.0.1 · Branch preview · November 7, 2026</span>
+<h1 id="title">More control.<br>Keep the video moving.</h1>
+<p class="lead">Fullscreen, floating playback and richer controls for your Flutter video experience. Explore this branch before it joins the stable release.</p>
+<p class="muted"><code>feature/html5-fullscreen-controls</code> compared with <code>master</code> (v1.3.3).</p>
+<div class="actions"><a class="button primary" href="#try">Try the branch</a><a class="button" href="https://github.com/ahmedalam782/vidoes_player/compare/master...feature/html5-fullscreen-controls">Review changes ↗</a><a class="button" href="docs/BRANCH_CHANGES.md">Migration notes</a></div>
+<figure><img src="assets/release/v2-branch-preview.png" width="1536" height="1024" alt="Concept preview of desktop and phone video players, a floating mini-player, and quality, subtitle, speed and episode controls"><figcaption>AI-generated concept mockup, not a screenshot. Platform behavior varies. <a href="assets/release/v2-branch-preview.png" download>Download image</a></figcaption></figure>
+<div class="grid" aria-label="Historical package milestone">
+<div class="card"><div class="num">1.09k</div><strong>Downloads in your screenshot</strong><p>Historical snapshot; not a live counter or unique-user count.</p></div>
+<div class="card"><div class="num">160/160</div><strong>Published package points</strong><p>The candidate needs its own assessment.</p></div>
+<div class="card"><div class="num">19</div><strong>Likes in your screenshot</strong><p>A community milestone shared with its snapshot context.</p></div>
+</div>
+<p class="note">The <a href="https://pub.dev/packages/adaptive_video_player/score">live score page</a> showed 940 downloads and 19 likes when checked on November 7, 2026; the package API returned v1.3.3. Refresh the figures before posting. This preview does not certify release stability or a new 160/160 score.</p>
+</section>
+<section id="platform-designs" aria-labelledby="platform-designs-title">
+<p class="eyebrow">Six platforms · One visual family</p><h2 id="platform-designs-title">Explore every platform design</h2>
+<p>Separate concept designs for Android, iOS, Windows, macOS, Linux and Web. Open an image at full size or download it for your launch post. These AI-generated designs are illustrations, not application screenshots or platform test results.</p>
+<div class="two">
+<figure class="card"><a href="assets/release/v2-android-preview.png"><img src="assets/release/v2-android-preview.png" width="1536" height="1024" loading="lazy" alt="Android concept showing touch controls, chapters and picture-in-picture"></a><h3>Android</h3><figcaption>Touch controls, chapters and Picture-in-Picture. <a href="assets/release/v2-android-preview.png" download>Download Android design</a></figcaption></figure>
+<figure class="card"><a href="assets/release/v2-ios-preview.png"><img src="assets/release/v2-ios-preview.png" width="1536" height="1024" loading="lazy" alt="iOS concept showing phone and tablet playback, audio and subtitles"></a><h3>iOS</h3><figcaption>Audio and subtitles, inline playback and Picture-in-Picture. <a href="assets/release/v2-ios-preview.png" download>Download iOS design</a></figcaption></figure>
+<figure class="card"><a href="assets/release/v2-windows-preview.png"><img src="assets/release/v2-windows-preview.png" width="1536" height="1024" loading="lazy" alt="Windows concept showing desktop video playback and a floating PiP window"></a><h3>Windows</h3><figcaption>Desktop fullscreen, floating PiP and keyboard controls. <a href="assets/release/v2-windows-preview.png" download>Download Windows design</a></figcaption></figure>
+<figure class="card"><a href="assets/release/v2-macos-preview.png"><img src="assets/release/v2-macos-preview.png" width="1536" height="1024" loading="lazy" alt="macOS concept showing chapters, speed selection and host window integration"></a><h3>macOS</h3><figcaption>Chapters and speed with desktop window integration. Host setup required. <a href="assets/release/v2-macos-preview.png" download>Download macOS design</a></figcaption></figure>
+<figure class="card"><a href="assets/release/v2-linux-preview.png"><img src="assets/release/v2-linux-preview.png" width="1536" height="1024" loading="lazy" alt="Linux concept showing episode navigation and a mini-player inside the application"></a><h3>Linux</h3><figcaption>Desktop playback, episodes and a mini-player contained inside the app. <a href="assets/release/v2-linux-preview.png" download>Download Linux design</a></figcaption></figure>
+<figure class="card"><a href="assets/release/v2-web-preview.png"><img src="assets/release/v2-web-preview.png" width="1536" height="1024" loading="lazy" alt="Web concept showing browser fullscreen, chapter scrubbing and quality controls"></a><h3>Web</h3><figcaption>Browser fullscreen, chapter scrubbing, quality and subtitles. Browser support varies. <a href="assets/release/v2-web-preview.png" download>Download Web design</a></figcaption></figure>
+</div>
+<p><a href="docs/PLATFORM_DESIGNS.md">Asset details and generation prompts</a> · <a href="docs/BRANCH_CHANGES.md">Platform behavior and setup</a></p>
+</section>
+<section id="changes" aria-labelledby="changes-title">
+<p class="eyebrow">Since the published baseline</p><h2 id="changes-title">What users can try</h2>
+<div class="grid">
+<article class="card"><span class="step">01 / Watch your way</span><h3>Fullscreen + PiP</h3><p>Browser fullscreen, desktop window handling and floating playback controls, with background PiP integration where supported.</p></article>
+<article class="card"><span class="step">02 / Find the moment</span><h3>Chapters + gestures</h3><p>Capsule controls, ±10-second seeking, hover/scrub timestamps and a hold-to-2× speed gesture.</p></article>
+<article class="card"><span class="step">03 / Make it your player</span><h3>Audio + subtitles</h3><p>Track selection panels, a speed picker and episode navigation connected to your app's callbacks.</p></article>
+<article class="card"><span class="step">04 / Opt in</span><h3>Cache + capture controls</h3><p>Optional network caching and platform-dependent capture controls. Capture controls are not DRM.</p></article>
+<article class="card"><span class="step">05 / One configuration</span><h3>YouTube + direct video</h3><p>Updated YouTube/native integration and a unified VideoConfig API, with adapters and lifecycle handling.</p></article>
+<article class="card"><span class="step">06 / Explore faster</span><h3>Refreshed example</h3><p>Studio and showcase screens, source examples and translations to help you evaluate the branch.</p></article>
+</div>
+<p class="muted">At <code>2875131</code>: 22 commits and 273 changed files, including examples, generated files, tests and documentation. See <a href="docs/BRANCH_CHANGES.md">the comparison and migration notes</a>.</p>
+<h3>Platform setup matters</h3><div class="table-wrap"><table><thead><tr><th scope="col">Platform</th><th scope="col">What to verify</th></tr></thead><tbody>
+<tr><th scope="row">Android / iOS</th><td>Native PiP, supported OS/device, activity/background settings and playback handoff.</td></tr>
+<tr><th scope="row">Windows</th><td>Topmost PiP window, fullscreen restoration and multiple monitors.</td></tr>
+<tr><th scope="row">macOS</th><td>Host method-channel integration for desktop window services; use the example implementation.</td></tr>
+<tr><th scope="row">Linux</th><td>Backend prerequisites and an in-app mini-player; it does not overlay other applications.</td></tr>
+<tr><th scope="row">Web</th><td>Browser support, user activation, CORS and fallbacks. Automatic PiP on tab switching is not guaranteed.</td></tr>
+</tbody></table></div>
+</section>
+<section id="try" aria-labelledby="try-title"><p class="eyebrow">Try before the merge</p><h2 id="try-title">Start with one widget</h2>
+<div class="two"><div><h3>1. Use the remote feature branch</h3><pre><code>dependencies:
+  adaptive_video_player:
+    git:
+      url: https://github.com/ahmedalam782/vidoes_player.git
+      ref: feature/html5-fullscreen-controls</code></pre><p class="muted">Run <code>flutter pub get</code>. Pin a reviewed commit for reproducible evaluation. Local edits become visible after they are committed and pushed.</p></div>
+<div><h3>2. Add the player</h3><pre><code>import 'package:adaptive_video_player/adaptive_video_player.dart';
+
+AdaptiveVideoPlayer(
+  config: const VideoConfig(
+    videoUrl: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    autoPipOnBackground: true,
+  ),
+);</code></pre></div></div>
+<p>Follow <a href="README.md">the platform setup</a> and <a href="docs/BRANCH_CHANGES.md">migration notes</a>, then run the example. Report your OS/browser, source type and reproduction steps through <a href="https://github.com/ahmedalam782/vidoes_player/issues">GitHub issues</a>.</p>
+</section>
+<section id="launch" aria-labelledby="launch-title"><p class="eyebrow">Release preparation</p><h2 id="launch-title">Review → verify → merge → publish</h2><p>This checklist saves manual reminders in this browser when storage is available. Ticking a box does not run a command.</p>
+<progress id="progress" value="0" max="6" aria-label="Completed release checklist items"></progress><p id="progress-label" aria-live="polite">0 of 6 completed</p>
+<div class="card">
+<label class="check"><input type="checkbox" data-check="review"><span><strong>Review branch changes and migration</strong><br><small>Check the README image, public API and intended asset deletions.</small></span></label>
+<label class="check"><input type="checkbox" data-check="quality"><span><strong>Run formatting, analysis and tests</strong><br><small>Record actual results; test pass rate does not measure code coverage.</small></span></label>
+<label class="check"><input type="checkbox" data-check="platforms"><span><strong>Build the example and test platforms</strong><br><small>Fullscreen, PiP, lifecycle, subtitles, sources, RTL and compact layouts.</small></span></label>
+<label class="check"><input type="checkbox" data-check="score"><span><strong>Review package dry-run and score preview</strong><br><small>Use a separate copy for pana. The published score does not certify this branch.</small></span></label>
+<label class="check"><input type="checkbox" data-check="merge"><span><strong>Review the PR, merge and publish deliberately</strong><br><small>Target master; publish after the recorded release checks pass.</small></span></label>
+<label class="check"><input type="checkbox" data-check="announce"><span><strong>Verify publication, then announce</strong><br><small>Confirm version/score, refresh counters and choose the correct LinkedIn draft.</small></span></label>
+</div>
+<h3>Verification commands</h3><pre><code>dart format --output=none --set-exit-if-changed lib test
+flutter analyze
+flutter test --coverage
+flutter pub outdated
+flutter pub publish --dry-run</code></pre>
+<p>Run each separately and resolve failures. Follow <a href="docs/LAUNCH_GUIDE.md">the full launch guide</a> for builds, platform checks, scoring and publication. Read <a href="docs/VERIFICATION.md">current verification evidence</a> before declaring the candidate stable.</p>
+</section>
+<section id="post" aria-labelledby="post-title"><p class="eyebrow">Share the preview</p><h2 id="post-title">LinkedIn draft</h2><p>Invite testing before merge. Attach the concept image. <a href="docs/linkedin_post.md">Open both preview and post-publication drafts</a>.</p>
+<div class="card"><div id="linkedin-copy" class="post">I'm preparing the next update to adaptive_video_player, my open-source Flutter video player, and I'd love feedback before merging it into the stable branch.
+
+The package reached a milestone shown in my pub.dev screenshot: 1.09k downloads, 19 likes and 160/160 pub points. Thank you to everyone who tried it! These are snapshot numbers, not live counters.
+
+What's in the branch since v1.3.3:
+• Browser fullscreen and updated desktop window handling.
+• PiP controls and background integration where supported.
+• Chapters, capsule controls and hold-to-2× playback.
+• Audio/subtitle panels, speed selection and episodes.
+• Optional caching and platform-dependent capture controls.
+
+The package targets Android, iOS, Windows, macOS, Linux and Web, with different setup and behavior across platforms.
+
+This is a v2.0.1 branch preview; the image is a concept mockup. The published package's score does not certify this candidate.
+
+Try the branch:
+https://github.com/ahmedalam782/vidoes_player/tree/feature/html5-fullscreen-controls
+
+Package:
+https://pub.dev/packages/adaptive_video_player
+
+Which platform should I focus on next?
+
+#Flutter #Dart #OpenSource #VideoPlayer #FlutterDev</div></div>
+<div class="actions"><button type="button" id="copy-post">Copy post</button><a class="button" href="docs/linkedin_post.md">Full drafts</a></div><output id="copy-status" aria-live="polite"></output>
+</section>
+</main>
+<footer>adaptive_video_player · MIT · Branch preview, November 7, 2026 · <a href="docs/LAUNCH_GUIDE.md">Launch guide</a> · <a href="docs/RELEASE_NOTES.md">Release draft</a></footer>
+<script>
+'use strict';
+const checklist = Array.from(document.querySelectorAll('[data-check]'));
+const storageKey = 'adaptive-video-player-v2-preview-checklist';
+let stored = {};
+try { stored = JSON.parse(localStorage.getItem(storageKey) || '{}') || {}; } catch (_) {}
+function updateProgress() {
+  const done = checklist.filter(input => input.checked).length;
+  document.getElementById('progress').value = done;
+  document.getElementById('progress-label').textContent = done + ' of ' + checklist.length + ' completed';
+}
+checklist.forEach(input => {
+  input.checked = stored[input.dataset.check] === true;
+  input.addEventListener('change', () => {
+    updateProgress();
+    try { localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(checklist.map(item => [item.dataset.check, item.checked])))); } catch (_) {}
+  });
+});
+updateProgress();
+document.getElementById('copy-post').addEventListener('click', async () => {
+  const post = document.getElementById('linkedin-copy');
+  const status = document.getElementById('copy-status');
+  try {
+    await navigator.clipboard.writeText(post.innerText);
+    status.textContent = 'Post copied. Refresh the package figures before sharing.';
+  } catch (_) {
+    const selection = window.getSelection();
+    if (selection) { const range = document.createRange(); range.selectNodeContents(post); selection.removeAllRanges(); selection.addRange(range); }
+    status.textContent = 'Clipboard unavailable. The post is selected; press Ctrl+C or copy it manually.';
+  }
+});
+</script>
+</body>
+</html>

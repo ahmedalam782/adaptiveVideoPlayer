@@ -42,16 +42,20 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
             onTap: () {
               if (isPlaying) {
                 controller.pause();
-                onAnalyticsEvent?.call(PlayerEvents.videoPaused,
-                    {PlayerEvents.paramPosition: controller.value.position.inSeconds});
+                onAnalyticsEvent?.call(PlayerEvents.videoPaused, {
+                  PlayerEvents.paramPosition:
+                      controller.value.position.inSeconds
+                });
               } else {
                 if (value.position >= value.duration &&
                     value.duration > Duration.zero) {
                   controller.seekTo(Duration.zero);
                 }
                 controller.play();
-                onAnalyticsEvent?.call(PlayerEvents.videoPlayed,
-                    {PlayerEvents.paramPosition: controller.value.position.inSeconds});
+                onAnalyticsEvent?.call(PlayerEvents.videoPlayed, {
+                  PlayerEvents.paramPosition:
+                      controller.value.position.inSeconds
+                });
               }
               onPlayPause?.call();
             },

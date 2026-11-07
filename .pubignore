@@ -1,0 +1,8 @@
+.agents/
+.dart_tool/
+.git/
+.history/
+build/
+coverage/
+assets/demo/
+assets/screenshots/

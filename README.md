@@ -3,10 +3,45 @@
 A comprehensive Flutter video player package that seamlessly handles both **YouTube videos** and **direct video URLs** with adaptive player selection. Works on **Android, iOS, macOS, Windows, Linux, and Web** — with platform-specific engines tuned for each target.
 
 [![pub package](https://img.shields.io/pub/v/adaptive_video_player.svg)](https://pub.dev/packages/adaptive_video_player)
-[![Flutter](https://img.shields.io/badge/Flutter-3.1.0%2B-02569B?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.13.0%2B-02569B?logo=flutter)](https://flutter.dev)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-blue)](https://flutter.dev)
 [![WASM Ready](https://img.shields.io/badge/WASM-Ready-brightgreen)](https://dart.dev/web/wasm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## v2.0.1 preview — try the changes before release
+
+This README describes **`feature/html5-fullscreen-controls`**, compared with **`master` (v1.3.3)**. Version 2.0.1 is a release candidate in this branch; the published package and this preview have different features.
+
+![Concept mockup of desktop, mobile and floating video players with quality, subtitle, speed and episode panels](assets/release/v2-branch-preview.png)
+
+*AI-generated concept mockup, not an application screenshot. Platform behavior varies.*
+
+| What changed since master | What you can do |
+|---|---|
+| Browser fullscreen and desktop window handling | Enter fullscreen, return with Esc, and continue watching |
+| PiP and floating mini-player controls | Keep playback visible while navigating; enable background PiP where supported |
+| Capsule controls, chapters and gestures | Seek ±10 seconds, scrub chapter markers, or hold for 2× speed |
+| Audio, subtitles, speed and episodes panels | Supply tracks and episodes through `VideoConfig` and handle selection callbacks |
+| Optional caching and capture controls | Set `enableCache` or `preventScreenCapture` for supported sources/platforms |
+| YouTube engine and native integrations | Use the unified configuration API with platform-specific setup |
+
+[Full branch changes and migration notes](docs/BRANCH_CHANGES.md) · [Launch preview](LAUNCH_ALL_IN_ONE.html) · [Verification and release steps](docs/LAUNCH_GUIDE.md)
+
+**Package milestone:** your shared screenshot records **19 likes · 160 points · 1.09k downloads**. This is a historical snapshot, not a live counter. The [published-package score](https://pub.dev/packages/adaptive_video_player/score) was 160/160 when checked on November 7, 2026; the release candidate needs its own assessment. Passing tests does not measure test coverage.
+
+### Try this branch
+
+```yaml
+dependencies:
+  adaptive_video_player:
+    git:
+      url: https://github.com/ahmedalam782/vidoes_player.git
+      ref: feature/html5-fullscreen-controls
+```
+
+Run `flutter pub get`, then follow the platform setup below. The Git dependency uses the remote branch; local documentation and assets appear there after they are committed and pushed. Pin a reviewed commit hash for reproducible testing.
 
 ---
 
@@ -26,27 +61,30 @@ AdaptiveVideoPlayer(
 
 ---
 
-## 📸 Visual Showcase & Mockups Gallery
+## Explore the preview
 
-### 📱 Mobile Experience (Android & iOS)
+Use the [example application](example/lib/main.dart) to inspect the implemented controls. The concept image above illustrates the feature groups; use real device recordings to confirm behavior before release. See the [platform verification matrix](docs/LAUNCH_GUIDE.md#platform-smoke-tests) for what to check.
 
-| 🎛️ Studio Player Controls | 🎬 Netflix-Style Showcase | 💬 Dual Audio & Subtitles | 📑 Episodes & Stepper |
-|:---:|:---:|:---:|:---:|
-| <img src="assets/screenshots/android/1.png" width="220" alt="Studio Controls" /> | <img src="assets/screenshots/android/2.png" width="220" alt="Full Streaming" /> | <img src="assets/screenshots/android/3.png" width="220" alt="Dual Audio Subtitles" /> | <img src="assets/screenshots/android/4.png" width="220" alt="Episodes Drawer" /> |
-| *Adaptive capsule pills, quick toggles & speed* | *Rich streaming mode with live telemetry* | *Dual-column audio dubs & subtitle picker* | *Netflix-style episode drawer & progress bars* |
+### Designs for all six platforms
 
-### 💻 Desktop & Fullscreen Experience (Windows, macOS, Web)
+These AI-generated concept designs illustrate the branch experience. Click any image to view the full-size design. They are not screenshots or evidence of platform testing.
 
-| 🪟 Immersive Fullscreen | 📌 Always-On-Top OS PiP | ⏱️ Hover Chapters Preview | ⚙️ Resolution & Settings |
-|:---:|:---:|:---:|:---:|
-| <img src="assets/screenshots/windows/2.png" width="220" alt="Fullscreen Mode" /> | <img src="assets/screenshots/windows/3.png" width="220" alt="Always-On-Top PiP" /> | <img src="assets/screenshots/windows/4.png" width="220" alt="Hover Chapters" /> | <img src="assets/screenshots/windows/5.png" width="220" alt="Settings Dialog" /> |
-| *True borderless display with auto-hiding UI* | *Native Win32 topmost floating window* | *Scrub thumb with chapter marker tooltip* | *Multi-quality HLS/MP4 resolution selector* |
+| Android | iOS |
+|:---:|:---:|
+| [![Android player concept with touch controls, chapters and PiP](assets/release/v2-android-preview.png)](assets/release/v2-android-preview.png) | [![iOS phone and tablet concept with audio, subtitles and PiP](assets/release/v2-ios-preview.png)](assets/release/v2-ios-preview.png) |
+| Touch controls · Chapters · Picture-in-Picture | Audio and subtitles · Inline playback · Picture-in-Picture |
 
-### 🎬 Animated Platform Demos
+| Windows | macOS |
+|:---:|:---:|
+| [![Windows player concept with desktop fullscreen and floating PiP](assets/release/v2-windows-preview.png)](assets/release/v2-windows-preview.png) | [![macOS player concept with chapters, speed and host window integration](assets/release/v2-macos-preview.png)](assets/release/v2-macos-preview.png) |
+| Desktop fullscreen · Floating PiP · Keyboard controls | Desktop playback · Chapters and speed · Host setup required |
 
-| Android | iOS | Windows | macOS | Web |
-|:---:|:---:|:---:|:---:|:---:|
-| <img src="assets/demo/android.gif" width="140" alt="Android Demo" /> | <img src="assets/demo/ios.gif" width="140" alt="iOS Demo" /> | <img src="assets/demo/windows.gif" width="140" alt="Windows Demo" /> | <img src="assets/demo/macos.gif" width="140" alt="macOS Demo" /> | <img src="assets/demo/web.gif" width="140" alt="Web Demo" /> |
+| Linux | Web |
+|:---:|:---:|
+| [![Linux player concept with an in-app mini-player and episode navigation](assets/release/v2-linux-preview.png)](assets/release/v2-linux-preview.png) | [![Web browser player concept with fullscreen, chapter scrubbing and subtitles](assets/release/v2-web-preview.png)](assets/release/v2-web-preview.png) |
+| Desktop playback · In-app mini-player · Episodes | Browser fullscreen · Chapter scrubbing · Quality and subtitles |
+
+Linux's mini-player stays inside the app. macOS desktop window services require host integration. Web fullscreen and PiP depend on browser support and activation rules. [Generation prompts and asset details](docs/PLATFORM_DESIGNS.md).
 
 ---
 
@@ -125,7 +163,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  adaptive_video_player: ^2.0.0
+  adaptive_video_player: ^1.3.3 # Published baseline; use the Git dependency above for this preview.
 ```
 
 ## 🔒 Platform Permissions & Setup

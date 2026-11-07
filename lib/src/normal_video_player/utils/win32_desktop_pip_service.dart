@@ -144,8 +144,9 @@ class Win32DesktopPipService {
           int Function(int, Pointer<WINDOWPLACEMENT>)>('GetWindowPlacement');
       getWindowPlacement(hwnd, _pipSavedPlacement!);
 
-      final isIconicFn = user32.lookupFunction<
-          Int32 Function(IntPtr), int Function(int)>('IsIconic');
+      final isIconicFn =
+          user32.lookupFunction<Int32 Function(IntPtr), int Function(int)>(
+              'IsIconic');
       final isMin = isIconicFn(hwnd) != 0;
 
       if (isMin && _pipSavedPlacement != null) {
@@ -219,10 +220,7 @@ class Win32DesktopPipService {
             _pipWindowY,
             _pipWindowWidth,
             _pipWindowHeight,
-            swpNoOwnerZOrder |
-                swpFrameChanged |
-                swpShowWindow |
-                swpNoActivate,
+            swpNoOwnerZOrder | swpFrameChanged | swpShowWindow | swpNoActivate,
           );
 
           setWindowPos(
@@ -320,11 +318,12 @@ class Win32DesktopPipService {
             calloc.free(savedPlacement);
           }
 
-          final normalStyle = (((savedStyle == 0 ? wsOverlappedWindow : savedStyle) &
-                      ~(wsPopup | wsMinimize)) |
-                  wsOverlappedWindow |
-                  wsVisible)
-              .toSigned(32);
+          final normalStyle =
+              (((savedStyle == 0 ? wsOverlappedWindow : savedStyle) &
+                          ~(wsPopup | wsMinimize)) |
+                      wsOverlappedWindow |
+                      wsVisible)
+                  .toSigned(32);
           setWindowLong(user32, hwnd, gwlStyle, normalStyle);
 
           final showWindow = user32.lookupFunction<

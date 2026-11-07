@@ -1,0 +1,38 @@
+ADAPTIVE VIDEO PLAYER — BRANCH PREVIEW
+
+This branch is ready for review and tester feedback. It is not merged or published.
+
+START HERE
+  LAUNCH_ALL_IN_ONE.html       Preview image, branch features, try-it setup,
+                               release checklist and LinkedIn copy
+  README.md                    Package overview and branch install instructions
+  assets/release/              Cover plus six platform concept images
+  docs/PLATFORM_DESIGNS.md     Platform image links and generation prompts
+  docs/BRANCH_CHANGES.md       Changes from master/v1.3.3 and migration notes
+  docs/LAUNCH_GUIDE.md         Review, platform checks, scoring and publish steps
+  docs/VERIFICATION.md         Commands run and remaining release checks
+  docs/linkedin_post.md        Preview post and post-publication post drafts
+
+CHECKS ALREADY RUN
+  flutter analyze              Passed: no issues
+  flutter test                 Passed: 260 tests
+  Example Windows debug build  Passed
+  Example Web/WASM build       Passed
+  Dart format check            Passed after formatting four flagged Dart files
+
+STILL REQUIRED BEFORE PUBLISH
+  Resolve publish dry-run warnings on a clean committed branch and rerun
+  Review Flutter minimum and all dependency compatibility warnings
+  Run Android/iOS/macOS/Linux device/host smoke tests
+  Review working-tree changes and PR against master, then merge deliberately
+  Verify the candidate score on pub.dev after publication
+
+THE PACKAGE MILESTONE
+  User-supplied screenshot: 19 likes, 160 points, 1.09k downloads.
+  Public snapshot checked November 7, 2026: published version 1.3.3,
+  160/160 points, 19 likes, 940 downloads.
+  Counters change; refresh before posting. Downloads are not unique users.
+
+The attached image is a concept mockup, not a player screenshot.
+The published-package score does not certify this branch.
+See docs/LAUNCH_GUIDE.md for the complete release process.

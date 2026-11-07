@@ -169,8 +169,8 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
     const horizontalInset = 12.0;
     final effectiveWidth =
         (maxWidth - horizontalInset * 2).clamp(1.0, double.infinity);
-    final rawFraction = ((localPosition.dx - horizontalInset) / effectiveWidth)
-        .clamp(0.0, 1.0);
+    final rawFraction =
+        ((localPosition.dx - horizontalInset) / effectiveWidth).clamp(0.0, 1.0);
     final fraction = isRtl ? (1.0 - rawFraction) : rawFraction;
     final durationMs = widget.controller.value.duration.inMilliseconds;
     if (durationMs > 0) {
@@ -249,236 +249,238 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                 Widget sliderContent = SizedBox(
                   height: 22,
                   child: Stack(
-                      clipBehavior: Clip.none,
-                      alignment: Alignment.center,
-                      children: [
-                        if (previewDuration != null || activePreviewCtrl != null)
-                          Positioned(
-                            top: activePreviewCtrl != null
-                                ? (previewChapter != null ? -118 : -102)
-                                : (previewChapter != null ? -48 : -32),
-                            left: tooltipLeft,
-                            child: Offstage(
-                              offstage: previewDuration == null,
-                              child: IgnorePointer(
-                                child: SizedBox(
-                                  width: thumbWidth,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (activePreviewCtrl != null) ...[
-                                        Container(
-                                          width: thumbWidth,
-                                          height: thumbHeight,
-                                          decoration: BoxDecoration(
-                                            color: Colors.black,
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            border: Border.all(
-                                              color: Colors.white,
-                                              width: 1.6,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black
-                                                    .withValues(alpha: 0.55),
-                                                blurRadius: 10,
-                                                offset: const Offset(0, 3),
-                                              ),
-                                            ],
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      if (previewDuration != null || activePreviewCtrl != null)
+                        Positioned(
+                          top: activePreviewCtrl != null
+                              ? (previewChapter != null ? -118 : -102)
+                              : (previewChapter != null ? -48 : -32),
+                          left: tooltipLeft,
+                          child: Offstage(
+                            offstage: previewDuration == null,
+                            child: IgnorePointer(
+                              child: SizedBox(
+                                width: thumbWidth,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (activePreviewCtrl != null) ...[
+                                      Container(
+                                        width: thumbWidth,
+                                        height: thumbHeight,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 1.6,
                                           ),
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(6.4),
-                                            child: FittedBox(
-                                              fit: BoxFit.cover,
-                                              clipBehavior: Clip.hardEdge,
-                                              child: SizedBox(
-                                                width: activePreviewCtrl
-                                                            .value.size.width >
-                                                        0
-                                                    ? activePreviewCtrl
-                                                        .value.size.width
-                                                    : 320,
-                                                height: activePreviewCtrl
-                                                            .value.size.height >
-                                                        0
-                                                    ? activePreviewCtrl
-                                                        .value.size.height
-                                                    : 180,
-                                                child: VideoPlayer(
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.55),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(6.4),
+                                          child: FittedBox(
+                                            fit: BoxFit.cover,
+                                            clipBehavior: Clip.hardEdge,
+                                            child: SizedBox(
+                                              width: activePreviewCtrl
+                                                          .value.size.width >
+                                                      0
+                                                  ? activePreviewCtrl
+                                                      .value.size.width
+                                                  : 320,
+                                              height: activePreviewCtrl
+                                                          .value.size.height >
+                                                      0
+                                                  ? activePreviewCtrl
+                                                      .value.size.height
+                                                  : 180,
+                                              child: VideoPlayer(
+                                                activePreviewCtrl,
+                                                key: AdaptiveVideoSurface
+                                                    .keyForController(
                                                   activePreviewCtrl,
-                                                  key: AdaptiveVideoSurface
-                                                      .keyForController(
-                                                    activePreviewCtrl,
-                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(height: 5),
-                                      ],
-                                      if (previewDuration != null)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xCC000000),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              if (previewChapter != null)
-                                                Text(
-                                                  previewChapter.title,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                    ],
+                                    if (previewDuration != null)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xCC000000),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (previewChapter != null)
                                               Text(
-                                                _formatPreviewTime(
-                                                    previewDuration),
+                                                previewChapter.title,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                                 style: const TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
                                                 ),
                                               ),
-                                            ],
-                                          ),
+                                            Text(
+                                              _formatPreviewTime(
+                                                  previewDuration),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                    ],
-                                  ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            trackHeight: isInteracting
-                                ? (widget.styling?.progressBarHoverTrackHeight ??
-                                    5.5)
-                                : (widget.styling?.progressBarTrackHeight ??
-                                    3.5),
-                            thumbShape: widget.styling?.progressBarThumbShape ??
-                                ((widget.styling?.showProgressBarThumb ?? true)
-                                    ? RoundSliderThumbShape(
-                                        enabledThumbRadius: isInteracting
-                                            ? (widget.styling
-                                                    ?.progressBarHoverThumbRadius ??
-                                                7.5)
-                                            : (widget.styling
-                                                    ?.progressBarThumbRadius ??
-                                                6.0),
-                                        pressedElevation: 4.0,
-                                      )
-                                    : const RoundSliderThumbShape(
-                                        enabledThumbRadius: 0.0,
-                                        elevation: 0.0,
-                                        pressedElevation: 0.0,
-                                      )),
-                            overlayShape: RoundSliderOverlayShape(
-                              overlayRadius:
-                                  widget.styling?.progressBarOverlayRadius ??
-                                      12.0,
-                            ),
-                            activeTrackColor: playedColor,
-                            inactiveTrackColor: widget
-                                    .styling?.progressBarBackgroundColor ??
-                                Colors.white.withValues(alpha: 0.22),
-                            thumbColor: handleColor,
-                            trackShape: GradientSliderTrackShape(
-                              gradient: LinearGradient(
-                                colors: [playedColor, handleColor],
-                              ),
-                              buffered: value.buffered,
-                              bufferedColor:
-                                  widget.styling?.progressBarBufferedColor,
-                              duration: value.duration,
-                              hoverFraction:
-                                  _isHovered ? _hoverFraction : null,
-                              chapters: widget.chapters,
-                            ),
+                        ),
+                      SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: isInteracting
+                              ? (widget.styling?.progressBarHoverTrackHeight ??
+                                  5.5)
+                              : (widget.styling?.progressBarTrackHeight ?? 3.5),
+                          thumbShape: widget.styling?.progressBarThumbShape ??
+                              ((widget.styling?.showProgressBarThumb ?? true)
+                                  ? RoundSliderThumbShape(
+                                      enabledThumbRadius: isInteracting
+                                          ? (widget.styling
+                                                  ?.progressBarHoverThumbRadius ??
+                                              7.5)
+                                          : (widget.styling
+                                                  ?.progressBarThumbRadius ??
+                                              6.0),
+                                      pressedElevation: 4.0,
+                                    )
+                                  : const RoundSliderThumbShape(
+                                      enabledThumbRadius: 0.0,
+                                      elevation: 0.0,
+                                      pressedElevation: 0.0,
+                                    )),
+                          overlayShape: RoundSliderOverlayShape(
+                            overlayRadius:
+                                widget.styling?.progressBarOverlayRadius ??
+                                    12.0,
                           ),
-                          child: Slider(
-                            value: position.clamp(
-                                0.0, duration > 0 ? duration : 0.0),
-                            min: 0.0,
-                            max: duration > 0 ? duration : 0.0,
-                            onChanged: (val) {
-                              if (duration > 0) {
-                                _requestPreviewSeek(
-                                  Duration(milliseconds: val.round()),
-                                );
-                              }
-                              widget.onDragChanged(val);
-                            },
-                            onChangeEnd: (newPosition) {
-                              widget.onDragEnd(newPosition);
-                              widget.onAnalyticsEvent?.call(PlayerEvents.videoSeek, {
-                                PlayerEvents.paramToPosition: (newPosition / 1000).round(),
-                              });
-                            },
+                          activeTrackColor: playedColor,
+                          inactiveTrackColor:
+                              widget.styling?.progressBarBackgroundColor ??
+                                  Colors.white.withValues(alpha: 0.22),
+                          thumbColor: handleColor,
+                          trackShape: GradientSliderTrackShape(
+                            gradient: LinearGradient(
+                              colors: [playedColor, handleColor],
+                            ),
+                            buffered: value.buffered,
+                            bufferedColor:
+                                widget.styling?.progressBarBufferedColor,
+                            duration: value.duration,
+                            hoverFraction: _isHovered ? _hoverFraction : null,
+                            chapters: widget.chapters,
                           ),
                         ),
-                      ],
-                    ),
-                  );
-
-                  sliderContent = MouseRegion(
-                    onEnter: (event) => _updateHoverPosition(
-                      event.localPosition,
-                      constraints.maxWidth,
-                      isRtl: isRtlMode,
-                    ),
-                    onHover: (event) => _updateHoverPosition(
-                      event.localPosition,
-                      constraints.maxWidth,
-                      isRtl: isRtlMode,
-                    ),
-                    onExit: (_) => setState(() {
-                      _isHovered = false;
-                      _hoverFraction = null;
-                    }),
-                    child: sliderContent,
-                  );
-
-                  final showRemaining = widget.visibility?.showRemainingDuration ?? false;
-                  if (showRemaining && duration > 0) {
-                    final remainingMs = (duration - position).clamp(0.0, double.infinity).toInt();
-                    final remainingText = _formatPreviewTime(Duration(milliseconds: remainingMs));
-                    sliderContent = Row(
-                      children: [
-                        Expanded(child: sliderContent),
-                        const SizedBox(width: 10),
-                        Text(
-                          remainingText,
-                          style: TextStyle(
-                            color: widget.styling?.textColor ?? Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Slider(
+                          value: position.clamp(
+                              0.0, duration > 0 ? duration : 0.0),
+                          min: 0.0,
+                          max: duration > 0 ? duration : 0.0,
+                          onChanged: (val) {
+                            if (duration > 0) {
+                              _requestPreviewSeek(
+                                Duration(milliseconds: val.round()),
+                              );
+                            }
+                            widget.onDragChanged(val);
+                          },
+                          onChangeEnd: (newPosition) {
+                            widget.onDragEnd(newPosition);
+                            widget.onAnalyticsEvent
+                                ?.call(PlayerEvents.videoSeek, {
+                              PlayerEvents.paramToPosition:
+                                  (newPosition / 1000).round(),
+                            });
+                          },
                         ),
-                        const SizedBox(width: 8),
-                      ],
-                    );
-                  }
+                      ),
+                    ],
+                  ),
+                );
 
-                  return sliderContent;
-                },
-              ),
+                sliderContent = MouseRegion(
+                  onEnter: (event) => _updateHoverPosition(
+                    event.localPosition,
+                    constraints.maxWidth,
+                    isRtl: isRtlMode,
+                  ),
+                  onHover: (event) => _updateHoverPosition(
+                    event.localPosition,
+                    constraints.maxWidth,
+                    isRtl: isRtlMode,
+                  ),
+                  onExit: (_) => setState(() {
+                    _isHovered = false;
+                    _hoverFraction = null;
+                  }),
+                  child: sliderContent,
+                );
+
+                final showRemaining =
+                    widget.visibility?.showRemainingDuration ?? false;
+                if (showRemaining && duration > 0) {
+                  final remainingMs =
+                      (duration - position).clamp(0.0, double.infinity).toInt();
+                  final remainingText =
+                      _formatPreviewTime(Duration(milliseconds: remainingMs));
+                  sliderContent = Row(
+                    children: [
+                      Expanded(child: sliderContent),
+                      const SizedBox(width: 10),
+                      Text(
+                        remainingText,
+                        style: TextStyle(
+                          color: widget.styling?.textColor ?? Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  );
+                }
+
+                return sliderContent;
+              },
             ),
-          );
+          ),
+        );
       },
     );
   }

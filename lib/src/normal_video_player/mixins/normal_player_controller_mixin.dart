@@ -304,9 +304,8 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
 
       if (startAt != null && !effectiveIsLive) {
         final maxDur = videoPlayerController!.value.duration;
-        final target = (maxDur > Duration.zero && startAt > maxDur)
-            ? maxDur
-            : startAt;
+        final target =
+            (maxDur > Duration.zero && startAt > maxDur) ? maxDur : startAt;
         await videoPlayerController!.seekTo(target);
       }
 
@@ -351,7 +350,6 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
         }
         onEnsurePlayback(true);
       }
-
     } catch (e) {
       if (isBenignPlaybackError(e.toString())) {
         log('Ignoring benign playback interruption during initialization: $e');
