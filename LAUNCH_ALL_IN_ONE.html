@@ -20,7 +20,7 @@ header{border-bottom:1px solid var(--line);background:#0d1724}nav{max-width:1150
 <h1 id="title">More control.<br>Keep the video moving.</h1>
 <p class="lead">Fullscreen, floating playback and richer controls for your Flutter video experience. Explore this branch before it joins the stable release.</p>
 <p class="muted"><code>feature/html5-fullscreen-controls</code> compared with <code>master</code> (v1.3.3).</p>
-<div class="actions"><a class="button primary" href="#try">Try the branch</a><a class="button" href="https://github.com/ahmedalam782/vidoes_player/compare/master...feature/html5-fullscreen-controls">Review changes ↗</a><a class="button" href="docs/BRANCH_CHANGES.md">Migration notes</a></div>
+<div class="actions"><a class="button primary" href="#try">Try the branch</a><a class="button" href="https://github.com/ahmedalam782/vidoes_player/compare/master...feature/html5-fullscreen-controls">Review changes ↗</a><a class="button" href="doc/BRANCH_CHANGES.md">Migration notes</a></div>
 <figure><img src="assets/release/v2-branch-preview.png" width="1536" height="1024" alt="Concept preview of desktop and phone video players, a floating mini-player, and quality, subtitle, speed and episode controls"><figcaption>AI-generated concept mockup, not a screenshot. Platform behavior varies. <a href="assets/release/v2-branch-preview.png" download>Download image</a></figcaption></figure>
 <div class="grid" aria-label="Historical package milestone">
 <div class="card"><div class="num">1.09k</div><strong>Downloads in your screenshot</strong><p>Historical snapshot; not a live counter or unique-user count.</p></div>
@@ -40,7 +40,7 @@ header{border-bottom:1px solid var(--line);background:#0d1724}nav{max-width:1150
 <figure class="card"><a href="assets/release/v2-linux-preview.png"><img src="assets/release/v2-linux-preview.png" width="1536" height="1024" loading="lazy" alt="Linux concept showing episode navigation and a mini-player inside the application"></a><h3>Linux</h3><figcaption>Desktop playback, episodes and a mini-player contained inside the app. <a href="assets/release/v2-linux-preview.png" download>Download Linux design</a></figcaption></figure>
 <figure class="card"><a href="assets/release/v2-web-preview.png"><img src="assets/release/v2-web-preview.png" width="1536" height="1024" loading="lazy" alt="Web concept showing browser fullscreen, chapter scrubbing and quality controls"></a><h3>Web</h3><figcaption>Browser fullscreen, chapter scrubbing, quality and subtitles. Browser support varies. <a href="assets/release/v2-web-preview.png" download>Download Web design</a></figcaption></figure>
 </div>
-<p><a href="docs/PLATFORM_DESIGNS.md">Asset details and generation prompts</a> · <a href="docs/BRANCH_CHANGES.md">Platform behavior and setup</a></p>
+<p><a href="doc/PLATFORM_DESIGNS.md">Asset details and generation prompts</a> · <a href="doc/BRANCH_CHANGES.md">Platform behavior and setup</a></p>
 </section>
 <section id="changes" aria-labelledby="changes-title">
 <p class="eyebrow">Since the published baseline</p><h2 id="changes-title">What users can try</h2>
@@ -52,7 +52,7 @@ header{border-bottom:1px solid var(--line);background:#0d1724}nav{max-width:1150
 <article class="card"><span class="step">05 / One configuration</span><h3>YouTube + direct video</h3><p>Updated YouTube/native integration and a unified VideoConfig API, with adapters and lifecycle handling.</p></article>
 <article class="card"><span class="step">06 / Explore faster</span><h3>Refreshed example</h3><p>Studio and showcase screens, source examples and translations to help you evaluate the branch.</p></article>
 </div>
-<p class="muted">At <code>2875131</code>: 22 commits and 273 changed files, including examples, generated files, tests and documentation. See <a href="docs/BRANCH_CHANGES.md">the comparison and migration notes</a>.</p>
+<p class="muted">At <code>2875131</code>: 22 commits and 273 changed files, including examples, generated files, tests and documentation. See <a href="doc/BRANCH_CHANGES.md">the comparison and migration notes</a>.</p>
 <h3>Platform setup matters</h3><div class="table-wrap"><table><thead><tr><th scope="col">Platform</th><th scope="col">What to verify</th></tr></thead><tbody>
 <tr><th scope="row">Android / iOS</th><td>Native PiP, supported OS/device, activity/background settings and playback handoff.</td></tr>
 <tr><th scope="row">Windows</th><td>Topmost PiP window, fullscreen restoration and multiple monitors.</td></tr>
@@ -71,11 +71,11 @@ header{border-bottom:1px solid var(--line);background:#0d1724}nav{max-width:1150
 
 AdaptiveVideoPlayer(
   config: const VideoConfig(
-    videoUrl: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    videoUrl: 'https://flutter.github.io/assets-for-api-doc/assets/videos/bee.mp4',
     autoPipOnBackground: true,
   ),
 );</code></pre></div></div>
-<p>Follow <a href="README.md">the platform setup</a> and <a href="docs/BRANCH_CHANGES.md">migration notes</a>, then run the example. Report your OS/browser, source type and reproduction steps through <a href="https://github.com/ahmedalam782/vidoes_player/issues">GitHub issues</a>.</p>
+<p>Follow <a href="README.md">the platform setup</a> and <a href="doc/BRANCH_CHANGES.md">migration notes</a>, then run the example. Report your OS/browser, source type and reproduction steps through <a href="https://github.com/ahmedalam782/vidoes_player/issues">GitHub issues</a>.</p>
 </section>
 <section id="launch" aria-labelledby="launch-title"><p class="eyebrow">Release preparation</p><h2 id="launch-title">Review → verify → merge → publish</h2><p>This checklist saves manual reminders in this browser when storage is available. Ticking a box does not run a command.</p>
 <progress id="progress" value="0" max="6" aria-label="Completed release checklist items"></progress><p id="progress-label" aria-live="polite">0 of 6 completed</p>
@@ -92,9 +92,9 @@ flutter analyze
 flutter test --coverage
 flutter pub outdated
 flutter pub publish --dry-run</code></pre>
-<p>Run each separately and resolve failures. Follow <a href="docs/LAUNCH_GUIDE.md">the full launch guide</a> for builds, platform checks, scoring and publication. Read <a href="docs/VERIFICATION.md">current verification evidence</a> before declaring the candidate stable.</p>
+<p>Run each separately and resolve failures. Follow <a href="doc/LAUNCH_GUIDE.md">the full launch guide</a> for builds, platform checks, scoring and publication. Read <a href="doc/VERIFICATION.md">current verification evidence</a> before declaring the candidate stable.</p>
 </section>
-<section id="post" aria-labelledby="post-title"><p class="eyebrow">Share the preview</p><h2 id="post-title">LinkedIn draft</h2><p>Invite testing before merge. Attach the concept image. <a href="docs/linkedin_post.md">Open both preview and post-publication drafts</a>.</p>
+<section id="post" aria-labelledby="post-title"><p class="eyebrow">Share the preview</p><h2 id="post-title">LinkedIn draft</h2><p>Invite testing before merge. Attach the concept image. <a href="doc/linkedin_post.md">Open both preview and post-publication drafts</a>.</p>
 <div class="card"><div id="linkedin-copy" class="post">I'm preparing the next update to adaptive_video_player, my open-source Flutter video player, and I'd love feedback before merging it into the stable branch.
 
 The package reached a milestone shown in my pub.dev screenshot: 1.09k downloads, 19 likes and 160/160 pub points. Thank you to everyone who tried it! These are snapshot numbers, not live counters.
@@ -119,10 +119,10 @@ https://pub.dev/packages/adaptive_video_player
 Which platform should I focus on next?
 
 #Flutter #Dart #OpenSource #VideoPlayer #FlutterDev</div></div>
-<div class="actions"><button type="button" id="copy-post">Copy post</button><a class="button" href="docs/linkedin_post.md">Full drafts</a></div><output id="copy-status" aria-live="polite"></output>
+<div class="actions"><button type="button" id="copy-post">Copy post</button><a class="button" href="doc/linkedin_post.md">Full drafts</a></div><output id="copy-status" aria-live="polite"></output>
 </section>
 </main>
-<footer>adaptive_video_player · MIT · Branch preview, November 7, 2026 · <a href="docs/LAUNCH_GUIDE.md">Launch guide</a> · <a href="docs/RELEASE_NOTES.md">Release draft</a></footer>
+<footer>adaptive_video_player · MIT · Branch preview, November 7, 2026 · <a href="doc/LAUNCH_GUIDE.md">Launch guide</a> · <a href="doc/RELEASE_NOTES.md">Release draft</a></footer>
 <script>
 'use strict';
 const checklist = Array.from(document.querySelectorAll('[data-check]'));

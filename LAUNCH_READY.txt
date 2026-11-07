@@ -7,11 +7,11 @@ START HERE
                                release checklist and LinkedIn copy
   README.md                    Package overview and branch install instructions
   assets/release/              Cover plus six platform concept images
-  docs/PLATFORM_DESIGNS.md     Platform image links and generation prompts
-  docs/BRANCH_CHANGES.md       Changes from master/v1.3.3 and migration notes
-  docs/LAUNCH_GUIDE.md         Review, platform checks, scoring and publish steps
-  docs/VERIFICATION.md         Commands run and remaining release checks
-  docs/linkedin_post.md        Preview post and post-publication post drafts
+  doc/PLATFORM_DESIGNS.md     Platform image links and generation prompts
+  doc/BRANCH_CHANGES.md       Changes from master/v1.3.3 and migration notes
+  doc/LAUNCH_GUIDE.md         Review, platform checks, scoring and publish steps
+  doc/VERIFICATION.md         Commands run and remaining release checks
+  doc/linkedin_post.md        Preview post and post-publication post drafts
 
 CHECKS ALREADY RUN
   flutter analyze              Passed: no issues
@@ -35,4 +35,4 @@ THE PACKAGE MILESTONE
 
 The attached image is a concept mockup, not a player screenshot.
 The published-package score does not certify this branch.
-See docs/LAUNCH_GUIDE.md for the complete release process.
+See doc/LAUNCH_GUIDE.md for the complete release process.

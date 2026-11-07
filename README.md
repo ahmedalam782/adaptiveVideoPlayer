@@ -27,7 +27,7 @@ This README describes **`feature/html5-fullscreen-controls`**, compared with **`
 | Optional caching and capture controls | Set `enableCache` or `preventScreenCapture` for supported sources/platforms |
 | YouTube engine and native integrations | Use the unified configuration API with platform-specific setup |
 
-[Full branch changes and migration notes](docs/BRANCH_CHANGES.md) · [Launch preview](LAUNCH_ALL_IN_ONE.html) · [Verification and release steps](docs/LAUNCH_GUIDE.md)
+[Full branch changes and migration notes](doc/BRANCH_CHANGES.md) · [Launch preview](LAUNCH_ALL_IN_ONE.html) · [Verification and release steps](doc/LAUNCH_GUIDE.md)
 
 **Package milestone:** your shared screenshot records **19 likes · 160 points · 1.09k downloads**. This is a historical snapshot, not a live counter. The [published-package score](https://pub.dev/packages/adaptive_video_player/score) was 160/160 when checked on November 7, 2026; the release candidate needs its own assessment. Passing tests does not measure test coverage.
 
@@ -63,7 +63,7 @@ AdaptiveVideoPlayer(
 
 ## Explore the preview
 
-Use the [example application](example/lib/main.dart) to inspect the implemented controls. The concept image above illustrates the feature groups; use real device recordings to confirm behavior before release. See the [platform verification matrix](docs/LAUNCH_GUIDE.md#platform-smoke-tests) for what to check.
+Use the [example application](example/lib/main.dart) to inspect the implemented controls. The concept image above illustrates the feature groups; use real device recordings to confirm behavior before release. See the [platform verification matrix](doc/LAUNCH_GUIDE.md#platform-smoke-tests) for what to check.
 
 ### Designs for all six platforms
 
@@ -84,7 +84,7 @@ These AI-generated concept designs illustrate the branch experience. Click any i
 | [![Linux player concept with an in-app mini-player and episode navigation](assets/release/v2-linux-preview.png)](assets/release/v2-linux-preview.png) | [![Web browser player concept with fullscreen, chapter scrubbing and subtitles](assets/release/v2-web-preview.png)](assets/release/v2-web-preview.png) |
 | Desktop playback · In-app mini-player · Episodes | Browser fullscreen · Chapter scrubbing · Quality and subtitles |
 
-Linux's mini-player stays inside the app. macOS desktop window services require host integration. Web fullscreen and PiP depend on browser support and activation rules. [Generation prompts and asset details](docs/PLATFORM_DESIGNS.md).
+Linux's mini-player stays inside the app. macOS desktop window services require host integration. Web fullscreen and PiP depend on browser support and activation rules. [Generation prompts and asset details](doc/PLATFORM_DESIGNS.md).
 
 ---
 

@@ -30,7 +30,7 @@ import 'package:adaptive_video_player/adaptive_video_player.dart';
 
 AdaptiveVideoPlayer(
   config: const VideoConfig(
-    videoUrl: 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    videoUrl: 'https://flutter.github.io/assets-for-api-doc/assets/videos/bee.mp4',
     title: 'Branch preview',
     autoPipOnBackground: true,
     enableCache: false,
