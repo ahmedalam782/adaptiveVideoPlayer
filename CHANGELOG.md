@@ -1,3 +1,10 @@
+## 2.0.2
+
+- **Fix (Android Built-in Kotlin):**
+  - Migrated `android/build.gradle` from legacy `buildscript {}` + `apply plugin:` pattern to modern declarative `plugins {}` block, resolving the pub.dev "Legacy Kotlin configuration detected" warning.
+- **Quality Assurance:**
+  - 100% test pass rate across 260 unit and widget tests with zero static analysis warnings.
+
 ## 2.0.1
 
 - **Feature (Background Auto-PiP across Native Platforms):**
