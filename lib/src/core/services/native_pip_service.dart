@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../../normal_video_player/utils/fullscreen_utils_export.dart';
@@ -7,8 +6,9 @@ import '../../normal_video_player/utils/fullscreen_utils_export.dart';
 class NativePipService {
   NativePipService._();
 
-  static const MethodChannel _channel =
-      MethodChannel('adaptive_video_player/pip');
+  static const MethodChannel _channel = MethodChannel(
+    'adaptive_video_player/pip',
+  );
 
   /// Emits `true` when the app is currently in native OS Picture-in-Picture mode.
   static final ValueNotifier<bool> isInPip = ValueNotifier<bool>(false);
@@ -17,8 +17,9 @@ class NativePipService {
   static final ValueNotifier<String?> pipAction = ValueNotifier<String?>(null);
 
   /// Emits the playback position in milliseconds when returning/restoring from native PiP.
-  static final ValueNotifier<int?> restoredPositionMs =
-      ValueNotifier<int?>(null);
+  static final ValueNotifier<int?> restoredPositionMs = ValueNotifier<int?>(
+    null,
+  );
 
   /// Emits how a native PiP session ended.
   ///
@@ -36,7 +37,8 @@ class NativePipService {
     _initialized = true;
 
     if (kIsWeb) return;
-    if (Platform.isAndroid || Platform.isIOS) {
+    if ((defaultTargetPlatform == TargetPlatform.android) ||
+        (defaultTargetPlatform == TargetPlatform.iOS)) {
       _channel.setMethodCallHandler((call) async {
         if (call.method == 'onPipModeChanged') {
           final inPip = call.arguments as bool? ?? false;
@@ -72,12 +74,15 @@ class NativePipService {
     int? positionMs,
   }) async {
     if (kIsWeb) return;
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+    if (!(defaultTargetPlatform == TargetPlatform.android) &&
+        !(defaultTargetPlatform == TargetPlatform.iOS)) {
+      return;
+    }
     try {
       await _channel.invokeMethod('updatePlaybackState', {
         'isPlaying': isPlaying,
-        if (url != null) 'url': url,
-        if (positionMs != null) 'positionMs': positionMs,
+        'url': ?url,
+        'positionMs': ?positionMs,
       });
     } catch (_) {}
   }
@@ -87,12 +92,15 @@ class NativePipService {
   /// Leaving the app does not open PiP. Call [enterPip] for an explicit start.
   static Future<void> setPipEnabled(bool enabled, {String? url}) async {
     if (kIsWeb) return;
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+    if (!(defaultTargetPlatform == TargetPlatform.android) &&
+        !(defaultTargetPlatform == TargetPlatform.iOS)) {
+      return;
+    }
     try {
       await _channel.invokeMethod('setPipEnabled', {
         'autoPip': enabled,
         'enabled': enabled,
-        if (url != null) 'url': url,
+        'url': ?url,
       });
     } catch (_) {}
   }
@@ -100,12 +108,16 @@ class NativePipService {
   /// Leaves the system PiP window and brings the app back to the screen.
   static Future<void> exitPip() async {
     if (kIsWeb) return;
-    if (Platform.isWindows || Platform.isMacOS) {
+    if ((defaultTargetPlatform == TargetPlatform.windows) ||
+        (defaultTargetPlatform == TargetPlatform.macOS)) {
       exitDesktopPipMode();
       isInPip.value = false;
       return;
     }
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+    if (!(defaultTargetPlatform == TargetPlatform.android) &&
+        !(defaultTargetPlatform == TargetPlatform.iOS)) {
+      return;
+    }
     try {
       await _channel.invokeMethod('exitPip');
     } catch (_) {}
@@ -114,12 +126,16 @@ class NativePipService {
   /// Dismisses the system PiP window.
   static Future<void> closePip() async {
     if (kIsWeb) return;
-    if (Platform.isWindows || Platform.isMacOS) {
+    if ((defaultTargetPlatform == TargetPlatform.windows) ||
+        (defaultTargetPlatform == TargetPlatform.macOS)) {
       exitDesktopPipMode();
       isInPip.value = false;
       return;
     }
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+    if (!(defaultTargetPlatform == TargetPlatform.android) &&
+        !(defaultTargetPlatform == TargetPlatform.iOS)) {
+      return;
+    }
     try {
       await _channel.invokeMethod('closePip');
     } catch (_) {}
@@ -132,19 +148,23 @@ class NativePipService {
     bool? isPlaying,
   }) async {
     if (kIsWeb) return false;
-    if (Platform.isWindows || Platform.isMacOS) {
+    if ((defaultTargetPlatform == TargetPlatform.windows) ||
+        (defaultTargetPlatform == TargetPlatform.macOS)) {
       final success = enterDesktopPipMode();
       if (success) {
         isInPip.value = true;
       }
       return success;
     }
-    if (!Platform.isAndroid && !Platform.isIOS) return false;
+    if (!(defaultTargetPlatform == TargetPlatform.android) &&
+        !(defaultTargetPlatform == TargetPlatform.iOS)) {
+      return false;
+    }
     try {
       final res = await _channel.invokeMethod<bool>('enterPip', {
-        if (url != null) 'url': url,
-        if (positionMs != null) 'positionMs': positionMs,
-        if (isPlaying != null) 'isPlaying': isPlaying,
+        'url': ?url,
+        'positionMs': ?positionMs,
+        'isPlaying': ?isPlaying,
       });
       return res ?? false;
     } catch (_) {
@@ -155,8 +175,14 @@ class NativePipService {
   /// Checks if native OS Picture-in-Picture is supported on this device.
   static Future<bool> isSupported() async {
     if (kIsWeb) return false;
-    if (Platform.isWindows || Platform.isMacOS) return true;
-    if (!Platform.isAndroid && !Platform.isIOS) return false;
+    if ((defaultTargetPlatform == TargetPlatform.windows) ||
+        (defaultTargetPlatform == TargetPlatform.macOS)) {
+      return true;
+    }
+    if (!(defaultTargetPlatform == TargetPlatform.android) &&
+        !(defaultTargetPlatform == TargetPlatform.iOS)) {
+      return false;
+    }
     try {
       final res = await _channel.invokeMethod<bool>('isPipSupported');
       return res ?? false;

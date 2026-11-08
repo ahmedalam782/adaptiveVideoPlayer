@@ -31,7 +31,8 @@ class NormalNativePipView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = !kIsWeb &&
+    final isMobile =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {

@@ -27,10 +27,10 @@ class YouTubePlayerAdapter implements IVideoPlayerController {
     this.isLiveStream = false,
     this.viewerCount,
     YoutubePlayerNotifier? notifier,
-  })  : _notifier = notifier ?? YoutubePlayerNotifier(),
-        _stateNotifier = ValueNotifier<PlayerState>(
-          PlayerState(isLive: isLiveStream),
-        ) {
+  }) : _notifier = notifier ?? YoutubePlayerNotifier(),
+       _stateNotifier = ValueNotifier<PlayerState>(
+         PlayerState(isLive: isLiveStream),
+       ) {
     _notifier.addListener(_onNotifierUpdate);
     _syncState();
   }
@@ -42,8 +42,7 @@ class YouTubePlayerAdapter implements IVideoPlayerController {
   PlayerState get state => _stateNotifier.value;
 
   @override
-  List<VideoQuality>? get qualities =>
-      null; // Managed inside YouTube player internally
+  List<VideoQuality>? get qualities => null; // Managed inside YouTube player internally
 
   @override
   VideoQuality? get currentQuality => null;

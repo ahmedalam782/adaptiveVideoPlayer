@@ -11,8 +11,9 @@ import 'macos_fullscreen_service.dart';
 class MacOSDesktopPipService {
   MacOSDesktopPipService._();
 
-  static const MethodChannel _channel =
-      MethodChannel('adaptive_video_player/window');
+  static const MethodChannel _channel = MethodChannel(
+    'adaptive_video_player/window',
+  );
   static bool _isMacOSPip = false;
 
   /// Whether the macOS desktop window is currently in PiP mode.

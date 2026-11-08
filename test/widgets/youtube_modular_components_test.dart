@@ -7,8 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('YouTube Modular Components Tests', () {
-    testWidgets('PlayerLoadingWidget renders circular progress indicator',
-        (tester) async {
+    testWidgets('PlayerLoadingWidget renders circular progress indicator', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: PlayerLoadingWidget(
@@ -21,8 +22,9 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('PlayerErrorWidget renders message and error icon',
-        (tester) async {
+    testWidgets('PlayerErrorWidget renders message and error icon', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: PlayerErrorWidget(
@@ -38,8 +40,9 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('YouTubeReplayOverlay triggers onRestart callback',
-        (tester) async {
+    testWidgets('YouTubeReplayOverlay triggers onRestart callback', (
+      tester,
+    ) async {
       bool restarted = false;
       await tester.pumpWidget(
         MaterialApp(
@@ -59,14 +62,12 @@ void main() {
       expect(restarted, isTrue);
     });
 
-    testWidgets('YouTubeLiveBadge renders LIVE badge and viewer count',
-        (tester) async {
+    testWidgets('YouTubeLiveBadge renders LIVE badge and viewer count', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: YouTubeLiveBadge(
-            isLive: true,
-            viewerCount: '1.2K',
-          ),
+          home: YouTubeLiveBadge(isLive: true, viewerCount: '1.2K'),
         ),
       );
 
@@ -76,19 +77,17 @@ void main() {
     });
 
     testWidgets(
-        'YouTubeLiveBadge returns empty box when not live and no viewers',
-        (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: YouTubeLiveBadge(
-            isLive: false,
-            viewerCount: null,
+      'YouTubeLiveBadge returns empty box when not live and no viewers',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: YouTubeLiveBadge(isLive: false, viewerCount: null),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('LIVE'), findsNothing);
-      expect(find.byIcon(Icons.person), findsNothing);
-    });
+        expect(find.text('LIVE'), findsNothing);
+        expect(find.byIcon(Icons.person), findsNothing);
+      },
+    );
   });
 }

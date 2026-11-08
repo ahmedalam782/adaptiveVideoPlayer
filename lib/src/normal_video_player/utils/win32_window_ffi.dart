@@ -87,9 +87,10 @@ int _cachedFlutterHwnd = 0;
 int findFlutterWindow(DynamicLibrary user32) {
   if (_cachedFlutterHwnd != 0) {
     try {
-      final isWindow =
-          user32.lookupFunction<Int32 Function(IntPtr), int Function(int)>(
-              'IsWindow');
+      final isWindow = user32
+          .lookupFunction<Int32 Function(IntPtr), int Function(int)>(
+            'IsWindow',
+          );
       if (isWindow(_cachedFlutterHwnd) != 0) {
         return _cachedFlutterHwnd;
       }
@@ -100,18 +101,22 @@ int findFlutterWindow(DynamicLibrary user32) {
   // 1. Look for top-level FLUTTER_RUNNER_WIN32_WINDOW belonging to current process
   try {
     final kernel32 = DynamicLibrary.open('kernel32.dll');
-    final getCurrentProcessId =
-        kernel32.lookupFunction<Uint32 Function(), int Function()>(
-            'GetCurrentProcessId');
+    final getCurrentProcessId = kernel32
+        .lookupFunction<Uint32 Function(), int Function()>(
+          'GetCurrentProcessId',
+        );
     final myPid = getCurrentProcessId();
 
-    final findWindowEx = user32.lookupFunction<
-        IntPtr Function(IntPtr, IntPtr, Pointer<Utf16>, Pointer<Utf16>),
-        int Function(
-            int, int, Pointer<Utf16>, Pointer<Utf16>)>('FindWindowExW');
-    final getWindowThreadProcessId = user32.lookupFunction<
-        Uint32 Function(IntPtr, Pointer<Uint32>),
-        int Function(int, Pointer<Uint32>)>('GetWindowThreadProcessId');
+    final findWindowEx = user32
+        .lookupFunction<
+          IntPtr Function(IntPtr, IntPtr, Pointer<Utf16>, Pointer<Utf16>),
+          int Function(int, int, Pointer<Utf16>, Pointer<Utf16>)
+        >('FindWindowExW');
+    final getWindowThreadProcessId = user32
+        .lookupFunction<
+          Uint32 Function(IntPtr, Pointer<Uint32>),
+          int Function(int, Pointer<Uint32>)
+        >('GetWindowThreadProcessId');
 
     final classNamePtr = 'FLUTTER_RUNNER_WIN32_WINDOW'.toNativeUtf16();
     final pidPtr = calloc<Uint32>();
@@ -142,8 +147,10 @@ int findFlutterWindow(DynamicLibrary user32) {
       .lookupFunction<IntPtr Function(), int Function()>('GetActiveWindow');
   final getForegroundWindow = user32
       .lookupFunction<IntPtr Function(), int Function()>('GetForegroundWindow');
-  final getAncestor = user32.lookupFunction<IntPtr Function(IntPtr, Uint32),
-      int Function(int, int)>('GetAncestor');
+  final getAncestor = user32
+      .lookupFunction<IntPtr Function(IntPtr, Uint32), int Function(int, int)>(
+        'GetAncestor',
+      );
 
   int hwnd = getActiveWindow();
   if (hwnd != 0) {
@@ -162,24 +169,34 @@ int findFlutterWindow(DynamicLibrary user32) {
 
 int getWindowLong(DynamicLibrary user32, int hwnd, int index) {
   try {
-    final fn = user32.lookupFunction<IntPtr Function(IntPtr, Int32),
-        int Function(int, int)>('GetWindowLongPtrW');
+    final fn = user32
+        .lookupFunction<IntPtr Function(IntPtr, Int32), int Function(int, int)>(
+          'GetWindowLongPtrW',
+        );
     return fn(hwnd, index);
   } catch (_) {
-    final fn = user32.lookupFunction<Int32 Function(IntPtr, Int32),
-        int Function(int, int)>('GetWindowLongW');
+    final fn = user32
+        .lookupFunction<Int32 Function(IntPtr, Int32), int Function(int, int)>(
+          'GetWindowLongW',
+        );
     return fn(hwnd, index);
   }
 }
 
 int setWindowLong(DynamicLibrary user32, int hwnd, int index, int value) {
   try {
-    final fn = user32.lookupFunction<IntPtr Function(IntPtr, Int32, IntPtr),
-        int Function(int, int, int)>('SetWindowLongPtrW');
+    final fn = user32
+        .lookupFunction<
+          IntPtr Function(IntPtr, Int32, IntPtr),
+          int Function(int, int, int)
+        >('SetWindowLongPtrW');
     return fn(hwnd, index, value);
   } catch (_) {
-    final fn = user32.lookupFunction<Int32 Function(IntPtr, Int32, Int32),
-        int Function(int, int, int)>('SetWindowLongW');
+    final fn = user32
+        .lookupFunction<
+          Int32 Function(IntPtr, Int32, Int32),
+          int Function(int, int, int)
+        >('SetWindowLongW');
     return fn(hwnd, index, value);
   }
 }
@@ -198,8 +215,10 @@ void runWhenSchedulerIdle(void Function() action) {
 
 int setDisplayAffinity(DynamicLibrary user32, int hwnd, int affinity) {
   try {
-    final fn = user32.lookupFunction<Int32 Function(IntPtr, Uint32),
-        int Function(int, int)>('SetWindowDisplayAffinity');
+    final fn = user32
+        .lookupFunction<Int32 Function(IntPtr, Uint32), int Function(int, int)>(
+          'SetWindowDisplayAffinity',
+        );
     return fn(hwnd, affinity);
   } catch (e) {
     log('SetWindowDisplayAffinity error: $e');

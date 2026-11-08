@@ -19,7 +19,7 @@ class NormalPlayerView extends StatelessWidget {
   final PlayerVisibilityConfig? visibility;
   final PlayerPlaybackConfig? playback;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final List<VideoQuality>? qualities;
   final VideoQuality? currentQuality;
   final ValueChanged<VideoQuality>? onQualitySelected;

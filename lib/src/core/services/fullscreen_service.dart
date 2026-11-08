@@ -14,8 +14,8 @@ class PlatformFullscreenService implements IFullscreenService {
   PlatformFullscreenService({
     VoidCallback? onEnterFullscreen,
     VoidCallback? onExitFullscreen,
-  })  : _onEnter = onEnterFullscreen,
-        _onExit = onExitFullscreen {
+  }) : _onEnter = onEnterFullscreen,
+       _onExit = onExitFullscreen {
     listenToFullscreenChange(_handleBrowserFullscreenChange);
   }
 

@@ -63,7 +63,7 @@ export 'src/normal_video_player/widgets/pip_circle_button.dart';
 export 'src/normal_video_player/widgets/seek_feedback_icon.dart';
 export 'src/platform_init.dart';
 export 'src/normal_video_player/utils/cached_player_export.dart';
-export 'package:cached_video_player_plus/cached_video_player_plus.dart';
+export 'src/normal_video_player/utils/cached_player_public.dart';
 export 'src/youtube_player/cubit/youtube_player_cubit.dart';
 export 'src/youtube_player/models/player_icon_config.dart';
 export 'src/youtube_player/models/youtube_player_config.dart';
@@ -116,10 +116,12 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
   @override
   void initState() {
     super.initState();
-    _fullscreenService = widget.fullscreenService ??
+    _fullscreenService =
+        widget.fullscreenService ??
         widget.config.fullscreenService ??
         PlatformFullscreenService();
-    _analyticsService = widget.analyticsService ??
+    _analyticsService =
+        widget.analyticsService ??
         widget.config.analyticsService ??
         CallbackAnalyticsService(widget.config.onAnalyticsEvent);
     _detectVideoType();
@@ -141,7 +143,9 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
         widget.config.preventScreenCapture ? widget.config.onScreenshot : null,
       );
       ScreenProtectionService.setEnabledFor(
-          this, widget.config.preventScreenCapture);
+        this,
+        widget.config.preventScreenCapture,
+      );
     }
   }
 
@@ -190,7 +194,8 @@ class _AdaptiveVideoPlayerState extends State<AdaptiveVideoPlayer> {
     }
 
     // For normal videos, use NormalVideoPlayer
-    final effectiveConfig = (widget.aspectRatio != null &&
+    final effectiveConfig =
+        (widget.aspectRatio != null &&
             widget.aspectRatio != widget.config.aspectRatio)
         ? widget.config.copyWith(aspectRatio: widget.aspectRatio)
         : widget.config;

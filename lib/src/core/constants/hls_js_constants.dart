@@ -14,7 +14,8 @@ class HlsJsConstants {
 
   /// Generates the self-executing JavaScript snippet that attaches Hls.js
   /// to video elements in browsers without native HLS support.
-  static String generateAttachHlsScript(String sourceUrl) => '''
+  static String generateAttachHlsScript(String sourceUrl) =>
+      '''
     (function() {
       var sourceUrl = "$sourceUrl";
       var attempts = 0;

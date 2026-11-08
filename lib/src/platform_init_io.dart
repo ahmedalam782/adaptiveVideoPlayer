@@ -34,21 +34,22 @@ class AdaptiveVideoPlayerPlatform {
     if (Platform.isWindows) {
       try {
         final kernel32 = DynamicLibrary.open('kernel32.dll');
-        final setEnvironmentVariable = kernel32.lookupFunction<
-            Int32 Function(Pointer<Utf16>, Pointer<Utf16>),
-            int Function(Pointer<Utf16>, Pointer<Utf16>)>(
-          'SetEnvironmentVariableW',
-        );
+        final setEnvironmentVariable = kernel32
+            .lookupFunction<
+              Int32 Function(Pointer<Utf16>, Pointer<Utf16>),
+              int Function(Pointer<Utf16>, Pointer<Utf16>)
+            >('SetEnvironmentVariableW');
         final name = 'WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'.toNativeUtf16();
-        final value =
-            '--autoplay-policy=no-user-gesture-required'.toNativeUtf16();
+        final value = '--autoplay-policy=no-user-gesture-required'
+            .toNativeUtf16();
         setEnvironmentVariable(name, value);
         calloc.free(name);
         calloc.free(value);
 
         // Set dedicated user data folder in LocalAppData/Temp to prevent locks on Hot Restart
         // and avoid write permission issues in application directory.
-        final localAppData = Platform.environment['LOCALAPPDATA'] ??
+        final localAppData =
+            Platform.environment['LOCALAPPDATA'] ??
             Platform.environment['TEMP'] ??
             Directory.systemTemp.path;
         final userDataDir = '$localAppData\\AdaptiveVideoPlayer_WebView2';

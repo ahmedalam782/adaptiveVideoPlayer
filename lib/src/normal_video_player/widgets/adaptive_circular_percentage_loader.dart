@@ -141,9 +141,10 @@ class _AdaptiveCircularPercentageLoaderState
         if (range.start <= position && range.end >= position) {
           final ahead = range.end - position;
           const targetBufferMs = 3500;
-          return ((ahead.inMilliseconds / targetBufferMs) * 100)
-              .round()
-              .clamp(1, 99);
+          return ((ahead.inMilliseconds / targetBufferMs) * 100).round().clamp(
+            1,
+            99,
+          );
         }
       }
 
@@ -152,9 +153,10 @@ class _AdaptiveCircularPercentageLoaderState
         if (range.start > position) {
           final ahead = range.end - position;
           const targetBufferMs = 3500;
-          return ((ahead.inMilliseconds / targetBufferMs) * 100)
-              .round()
-              .clamp(1, 99);
+          return ((ahead.inMilliseconds / targetBufferMs) * 100).round().clamp(
+            1,
+            99,
+          );
         }
       }
     }
@@ -176,16 +178,20 @@ class _AdaptiveCircularPercentageLoaderState
   Widget build(BuildContext context) {
     final effectiveSize =
         widget.size ?? widget.styling?.loadingIndicatorSize ?? 56.0;
-    final effectiveColor = widget.color ??
+    final effectiveColor =
+        widget.color ??
         widget.styling?.loadingIndicatorColor ??
         const Color(0xFFE50914);
-    final effectiveStrokeWidth = widget.strokeWidth ??
+    final effectiveStrokeWidth =
+        widget.strokeWidth ??
         widget.styling?.loadingIndicatorStrokeWidth ??
         4.0;
-    final effectiveBgColor = widget.backgroundColor ??
+    final effectiveBgColor =
+        widget.backgroundColor ??
         widget.styling?.loadingIndicatorBackgroundColor ??
         Colors.transparent;
-    final showPercentage = widget.showPercentage &&
+    final showPercentage =
+        widget.showPercentage &&
         (widget.styling?.showLoadingPercentage ?? true);
 
     return AnimatedBuilder(
@@ -195,7 +201,8 @@ class _AdaptiveCircularPercentageLoaderState
         final arcProgress = _resolveArcProgress();
 
         final fontSize = (effectiveSize * 0.24).clamp(10.0, 20.0);
-        final effectiveTextStyle = widget.textStyle ??
+        final effectiveTextStyle =
+            widget.textStyle ??
             widget.styling?.loadingIndicatorTextStyle ??
             TextStyle(
               color: Colors.white,
@@ -224,10 +231,7 @@ class _AdaptiveCircularPercentageLoaderState
         );
 
         if (widget.rotateArc) {
-          arc = RotationTransition(
-            turns: _rotationController,
-            child: arc,
-          );
+          arc = RotationTransition(turns: _rotationController, child: arc);
         }
 
         return SizedBox(

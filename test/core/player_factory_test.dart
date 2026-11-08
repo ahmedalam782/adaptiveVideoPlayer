@@ -15,9 +15,7 @@ void main() {
     });
 
     test('creates YouTube adapter for short youtu.be URL', () {
-      const config = VideoConfig(
-        videoUrl: 'https://youtu.be/dQw4w9WgXcQ',
-      );
+      const config = VideoConfig(videoUrl: 'https://youtu.be/dQw4w9WgXcQ');
 
       final controller = PlayerControllerFactory.create(config);
       expect(controller, isA<YouTubePlayerAdapter>());

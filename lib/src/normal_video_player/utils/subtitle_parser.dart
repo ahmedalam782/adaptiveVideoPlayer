@@ -3,8 +3,11 @@ class SubtitleItem {
   final Duration end;
   final String text;
 
-  const SubtitleItem(
-      {required this.start, required this.end, required this.text});
+  const SubtitleItem({
+    required this.start,
+    required this.end,
+    required this.text,
+  });
 }
 
 class SubtitleParser {
@@ -76,10 +79,13 @@ class SubtitleParser {
           final end = _parseVttTime(parts[1].trim().split(' ')[0]);
           final text = lines.sublist(timeLineIndex + 1).join('\n');
           // Strip simple HTML tags from VTT
-          items.add(SubtitleItem(
+          items.add(
+            SubtitleItem(
               start: start,
               end: end,
-              text: text.replaceAll(RegExp(r'<[^>]*>'), '')));
+              text: text.replaceAll(RegExp(r'<[^>]*>'), ''),
+            ),
+          );
         }
       }
     }
@@ -100,10 +106,11 @@ class SubtitleParser {
         : 0;
 
     return Duration(
-        hours: hours,
-        minutes: minutes,
-        seconds: seconds,
-        milliseconds: milliseconds);
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+      milliseconds: milliseconds,
+    );
   }
 
   static Duration _parseVttTime(String timeString) {
@@ -128,9 +135,10 @@ class SubtitleParser {
         : 0;
 
     return Duration(
-        hours: hours,
-        minutes: minutes,
-        seconds: seconds,
-        milliseconds: milliseconds);
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+      milliseconds: milliseconds,
+    );
   }
 }

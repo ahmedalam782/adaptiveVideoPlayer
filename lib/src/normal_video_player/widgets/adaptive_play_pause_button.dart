@@ -14,7 +14,7 @@ class AdaptivePlayPauseButton extends StatelessWidget {
   final PlayerStyleConfig? styling;
   final PlayerTextConfig? messages;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final Color? pillColor;
 
   const AdaptivePlayPauseButton({
@@ -30,11 +30,13 @@ class AdaptivePlayPauseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdaptiveCirclePillButton(
-      backgroundColor: pillColor ??
+      backgroundColor:
+          pillColor ??
           styling?.controlsBackgroundColor ??
           const Color(0x8C000000),
-      playerIcon:
-          isPlaying ? styling?.icons.pauseIcon : styling?.icons.playIcon,
+      playerIcon: isPlaying
+          ? styling?.icons.pauseIcon
+          : styling?.icons.playIcon,
       icon: isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
       tooltip: isPlaying
           ? (messages?.pauseText ?? PlayerStrings.pause)

@@ -96,18 +96,18 @@ class PlayerCubitState {
 
   @override
   int get hashCode => Object.hash(
-        position,
-        isPlaying,
-        isMuted,
-        isFullscreen,
-        autoPlay,
-        loop,
-        forceHD,
-        enableCaption,
-        duration,
-        isReady,
-        errorMessage,
-      );
+    position,
+    isPlaying,
+    isMuted,
+    isFullscreen,
+    autoPlay,
+    loop,
+    forceHD,
+    enableCaption,
+    duration,
+    isReady,
+    errorMessage,
+  );
 
   @override
   String toString() =>

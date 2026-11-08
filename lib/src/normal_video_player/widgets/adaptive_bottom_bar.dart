@@ -35,7 +35,7 @@ class AdaptiveBottomBar extends StatelessWidget {
   final void Function(SubtitleTrack?)? onSubtitleSelected;
   final List<VideoChapter>? chapters;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
   final VoidCallback? onSettingsPressed;
@@ -125,7 +125,8 @@ class AdaptiveBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textDirection = messages?.resolveTextDirection(context) ??
+    final textDirection =
+        messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
 
@@ -138,7 +139,8 @@ class AdaptiveBottomBar extends StatelessWidget {
           final isCompact = constraints.maxWidth < 460;
           final defaultStartEnd = isCompact ? 14.0 : 20.0;
           final defaultBottom = isCompact ? 8.0 : 12.0;
-          final dynamicPadding = styling?.bottomBarPadding ??
+          final dynamicPadding =
+              styling?.bottomBarPadding ??
               EdgeInsetsDirectional.fromSTEB(
                 defaultStartEnd,
                 4.0,
@@ -147,8 +149,9 @@ class AdaptiveBottomBar extends StatelessWidget {
               );
           final dynamicMargin = styling?.bottomBarMargin;
 
-          final horizontalPadding =
-              dynamicPadding.resolve(textDirection).horizontal;
+          final horizontalPadding = dynamicPadding
+              .resolve(textDirection)
+              .horizontal;
           final availableWidth = (constraints.maxWidth - horizontalPadding)
               .clamp(0.0, double.infinity);
           final isWide = availableWidth > 760;
@@ -161,68 +164,78 @@ class AdaptiveBottomBar extends StatelessWidget {
                 final isPlaying = value.isPlaying;
                 final position = value.position;
                 final duration = value.duration;
-                final canShowSkip = showSkipButtons &&
+                final canShowSkip =
+                    showSkipButtons &&
                     effectiveVisibility.showSkipButtons &&
                     !isLive &&
                     availableWidth > 680;
 
-                final canShowVolume = effectiveVisibility.showVolumeButton &&
+                final canShowVolume =
+                    effectiveVisibility.showVolumeButton &&
                     availableWidth > 520;
-                final showTime = showTimestamp &&
+                final showTime =
+                    showTimestamp &&
                     effectiveVisibility.showTimeDisplay &&
                     !isLive;
                 final inTopBar = effectiveVisibility.showActionsInTopBar;
-                final showFullscreen = showFullscreenHere &&
+                final showFullscreen =
+                    showFullscreenHere &&
                     effectiveVisibility.showFullscreenButton;
                 final showSettings =
                     !inTopBar && effectiveVisibility.showSettingsButton;
-                final canShowMiniPlayer = !inTopBar &&
+                final canShowMiniPlayer =
+                    !inTopBar &&
                     showMiniPlayerHere &&
                     effectiveVisibility.showMiniPlayerButton &&
                     onMiniPlayerPressed != null &&
                     !isFullScreen;
-                final showLoop = !inTopBar &&
+                final showLoop =
+                    !inTopBar &&
                     effectiveVisibility.showLoopSetting &&
                     availableWidth > 860;
-                final showSubtitlesQuick = !inTopBar &&
+                final showSubtitlesQuick =
+                    !inTopBar &&
                     effectiveVisibility.showCaptionsSetting &&
                     availableWidth > 860;
 
                 final canShowCenteredTitle =
                     effectiveVisibility.showCenteredTitle &&
-                        title != null &&
-                        title!.isNotEmpty &&
-                        availableWidth > 750;
+                    title != null &&
+                    title!.isNotEmpty &&
+                    availableWidth > 750;
 
                 final canShowNextEpisode =
                     effectiveVisibility.showNextEpisodeButton &&
-                        onNextEpisode != null;
+                    onNextEpisode != null;
 
-                final canShowEpisodes = !inTopBar &&
+                final canShowEpisodes =
+                    !inTopBar &&
                     effectiveVisibility.showEpisodesButton &&
                     episodes != null &&
                     episodes!.isNotEmpty &&
                     onEpisodesPressed != null;
 
-                final canShowAudioSubtitles = !inTopBar &&
+                final canShowAudioSubtitles =
+                    !inTopBar &&
                     effectiveVisibility.showAudioSubtitlesButton &&
                     onAudioSubtitlesPressed != null &&
                     ((audioTracks != null && audioTracks!.isNotEmpty) ||
                         (subtitles != null && subtitles!.isNotEmpty));
 
-                final canShowSpeed = !inTopBar &&
+                final canShowSpeed =
+                    !inTopBar &&
                     effectiveVisibility.showSpeedButton &&
                     onSpeedPressed != null;
 
                 final hasRightActions =
                     (isWide && (showLoop || showSubtitlesQuick)) ||
-                        canShowNextEpisode ||
-                        canShowEpisodes ||
-                        canShowAudioSubtitles ||
-                        canShowSpeed ||
-                        showSettings ||
-                        canShowMiniPlayer ||
-                        showFullscreen;
+                    canShowNextEpisode ||
+                    canShowEpisodes ||
+                    canShowAudioSubtitles ||
+                    canShowSpeed ||
+                    showSettings ||
+                    canShowMiniPlayer ||
+                    showFullscreen;
 
                 return Row(
                   children: [
@@ -261,7 +274,8 @@ class AdaptiveBottomBar extends StatelessWidget {
                                 backgroundColor: _pillColor,
                                 playerIcon: styling?.icons.skipBackwardIcon,
                                 icon: Icons.replay_10_rounded,
-                                tooltip: messages?.skipBackwardText ??
+                                tooltip:
+                                    messages?.skipBackwardText ??
                                     PlayerStrings.seekBackward,
                                 onTap: () => _seekRelative(-skipDuration),
                               ),
@@ -270,7 +284,8 @@ class AdaptiveBottomBar extends StatelessWidget {
                                 backgroundColor: _pillColor,
                                 playerIcon: styling?.icons.skipForwardIcon,
                                 icon: Icons.forward_10_rounded,
-                                tooltip: messages?.skipForwardText ??
+                                tooltip:
+                                    messages?.skipForwardText ??
                                     PlayerStrings.seekForward,
                                 onTap: () => _seekRelative(skipDuration),
                               ),
@@ -298,8 +313,10 @@ class AdaptiveBottomBar extends StatelessWidget {
                           SizedBox(width: isCompact ? 4 : 8),
                           ConstrainedBox(
                             constraints: BoxConstraints(
-                              maxWidth:
-                                  (availableWidth * 0.35).clamp(60.0, 180.0),
+                              maxWidth: (availableWidth * 0.35).clamp(
+                                60.0,
+                                180.0,
+                              ),
                             ),
                             child: AdaptiveGlassmorphicContainer(
                               height: 38,
@@ -329,8 +346,9 @@ class AdaptiveBottomBar extends StatelessWidget {
                           if (canShowCenteredTitle)
                             Expanded(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
                                 child: Text(
                                   title!,
                                   maxLines: 1,
@@ -400,21 +418,25 @@ class AdaptiveBottomBar extends StatelessWidget {
                                         // Episodes Drawer Button
                                         if (canShowEpisodes) ...[
                                           Tooltip(
-                                            message: messages?.episodesText ??
+                                            message:
+                                                messages?.episodesText ??
                                                 'Episodes',
                                             waitDuration: const Duration(
-                                                milliseconds: 500),
+                                              milliseconds: 500,
+                                            ),
                                             child: GestureDetector(
                                               behavior: HitTestBehavior.opaque,
                                               onTap: onEpisodesPressed,
                                               child: Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        horizontal: 5,
-                                                        vertical: 4),
+                                                      horizontal: 5,
+                                                      vertical: 4,
+                                                    ),
                                                 child: Icon(
                                                   Icons.video_library_outlined,
-                                                  color: styling?.iconColor ??
+                                                  color:
+                                                      styling?.iconColor ??
                                                       Colors.white,
                                                   size: 20,
                                                 ),
@@ -426,22 +448,26 @@ class AdaptiveBottomBar extends StatelessWidget {
                                         // Dual-Column Audio & Subtitles Button
                                         if (canShowAudioSubtitles) ...[
                                           Tooltip(
-                                            message: messages
+                                            message:
+                                                messages
                                                     ?.audioAndSubtitlesText ??
                                                 'Audio & Subtitles',
                                             waitDuration: const Duration(
-                                                milliseconds: 500),
+                                              milliseconds: 500,
+                                            ),
                                             child: GestureDetector(
                                               behavior: HitTestBehavior.opaque,
                                               onTap: onAudioSubtitlesPressed,
                                               child: Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        horizontal: 5,
-                                                        vertical: 4),
+                                                      horizontal: 5,
+                                                      vertical: 4,
+                                                    ),
                                                 child: Icon(
                                                   Icons.subtitles_outlined,
-                                                  color: styling?.iconColor ??
+                                                  color:
+                                                      styling?.iconColor ??
                                                       Colors.white,
                                                   size: 20,
                                                 ),
@@ -455,20 +481,23 @@ class AdaptiveBottomBar extends StatelessWidget {
                                           Tooltip(
                                             message:
                                                 messages?.playbackSpeedText ??
-                                                    'Playback Speed',
+                                                'Playback Speed',
                                             waitDuration: const Duration(
-                                                milliseconds: 500),
+                                              milliseconds: 500,
+                                            ),
                                             child: GestureDetector(
                                               behavior: HitTestBehavior.opaque,
                                               onTap: onSpeedPressed,
                                               child: Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        horizontal: 5,
-                                                        vertical: 4),
+                                                      horizontal: 5,
+                                                      vertical: 4,
+                                                    ),
                                                 child: Icon(
                                                   Icons.speed_rounded,
-                                                  color: styling?.iconColor ??
+                                                  color:
+                                                      styling?.iconColor ??
                                                       Colors.white,
                                                   size: 20,
                                                 ),
@@ -496,30 +525,33 @@ class AdaptiveBottomBar extends StatelessWidget {
                                         if (canShowMiniPlayer) ...[
                                           SizedBox(width: isCompact ? 4 : 8),
                                           Tooltip(
-                                            message: messages?.miniPlayerText ??
+                                            message:
+                                                messages?.miniPlayerText ??
                                                 PlayerStrings.miniPlayer,
                                             waitDuration: const Duration(
-                                                milliseconds: 500),
+                                              milliseconds: 500,
+                                            ),
                                             child: GestureDetector(
                                               behavior: HitTestBehavior.opaque,
                                               onTap: onMiniPlayerPressed,
                                               child: Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                  horizontal: 4.0,
-                                                  vertical: 4.0,
-                                                ),
+                                                      horizontal: 4.0,
+                                                      vertical: 4.0,
+                                                    ),
                                                 child: Builder(
                                                   builder: (context) {
                                                     return PlayerIcon.resolve(
                                                       context,
-                                                      icon: styling?.icons
+                                                      icon: styling
+                                                          ?.icons
                                                           .miniPlayerIcon,
                                                       fallbackIcon: Icons
                                                           .picture_in_picture_alt_rounded,
                                                       defaultColor:
                                                           styling?.iconColor ??
-                                                              Colors.white,
+                                                          Colors.white,
                                                       defaultSize: 19,
                                                     );
                                                   },
@@ -555,10 +587,7 @@ class AdaptiveBottomBar extends StatelessWidget {
           );
 
           if (dynamicMargin != null) {
-            barContent = Padding(
-              padding: dynamicMargin,
-              child: barContent,
-            );
+            barContent = Padding(padding: dynamicMargin, child: barContent);
           }
 
           return barContent;

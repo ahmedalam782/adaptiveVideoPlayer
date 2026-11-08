@@ -60,7 +60,8 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
   Widget build(BuildContext context) {
     final effectiveDir = widget.config.text.resolveTextDirection(context);
     final isFullscreenNow = widget.isInFullscreen || isYoutubeWebFullscreen();
-    final showLiveBadge = widget.isLive ||
+    final showLiveBadge =
+        widget.isLive ||
         widget.viewerCount != null ||
         widget.liveBadgeBuilder != null;
 
@@ -102,13 +103,14 @@ class _YouTubeWebPlayerViewState extends State<YouTubeWebPlayerView> {
                     PositionedDirectional(
                       top: 12,
                       start: 12,
-                      child: (widget.liveBadgeBuilder ??
+                      child:
+                          (widget.liveBadgeBuilder ??
                                   widget.config.liveBadgeBuilder)
                               ?.call(
-                            context,
-                            isLive: widget.isLive,
-                            viewerCount: widget.viewerCount,
-                          ) ??
+                                context,
+                                isLive: widget.isLive,
+                                viewerCount: widget.viewerCount,
+                              ) ??
                           YouTubeLiveBadge(
                             isLive: widget.isLive,
                             viewerCount: widget.viewerCount,

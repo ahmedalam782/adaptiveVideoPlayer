@@ -90,10 +90,12 @@ class YouTubeVideoPlayerState extends State<YouTubeVideoPlayer>
   void onAfterClosePip(bool pauseOnClose) {
     if (kIsWeb && _videoId != null) {
       final effectiveConfig = mounted ? resolveEffectiveConfig(context) : _cfg;
-      final isRtl = effectiveConfig.text.resolveTextDirection(context) ==
+      final isRtl =
+          effectiveConfig.text.resolveTextDirection(context) ==
           TextDirection.rtl;
-      final currentLang =
-          isRtl ? 'ar' : (effectiveConfig.text.languageCode ?? 'en');
+      final currentLang = isRtl
+          ? 'ar'
+          : (effectiveConfig.text.languageCode ?? 'en');
       webIframeId =
           'youtube-iframe-$_videoId-${DateTime.now().millisecondsSinceEpoch}';
       registerYoutubeWebIframe(

@@ -7,18 +7,23 @@ void main() {
       final resEmpty = await AdaptiveVideoPreloader.preload('');
       expect(resEmpty, isNull);
 
-      final resInvalid =
-          await AdaptiveVideoPreloader.preload('ftp://example.com/video.mp4');
+      final resInvalid = await AdaptiveVideoPreloader.preload(
+        'ftp://example.com/video.mp4',
+      );
       expect(resInvalid, isNull);
 
       expect(AdaptiveVideoPreloader.isPreloaded(''), isFalse);
     });
 
     test('isPreloaded and take return null for non-cached URLs', () {
-      expect(AdaptiveVideoPreloader.isPreloaded('https://example.com/test.mp4'),
-          isFalse);
       expect(
-          AdaptiveVideoPreloader.take('https://example.com/test.mp4'), isNull);
+        AdaptiveVideoPreloader.isPreloaded('https://example.com/test.mp4'),
+        isFalse,
+      );
+      expect(
+        AdaptiveVideoPreloader.take('https://example.com/test.mp4'),
+        isNull,
+      );
     });
 
     test('disposeAll completes cleanly', () async {

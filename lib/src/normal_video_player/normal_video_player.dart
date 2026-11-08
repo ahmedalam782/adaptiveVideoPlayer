@@ -26,15 +26,9 @@ class NormalVideoPlayer extends StatefulWidget {
   final VideoConfig config;
 
   /// Creates a [NormalVideoPlayer] directly from a unified [VideoConfig] model.
-  const NormalVideoPlayer.fromConfig({
-    super.key,
-    required this.config,
-  });
+  const NormalVideoPlayer.fromConfig({super.key, required this.config});
 
-  const NormalVideoPlayer._internal({
-    super.key,
-    required this.config,
-  });
+  const NormalVideoPlayer._internal({super.key, required this.config});
 
   /// Creates a [NormalVideoPlayer].
   ///
@@ -68,10 +62,7 @@ class NormalVideoPlayer extends StatefulWidget {
     bool autoPipOnBackground = true,
   }) {
     if (config != null) {
-      return NormalVideoPlayer._internal(
-        key: key,
-        config: config,
-      );
+      return NormalVideoPlayer._internal(key: key, config: config);
     }
     return NormalVideoPlayer._internal(
       key: key,
@@ -125,9 +116,9 @@ class NormalVideoPlayer extends StatefulWidget {
   Widget Function(BuildContext context)? get loadingBuilder =>
       config.loadingBuilder;
   Widget Function(BuildContext context, String errorMessage)?
-      get errorBuilder => config.errorBuilder;
+  get errorBuilder => config.errorBuilder;
   void Function(String event, Map<String, dynamic> data)?
-      get onAnalyticsEvent => config.onAnalyticsEvent;
+  get onAnalyticsEvent => config.onAnalyticsEvent;
   VideoFileExtension? get extension => config.extension;
   VideoSourceType? get sourceType => config.sourceType;
   double? get aspectRatio => config.aspectRatio;
@@ -261,8 +252,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
 
     final episodes = widget.episodes;
     if (episodes != null && episodes.isNotEmpty) {
-      final currentIndex =
-          currentEpisode != null ? episodes.indexOf(currentEpisode!) : -1;
+      final currentIndex = currentEpisode != null
+          ? episodes.indexOf(currentEpisode!)
+          : -1;
       if (currentIndex >= 0 && currentIndex + 1 < episodes.length) {
         final nextEp = episodes[currentIndex + 1];
         _handleEpisodeSelected(nextEp);
@@ -307,7 +299,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
         widget.config.preventScreenCapture ? widget.config.onScreenshot : null,
       );
       ScreenProtectionService.setEnabledFor(
-          this, widget.config.preventScreenCapture);
+        this,
+        widget.config.preventScreenCapture,
+      );
     }
 
     if (oldWidget.config.autoPipOnBackground !=
@@ -356,20 +350,22 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
   PlayerTextConfig resolveEffectiveMessages(BuildContext context) {
     final ambientDir = Directionality.maybeOf(context);
     final msg = widget.messages;
-    final resolvedDir =
-        msg.resolveTextDirection(context, ambientDirection: ambientDir);
-    final resolvedLang =
-        msg.resolveLanguageCode(context, ambientDirection: ambientDir);
-    return msg.copyWith(
-      languageCode: resolvedLang,
-      textDirection: resolvedDir,
+    final resolvedDir = msg.resolveTextDirection(
+      context,
+      ambientDirection: ambientDir,
     );
+    final resolvedLang = msg.resolveLanguageCode(
+      context,
+      ambientDirection: ambientDir,
+    );
+    return msg.copyWith(languageCode: resolvedLang, textDirection: resolvedDir);
   }
 
   void _handleOpenFullscreen() {
     final window = MediaQuery.maybeSizeOf(context) ?? Size.zero;
     final player = context.size ?? window;
-    _fullscreenTier = PlayerSurfaceScope.maybeOf(context) ??
+    _fullscreenTier =
+        PlayerSurfaceScope.maybeOf(context) ??
         resolvePlayerSurfaceTier(window: window, player: player);
     _fullscreenPortal.show();
     enterSystemFullscreenView(
@@ -466,7 +462,8 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
       onAudioTrackSelected: _handleAudioTrackSelected,
     );
 
-    final resolvedAspectRatio = widget.aspectRatio ??
+    final resolvedAspectRatio =
+        widget.aspectRatio ??
         ((videoPlayerController!.value.isInitialized &&
                 videoPlayerController!.value.aspectRatio > 0 &&
                 !videoPlayerController!.value.size.isEmpty &&
@@ -478,44 +475,44 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
     final displayMode = inNativePip
         ? NormalPlayerDisplayMode.nativePip
         : isInFullscreen
-            ? NormalPlayerDisplayMode.fullscreen
-            : isInMiniPlayer
-                ? NormalPlayerDisplayMode.miniPlayer
-                : NormalPlayerDisplayMode.normal;
+        ? NormalPlayerDisplayMode.fullscreen
+        : isInMiniPlayer
+        ? NormalPlayerDisplayMode.miniPlayer
+        : NormalPlayerDisplayMode.normal;
 
     final Widget contentChild = switch (displayMode) {
       NormalPlayerDisplayMode.fullscreen => const SizedBox.shrink(),
       NormalPlayerDisplayMode.miniPlayer => NormalMiniPlayerPlaceholder(
-          restoreText: effectiveMessages.restorePlayerText,
-          onRestore: () => closeMiniPlayer(pauseOnClose: false),
-        ),
+        restoreText: effectiveMessages.restorePlayerText,
+        onRestore: () => closeMiniPlayer(pauseOnClose: false),
+      ),
       NormalPlayerDisplayMode.nativePip => NormalNativePipView(
-          controller: videoPlayerController!,
-          playerView: playerView,
-          messages: effectiveMessages,
-          onClose: () {
-            videoPlayerController?.pause();
-            NativePipService.closePip();
-          },
-          onExpand: NativePipService.exitPip,
-          onPlayPause: () {
-            final ctrl = videoPlayerController;
-            if (ctrl == null) return;
-            if (ctrl.value.isPlaying) {
-              ctrl.pause();
-            } else {
-              ctrl.play();
-            }
-            lastReportedPipPlaying = !ctrl.value.isPlaying;
-            NativePipService.updatePlaybackState(
-              isPlaying: !ctrl.value.isPlaying,
-              url: ctrl.dataSource,
-              positionMs: ctrl.value.position.inMilliseconds,
-            );
-          },
-          onSeekBackward: () => pipSeek(-10),
-          onSeekForward: () => pipSeek(10),
-        ),
+        controller: videoPlayerController!,
+        playerView: playerView,
+        messages: effectiveMessages,
+        onClose: () {
+          videoPlayerController?.pause();
+          NativePipService.closePip();
+        },
+        onExpand: NativePipService.exitPip,
+        onPlayPause: () {
+          final ctrl = videoPlayerController;
+          if (ctrl == null) return;
+          if (ctrl.value.isPlaying) {
+            ctrl.pause();
+          } else {
+            ctrl.play();
+          }
+          lastReportedPipPlaying = !ctrl.value.isPlaying;
+          NativePipService.updatePlaybackState(
+            isPlaying: !ctrl.value.isPlaying,
+            url: ctrl.dataSource,
+            positionMs: ctrl.value.position.inMilliseconds,
+          );
+        },
+        onSeekBackward: () => pipSeek(-10),
+        onSeekForward: () => pipSeek(10),
+      ),
       NormalPlayerDisplayMode.normal => playerView,
     };
 
@@ -534,8 +531,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
             child: PlayerSurfaceScope(
               tier: _fullscreenTier ?? PlayerSurfaceTier.desktop,
               child: NormalFullscreenOverlay(
-                textDirection:
-                    effectiveMessages.resolveTextDirection(overlayContext),
+                textDirection: effectiveMessages.resolveTextDirection(
+                  overlayContext,
+                ),
                 onExitFullscreen: _handleCloseFullscreen,
                 child: playerView,
               ),
@@ -552,8 +550,9 @@ class NormalVideoPlayerState extends State<NormalVideoPlayer>
           }
         },
         child: ClipRRect(
-          borderRadius:
-              inNativePip ? BorderRadius.zero : BorderRadius.circular(8),
+          borderRadius: inNativePip
+              ? BorderRadius.zero
+              : BorderRadius.circular(8),
           child: Directionality(
             textDirection: effectiveMessages.resolveTextDirection(context),
             child: AspectRatio(

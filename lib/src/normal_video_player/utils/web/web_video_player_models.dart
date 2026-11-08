@@ -50,14 +50,14 @@ class VideoPlayerValue {
   });
 
   const VideoPlayerValue.uninitialized()
-      : this(duration: Duration.zero, isInitialized: false);
+    : this(duration: Duration.zero, isInitialized: false);
 
   const VideoPlayerValue.erroneous(String errorDescription)
-      : this(
-          duration: Duration.zero,
-          isInitialized: false,
-          errorDescription: errorDescription,
-        );
+    : this(
+        duration: Duration.zero,
+        isInitialized: false,
+        errorDescription: errorDescription,
+      );
 
   final Duration duration;
   final Size size;

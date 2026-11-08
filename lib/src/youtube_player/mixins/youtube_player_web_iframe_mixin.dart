@@ -24,8 +24,9 @@ mixin YouTubePlayerWebIframeMixin on State<YouTubeVideoPlayer> {
     final effectiveConfig = resolveConfig(context);
     final isRtl =
         effectiveConfig.text.resolveTextDirection(context) == TextDirection.rtl;
-    final currentLang =
-        isRtl ? 'ar' : (effectiveConfig.text.languageCode ?? 'en');
+    final currentLang = isRtl
+        ? 'ar'
+        : (effectiveConfig.text.languageCode ?? 'en');
 
     if (webIframeId == null) {
       lastResolvedLang = currentLang;

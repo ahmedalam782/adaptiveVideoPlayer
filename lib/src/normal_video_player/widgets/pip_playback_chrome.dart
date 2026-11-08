@@ -129,8 +129,9 @@ class _PipPlaybackChromeState extends State<PipPlaybackChrome> {
                     child: LinearProgressIndicator(
                       value: widget.progress.clamp(0.0, 1.0),
                       backgroundColor: const Color(0x66FFFFFF),
-                      valueColor:
-                          const AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.white,
+                      ),
                     ),
                   ),
                 ),

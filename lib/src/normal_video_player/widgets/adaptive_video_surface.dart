@@ -9,8 +9,9 @@ class AdaptiveVideoSurface extends StatelessWidget {
   final SubtitleBuilder? subtitleBuilder;
   final BoxFit fit;
 
-  static final Expando<GlobalKey> _controllerKeys =
-      Expando<GlobalKey>('AdaptiveVideoSurfaceKey');
+  static final Expando<GlobalKey> _controllerKeys = Expando<GlobalKey>(
+    'AdaptiveVideoSurfaceKey',
+  );
 
   /// Returns a persistent [GlobalKey] bound to [controller] so moving between
   /// the inline player and fullscreen keeps the same picture.
@@ -31,7 +32,8 @@ class AdaptiveVideoSurface extends StatelessWidget {
       key: ValueKey(controller),
       valueListenable: controller,
       builder: (context, value, _) {
-        final aspectRatio = (value.isInitialized &&
+        final aspectRatio =
+            (value.isInitialized &&
                 value.aspectRatio > 0 &&
                 !value.size.isEmpty &&
                 value.size.width > 0 &&
@@ -51,11 +53,7 @@ class AdaptiveVideoSurface extends StatelessWidget {
             child: FittedBox(
               fit: BoxFit.cover,
               clipBehavior: Clip.hardEdge,
-              child: SizedBox(
-                width: width,
-                height: height,
-                child: videoWidget,
-              ),
+              child: SizedBox(width: width, height: height, child: videoWidget),
             ),
           );
         } else if (fit == BoxFit.fill) {
@@ -87,10 +85,7 @@ class AdaptiveVideoSurface extends StatelessWidget {
         if (fit == BoxFit.cover || fit == BoxFit.fill) {
           return SizedBox.expand(child: stackContent);
         }
-        return AspectRatio(
-          aspectRatio: aspectRatio,
-          child: stackContent,
-        );
+        return AspectRatio(aspectRatio: aspectRatio, child: stackContent);
       },
     );
   }

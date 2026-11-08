@@ -103,8 +103,9 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
     )) {
       return TextDirection.rtl;
     }
-    final lang =
-        Localizations.maybeLocaleOf(context)?.languageCode.toLowerCase();
+    final lang = Localizations.maybeLocaleOf(
+      context,
+    )?.languageCode.toLowerCase();
     if (lang == 'ar' || lang == 'he' || lang == 'fa' || lang == 'ur') {
       return TextDirection.rtl;
     }
@@ -122,9 +123,7 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
       child: SafeArea(
         top: false,
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: maxSheetHeight,
-          ),
+          constraints: BoxConstraints(maxHeight: maxSheetHeight),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -149,7 +148,8 @@ class _PlayerSettingsSheetState extends State<PlayerSettingsSheet> {
                     Expanded(
                       child: Text(
                         widget.playerSettingsText,
-                        style: widget.titleTextStyle ??
+                        style:
+                            widget.titleTextStyle ??
                             TextStyle(
                               color: widget.textColor,
                               fontSize: 18,

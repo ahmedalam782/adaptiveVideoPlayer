@@ -3,19 +3,19 @@
 A comprehensive Flutter video player package that seamlessly handles both **YouTube videos** and **direct video URLs** with adaptive player selection. Works on **Android, iOS, macOS, Windows, Linux, and Web** — with platform-specific engines tuned for each target.
 
 [![pub package](https://img.shields.io/pub/v/adaptive_video_player.svg)](https://pub.dev/packages/adaptive_video_player)
-[![Flutter](https://img.shields.io/badge/Flutter-3.13.0%2B-02569B?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.44.0%2B-02569B?logo=flutter)](https://flutter.dev)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-blue)](https://flutter.dev)
 [![WASM Ready](https://img.shields.io/badge/WASM-Ready-brightgreen)](https://dart.dev/web/wasm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## 🎉 What's New in v2.0.2
+## 🎉 What's New in the v2.0.3 release candidate
 
-> **160/160 Points on pub.dev** 🏆 | **1,090+ Downloads** 📦 | **100% Test Coverage** ✅
+This branch prepares a follow-up release with WebAssembly import fixes and updated Android Kotlin Gradle configuration. The package score is calculated by pub.dev after publication; the current published v2.0.2 score is **150/160**. See the [release verification notes](doc/VERIFICATION.md) for checks and remaining limits.
 
 ### 🤖 Android Built-in Kotlin
-- Migrated `android/build.gradle` to modern declarative `plugins {}` block — resolves pub.dev "Legacy Kotlin configuration" warning.
+- Uses `kotlin.compilerOptions` with JVM 17 and removes legacy Kotlin plugin configuration flagged by pub.dev.
 
 ### 🖼️ Universal Auto Picture-in-Picture (v2.0.1)
 - **Seamless PiP across ALL platforms** when minimizing or backgrounding during active playback
@@ -28,10 +28,10 @@ A comprehensive Flutter video player package that seamlessly handles both **YouT
 ### 🌐 HTML5 Browser Fullscreen (v2.0.1)
 - True native browser fullscreen API on web with seamless enter/exit transitions
 
-### 📊 This Release by the Numbers
-- **260 unit tests** — 100% pass rate
+### 📊 Verification
+- **260 unit tests** — all pass
 - **0** static analysis warnings
-- **6 platforms** fully supported
+- Platform behavior varies; see the [six platform designs](#designs-for-all-six-platforms) and platform-specific setup notes below.
 
 [See full CHANGELOG →](CHANGELOG.md)
 
@@ -55,7 +55,9 @@ AdaptiveVideoPlayer(
 
 ## Explore the preview
 
-Use the [example application](example/lib/main.dart) to inspect the implemented controls. The concept image above illustrates the feature groups; use real device recordings to confirm behavior before release. See the [platform verification matrix](doc/LAUNCH_GUIDE.md#platform-smoke-tests) for what to check.
+Use the [example application](example/lib/main.dart) to inspect the implemented controls. The images below are concept designs; use real device recordings to confirm behavior before release. See the [release verification notes](doc/VERIFICATION.md) for checks and limitations.
+
+[![Adaptive Video Player v2.0.3 cross-platform branch preview concept](assets/release/v2-3-branch-preview.png)](assets/release/v2-3-branch-preview.png)
 
 ### Designs for all six platforms
 

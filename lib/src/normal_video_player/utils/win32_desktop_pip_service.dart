@@ -37,9 +37,11 @@ class Win32DesktopPipService {
       final hwnd = findFlutterWindow(user32);
       if (hwnd == 0) return;
 
-      final getWindowRect = user32.lookupFunction<
-          Int32 Function(IntPtr, Pointer<RECT>),
-          int Function(int, Pointer<RECT>)>('GetWindowRect');
+      final getWindowRect = user32
+          .lookupFunction<
+            Int32 Function(IntPtr, Pointer<RECT>),
+            int Function(int, Pointer<RECT>)
+          >('GetWindowRect');
       final rectPtr = calloc<RECT>();
       getWindowRect(hwnd, rectPtr);
       final w = rectPtr.ref.right - rectPtr.ref.left;
@@ -47,13 +49,17 @@ class Win32DesktopPipService {
       calloc.free(rectPtr);
 
       if (w > 0 && w <= 440 && h > 0 && h <= 280) {
-        final monitorFromWindow = user32.lookupFunction<
-            IntPtr Function(IntPtr, Uint32),
-            int Function(int, int)>('MonitorFromWindow');
+        final monitorFromWindow = user32
+            .lookupFunction<
+              IntPtr Function(IntPtr, Uint32),
+              int Function(int, int)
+            >('MonitorFromWindow');
         final hMonitor = monitorFromWindow(hwnd, monitorDefaultToPrimary);
-        final getMonitorInfo = user32.lookupFunction<
-            Int32 Function(IntPtr, Pointer<MONITORINFO>),
-            int Function(int, Pointer<MONITORINFO>)>('GetMonitorInfoW');
+        final getMonitorInfo = user32
+            .lookupFunction<
+              Int32 Function(IntPtr, Pointer<MONITORINFO>),
+              int Function(int, Pointer<MONITORINFO>)
+            >('GetMonitorInfoW');
         final miPtr = calloc<MONITORINFO>();
         miPtr.ref.cbSize = sizeOf<MONITORINFO>();
         getMonitorInfo(hMonitor, miPtr);
@@ -77,11 +83,19 @@ class Win32DesktopPipService {
           try {
             setWindowLong(user32, hwnd, gwlStyle, normalStyle);
 
-            final setWindowPos = user32.lookupFunction<
-                Int32 Function(
-                    IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-                int Function(
-                    int, int, int, int, int, int, int)>('SetWindowPos');
+            final setWindowPos = user32
+                .lookupFunction<
+                  Int32 Function(
+                    IntPtr,
+                    IntPtr,
+                    Int32,
+                    Int32,
+                    Int32,
+                    Int32,
+                    Uint32,
+                  ),
+                  int Function(int, int, int, int, int, int, int)
+                >('SetWindowPos');
             setWindowPos(
               hwnd,
               hwndNoTopMost,
@@ -118,9 +132,11 @@ class Win32DesktopPipService {
       _pipHwnd = hwnd;
       _pipSavedStyle = getWindowLong(user32, hwnd, gwlStyle);
 
-      final getWindowRect = user32.lookupFunction<
-          Int32 Function(IntPtr, Pointer<RECT>),
-          int Function(int, Pointer<RECT>)>('GetWindowRect');
+      final getWindowRect = user32
+          .lookupFunction<
+            Int32 Function(IntPtr, Pointer<RECT>),
+            int Function(int, Pointer<RECT>)
+          >('GetWindowRect');
       final rectPtr = calloc<RECT>();
       getWindowRect(hwnd, rectPtr);
       final curW = rectPtr.ref.right - rectPtr.ref.left;
@@ -139,20 +155,25 @@ class Win32DesktopPipService {
       _pipSavedPlacement = calloc<WINDOWPLACEMENT>();
       _pipSavedPlacement!.ref.length = sizeOf<WINDOWPLACEMENT>();
 
-      final getWindowPlacement = user32.lookupFunction<
-          Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
-          int Function(int, Pointer<WINDOWPLACEMENT>)>('GetWindowPlacement');
+      final getWindowPlacement = user32
+          .lookupFunction<
+            Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
+            int Function(int, Pointer<WINDOWPLACEMENT>)
+          >('GetWindowPlacement');
       getWindowPlacement(hwnd, _pipSavedPlacement!);
 
-      final isIconicFn =
-          user32.lookupFunction<Int32 Function(IntPtr), int Function(int)>(
-              'IsIconic');
+      final isIconicFn = user32
+          .lookupFunction<Int32 Function(IntPtr), int Function(int)>(
+            'IsIconic',
+          );
       final isMin = isIconicFn(hwnd) != 0;
 
       if (isMin && _pipSavedPlacement != null) {
-        final normW = _pipSavedPlacement!.ref.rcNormalPosition.right -
+        final normW =
+            _pipSavedPlacement!.ref.rcNormalPosition.right -
             _pipSavedPlacement!.ref.rcNormalPosition.left;
-        final normH = _pipSavedPlacement!.ref.rcNormalPosition.bottom -
+        final normH =
+            _pipSavedPlacement!.ref.rcNormalPosition.bottom -
             _pipSavedPlacement!.ref.rcNormalPosition.top;
         if (normW > 440 && normH > 280) {
           _pipSavedLeft = _pipSavedPlacement!.ref.rcNormalPosition.left;
@@ -162,14 +183,18 @@ class Win32DesktopPipService {
         }
       }
 
-      final monitorFromWindow = user32.lookupFunction<
-          IntPtr Function(IntPtr, Uint32),
-          int Function(int, int)>('MonitorFromWindow');
+      final monitorFromWindow = user32
+          .lookupFunction<
+            IntPtr Function(IntPtr, Uint32),
+            int Function(int, int)
+          >('MonitorFromWindow');
       final hMonitor = monitorFromWindow(hwnd, monitorDefaultToPrimary);
 
-      final getMonitorInfo = user32.lookupFunction<
-          Int32 Function(IntPtr, Pointer<MONITORINFO>),
-          int Function(int, Pointer<MONITORINFO>)>('GetMonitorInfoW');
+      final getMonitorInfo = user32
+          .lookupFunction<
+            Int32 Function(IntPtr, Pointer<MONITORINFO>),
+            int Function(int, Pointer<MONITORINFO>)
+          >('GetMonitorInfoW');
 
       final miPtr = calloc<MONITORINFO>();
       miPtr.ref.cbSize = sizeOf<MONITORINFO>();
@@ -191,27 +216,39 @@ class Win32DesktopPipService {
         if (!_isWindowsPip) return;
         try {
           if (isMin) {
-            final showWindow = user32.lookupFunction<
-                Int32 Function(IntPtr, Int32),
-                int Function(int, int)>('ShowWindow');
+            final showWindow = user32
+                .lookupFunction<
+                  Int32 Function(IntPtr, Int32),
+                  int Function(int, int)
+                >('ShowWindow');
             showWindow(hwnd, swRestore);
           }
 
-          final borderlessPipStyle = ((_pipSavedStyle &
-                      ~(wsOverlappedWindow |
-                          wsMaximize |
-                          wsMinimize |
-                          wsCaption |
-                          wsThickFrame)) |
-                  wsPopup |
-                  wsVisible)
-              .toSigned(32);
+          final borderlessPipStyle =
+              ((_pipSavedStyle &
+                          ~(wsOverlappedWindow |
+                              wsMaximize |
+                              wsMinimize |
+                              wsCaption |
+                              wsThickFrame)) |
+                      wsPopup |
+                      wsVisible)
+                  .toSigned(32);
           setWindowLong(user32, hwnd, gwlStyle, borderlessPipStyle);
 
-          final setWindowPos = user32.lookupFunction<
-              Int32 Function(
-                  IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-              int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+          final setWindowPos = user32
+              .lookupFunction<
+                Int32 Function(
+                  IntPtr,
+                  IntPtr,
+                  Int32,
+                  Int32,
+                  Int32,
+                  Int32,
+                  Uint32,
+                ),
+                int Function(int, int, int, int, int, int, int)
+              >('SetWindowPos');
 
           setWindowPos(
             hwnd,
@@ -264,9 +301,11 @@ class Win32DesktopPipService {
       _pipWindowX += deltaX;
       _pipWindowY += deltaY;
 
-      final setWindowPos = user32.lookupFunction<
-          Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-          int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+      final setWindowPos = user32
+          .lookupFunction<
+            Int32 Function(IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
+            int Function(int, int, int, int, int, int, int)
+          >('SetWindowPos');
 
       setWindowPos(
         _pipHwnd,
@@ -310,10 +349,11 @@ class Win32DesktopPipService {
             if (savedPlacement.ref.showCmd == 2) {
               savedPlacement.ref.showCmd = swShowNormal;
             }
-            final setWindowPlacement = user32.lookupFunction<
-                Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
-                int Function(
-                    int, Pointer<WINDOWPLACEMENT>)>('SetWindowPlacement');
+            final setWindowPlacement = user32
+                .lookupFunction<
+                  Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
+                  int Function(int, Pointer<WINDOWPLACEMENT>)
+                >('SetWindowPlacement');
             setWindowPlacement(hwnd, savedPlacement);
             calloc.free(savedPlacement);
           }
@@ -326,15 +366,26 @@ class Win32DesktopPipService {
                   .toSigned(32);
           setWindowLong(user32, hwnd, gwlStyle, normalStyle);
 
-          final showWindow = user32.lookupFunction<
-              Int32 Function(IntPtr, Int32),
-              int Function(int, int)>('ShowWindow');
+          final showWindow = user32
+              .lookupFunction<
+                Int32 Function(IntPtr, Int32),
+                int Function(int, int)
+              >('ShowWindow');
           showWindow(hwnd, swRestore);
 
-          final setWindowPos = user32.lookupFunction<
-              Int32 Function(
-                  IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-              int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+          final setWindowPos = user32
+              .lookupFunction<
+                Int32 Function(
+                  IntPtr,
+                  IntPtr,
+                  Int32,
+                  Int32,
+                  Int32,
+                  Int32,
+                  Uint32,
+                ),
+                int Function(int, int, int, int, int, int, int)
+              >('SetWindowPos');
 
           setWindowPos(
             hwnd,

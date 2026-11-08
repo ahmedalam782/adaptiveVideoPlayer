@@ -42,7 +42,8 @@ class SettingItem extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: textStyle ??
+              style:
+                  textStyle ??
                   TextStyle(
                     color: textColor,
                     fontSize: 14,

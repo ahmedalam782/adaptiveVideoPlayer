@@ -50,7 +50,8 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
     setState(() {
       feedbackVolume = volume;
     });
-    final timeout = widget.visibility?.volumeFeedbackTimeout ??
+    final timeout =
+        widget.visibility?.volumeFeedbackTimeout ??
         const Duration(milliseconds: 1200);
     volumeFeedbackTimer = Timer(timeout, () {
       if (mounted) setState(() => feedbackVolume = null);
@@ -58,11 +59,14 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
   }
 
   void handleDoubleTap(
-      TapDownDetails details, VoidCallback onRestartHideTimer) {
+    TapDownDetails details,
+    VoidCallback onRestartHideTimer,
+  ) {
     final allowDoubleClickFullscreen =
         widget.visibility?.doubleClickToggleFullscreen ?? true;
 
-    final isMouse = details.kind == PointerDeviceKind.mouse ||
+    final isMouse =
+        details.kind == PointerDeviceKind.mouse ||
         details.kind == PointerDeviceKind.trackpad ||
         (details.kind != PointerDeviceKind.touch &&
             details.kind != PointerDeviceKind.stylus &&
@@ -87,8 +91,9 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
 
     final playerWidth =
         (context.findRenderObject() as RenderBox?)?.size.width ??
-            MediaQuery.sizeOf(context).width;
-    final isRtl = (widget.messages?.resolveTextDirection(context) ??
+        MediaQuery.sizeOf(context).width;
+    final isRtl =
+        (widget.messages?.resolveTextDirection(context) ??
             Directionality.of(context)) ==
         TextDirection.rtl;
     final tappedRightHalf = details.localPosition.dx > playerWidth / 2;
@@ -107,8 +112,9 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
     } else {
       if (showSeekFeedback) triggerSeekFeedback(-1, onRestartHideTimer);
       final newPosition = currentPosition - skipDuration;
-      widget.controller
-          .seekTo(newPosition.isNegative ? Duration.zero : newPosition);
+      widget.controller.seekTo(
+        newPosition.isNegative ? Duration.zero : newPosition,
+      );
     }
 
     if (wasPlaying) {
@@ -133,8 +139,9 @@ mixin AdaptivePlayerGesturesMixin on State<BaseAdaptiveVideoPlayer> {
     if (!isHold2xActive) return;
     setState(() => isHold2xActive = false);
     widget.controller.setPlaybackSpeed(previousPlaybackSpeed);
-    widget.onAnalyticsEvent
-        ?.call('playback_speed_hold_end', {'speed': previousPlaybackSpeed});
+    widget.onAnalyticsEvent?.call('playback_speed_hold_end', {
+      'speed': previousPlaybackSpeed,
+    });
   }
 
   void disposeGesturesTimers() {

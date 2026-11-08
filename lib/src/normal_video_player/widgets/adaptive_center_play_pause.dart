@@ -8,7 +8,7 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
   final VideoPlayerController controller;
   final PlayerStyleConfig? styling;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final bool isFullScreen;
   final VoidCallback? onPlayPause;
 
@@ -44,7 +44,7 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
                 controller.pause();
                 onAnalyticsEvent?.call(PlayerEvents.videoPaused, {
                   PlayerEvents.paramPosition:
-                      controller.value.position.inSeconds
+                      controller.value.position.inSeconds,
                 });
               } else {
                 if (value.position >= value.duration &&
@@ -54,7 +54,7 @@ class AdaptiveCenterPlayPause extends StatelessWidget {
                 controller.play();
                 onAnalyticsEvent?.call(PlayerEvents.videoPlayed, {
                   PlayerEvents.paramPosition:
-                      controller.value.position.inSeconds
+                      controller.value.position.inSeconds,
                 });
               }
               onPlayPause?.call();

@@ -7,7 +7,7 @@ class MockPlayerController implements IVideoPlayerController {
   final ValueNotifier<PlayerState> _stateNotifier;
 
   MockPlayerController([PlayerState? state])
-      : _stateNotifier = ValueNotifier(state ?? PlayerState.initial());
+    : _stateNotifier = ValueNotifier(state ?? PlayerState.initial());
 
   @override
   PlayerState get state => _stateNotifier.value;
@@ -76,15 +76,17 @@ class MockPlayerController implements IVideoPlayerController {
 
   @override
   Future<void> toggleMute() async {
-    _stateNotifier.value =
-        _stateNotifier.value.copyWith(isMuted: !_stateNotifier.value.isMuted);
+    _stateNotifier.value = _stateNotifier.value.copyWith(
+      isMuted: !_stateNotifier.value.isMuted,
+    );
   }
 }
 
 void main() {
   group('PlayerScope (Flutter DI Container & InheritedWidget)', () {
-    testWidgets('provides controller and state down the widget tree',
-        (tester) async {
+    testWidgets('provides controller and state down the widget tree', (
+      tester,
+    ) async {
       final mockController = MockPlayerController(
         const PlayerState(isPlaying: true, volume: 0.75),
       );

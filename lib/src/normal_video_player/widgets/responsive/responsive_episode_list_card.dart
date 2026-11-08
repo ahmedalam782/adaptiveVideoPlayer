@@ -117,13 +117,18 @@ class ResponsiveEpisodeListCard extends StatelessWidget {
                               : null,
                         ),
                         child: episode.thumbnailUrl == null
-                            ? const Icon(Icons.movie_creation_outlined,
-                                color: Colors.white38, size: 28)
+                            ? const Icon(
+                                Icons.movie_creation_outlined,
+                                color: Colors.white38,
+                                size: 28,
+                              )
                             : null,
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 3),
+                          horizontal: 6,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.75),
                           borderRadius: BorderRadius.circular(4),

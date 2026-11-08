@@ -30,11 +30,7 @@ class AdaptiveNextEpisodeButton extends StatelessWidget {
         onTap: onNextEpisode,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
-          child: Icon(
-            Icons.skip_next_rounded,
-            color: iconColor,
-            size: 26,
-          ),
+          child: Icon(Icons.skip_next_rounded, color: iconColor, size: 26),
         ),
       ),
     );

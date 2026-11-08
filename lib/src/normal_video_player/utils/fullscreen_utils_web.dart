@@ -97,7 +97,7 @@ void enableWebAutoPictureInPicture(bool enabled) {
     if (enabled) {
       if (_autoPipObserver == null) {
         _autoPipObserver = web.MutationObserver(
-          ((JSArray<web.MutationRecord> _, web.MutationObserver __) {
+          ((JSArray<web.MutationRecord> _, web.MutationObserver _) {
             if (!_webAutoPipEnabled) return;
             _applyAutoPipToVideos(true);
           }).toJS,
@@ -106,10 +106,7 @@ void enableWebAutoPictureInPicture(bool enabled) {
         if (root != null) {
           _autoPipObserver?.observe(
             root,
-            web.MutationObserverInit(
-              childList: true,
-              subtree: true,
-            ),
+            web.MutationObserverInit(childList: true, subtree: true),
           );
         }
       }
@@ -196,7 +193,8 @@ void _handleCaptureKeyDown(web.KeyboardEvent e) {
   _paintShieldNow();
   _notifyScreenshot();
   final key = e.key.toLowerCase();
-  final finishesCapture = key == 'printscreen' ||
+  final finishesCapture =
+      key == 'printscreen' ||
       key == 'f12' ||
       key == '3' ||
       key == '4' ||
@@ -270,8 +268,9 @@ void applyDesktopScreenProtection(
         shield.style.transition = 'none';
         shield.style.userSelect = 'none';
 
-        (web.document.body ?? web.document.documentElement)
-            ?.appendChild(shield);
+        (web.document.body ?? web.document.documentElement)?.appendChild(
+          shield,
+        );
         _shieldElement = shield;
 
         final style =
@@ -288,8 +287,9 @@ void applyDesktopScreenProtection(
 
         _blurCallback = ((web.Event e) => _handleWindowBlur(e)).toJS;
         _focusCallback = ((web.Event e) => _handleWindowFocus(e)).toJS;
-        _keydownCallback =
-            ((web.KeyboardEvent e) => _handleCaptureKeyDown(e)).toJS;
+        _keydownCallback = ((web.KeyboardEvent e) => _handleCaptureKeyDown(
+          e,
+        )).toJS;
         _keyupCallback = ((web.KeyboardEvent e) => _handleCaptureKeyUp(e)).toJS;
         _contextmenuCallback = ((web.MouseEvent e) {
           try {
@@ -298,18 +298,25 @@ void applyDesktopScreenProtection(
           } catch (_) {}
         }).toJS;
         _pointerOutCallback = ((web.MouseEvent e) => _handlePointerOut(e)).toJS;
-        _pointerOverCallback =
-            ((web.MouseEvent e) => _handlePointerOver(e)).toJS;
+        _pointerOverCallback = ((web.MouseEvent e) => _handlePointerOver(
+          e,
+        )).toJS;
 
         web.window.addEventListener('blur', _blurCallback!);
         web.window.addEventListener('focus', _focusCallback!);
         web.window.addEventListener('keydown', _keydownCallback!, true.toJS);
         web.window.addEventListener('keyup', _keyupCallback!, true.toJS);
         web.window.addEventListener('contextmenu', _contextmenuCallback!);
-        web.document
-            .addEventListener('mouseout', _pointerOutCallback!, true.toJS);
-        web.document
-            .addEventListener('mouseover', _pointerOverCallback!, true.toJS);
+        web.document.addEventListener(
+          'mouseout',
+          _pointerOutCallback!,
+          true.toJS,
+        );
+        web.document.addEventListener(
+          'mouseover',
+          _pointerOverCallback!,
+          true.toJS,
+        );
       }
     } else {
       if (_blurCallback != null) {
@@ -321,8 +328,10 @@ void applyDesktopScreenProtection(
         _focusCallback = null;
       }
       if (_visibilityCallback != null) {
-        web.document
-            .removeEventListener('visibilitychange', _visibilityCallback!);
+        web.document.removeEventListener(
+          'visibilitychange',
+          _visibilityCallback!,
+        );
         _visibilityCallback = null;
       }
       if (_keydownCallback != null) {
@@ -338,13 +347,19 @@ void applyDesktopScreenProtection(
         _contextmenuCallback = null;
       }
       if (_pointerOutCallback != null) {
-        web.document
-            .removeEventListener('mouseout', _pointerOutCallback!, true.toJS);
+        web.document.removeEventListener(
+          'mouseout',
+          _pointerOutCallback!,
+          true.toJS,
+        );
         _pointerOutCallback = null;
       }
       if (_pointerOverCallback != null) {
-        web.document
-            .removeEventListener('mouseover', _pointerOverCallback!, true.toJS);
+        web.document.removeEventListener(
+          'mouseover',
+          _pointerOverCallback!,
+          true.toJS,
+        );
         _pointerOverCallback = null;
       }
       _shieldElement?.remove();

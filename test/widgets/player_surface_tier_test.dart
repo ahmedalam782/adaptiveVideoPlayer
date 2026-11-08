@@ -56,8 +56,9 @@ void main() {
       );
     });
 
-    testWidgets('fullscreen keeps the phone design on a wide window',
-        (tester) async {
+    testWidgets('fullscreen keeps the phone design on a wide window', (
+      tester,
+    ) async {
       PlayerSurfaceTier? seen;
       await tester.pumpWidget(
         MediaQuery(
@@ -140,8 +141,9 @@ void main() {
       }
     });
 
-    testWidgets('returns false on Android even with large screen',
-        (tester) async {
+    testWidgets('returns false on Android even with large screen', (
+      tester,
+    ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       try {
         bool? result;
@@ -183,8 +185,9 @@ void main() {
       }
     });
 
-    testWidgets('returns true on wide desktop window on desktop platform',
-        (tester) async {
+    testWidgets('returns true on wide desktop window on desktop platform', (
+      tester,
+    ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.windows;
       try {
         bool? result;

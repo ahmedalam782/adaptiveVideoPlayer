@@ -14,20 +14,26 @@ void main() {
     group('isYouTubeUrl', () {
       test('identifies valid youtube URLs', () {
         expect(
-            PlayerUtils.isYouTubeUrl(
-                'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
-            true);
+          PlayerUtils.isYouTubeUrl(
+            'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          ),
+          true,
+        );
         expect(PlayerUtils.isYouTubeUrl('https://youtu.be/dQw4w9WgXcQ'), true);
         expect(
-            PlayerUtils.isYouTubeUrl(
-                'https://youtube-nocookie.com/embed/dQw4w9WgXcQ'),
-            true);
+          PlayerUtils.isYouTubeUrl(
+            'https://youtube-nocookie.com/embed/dQw4w9WgXcQ',
+          ),
+          true,
+        );
         expect(PlayerUtils.isYouTubeUrl('dQw4w9WgXcQ'), true);
       });
 
       test('identifies non-youtube URLs', () {
         expect(
-            PlayerUtils.isYouTubeUrl('https://example.com/video.mp4'), false);
+          PlayerUtils.isYouTubeUrl('https://example.com/video.mp4'),
+          false,
+        );
         expect(PlayerUtils.isYouTubeUrl('https://vimeo.com/12345'), false);
         expect(PlayerUtils.isYouTubeUrl(''), false);
       });
@@ -38,7 +44,8 @@ void main() {
       test('extracts from standard watch url', () {
         expect(
           PlayerUtils.extractVideoId(
-              'https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+            'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          ),
           'dQw4w9WgXcQ',
         );
       });
@@ -53,7 +60,8 @@ void main() {
       test('extracts from embed url', () {
         expect(
           PlayerUtils.extractVideoId(
-              'https://www.youtube.com/embed/dQw4w9WgXcQ'),
+            'https://www.youtube.com/embed/dQw4w9WgXcQ',
+          ),
           'dQw4w9WgXcQ',
         );
       });
@@ -61,16 +69,14 @@ void main() {
       test('extracts from shorts url', () {
         expect(
           PlayerUtils.extractVideoId(
-              'https://www.youtube.com/shorts/dQw4w9WgXcQ'),
+            'https://www.youtube.com/shorts/dQw4w9WgXcQ',
+          ),
           'dQw4w9WgXcQ',
         );
       });
 
       test('returns raw 11 character id', () {
-        expect(
-          PlayerUtils.extractVideoId('dQw4w9WgXcQ'),
-          'dQw4w9WgXcQ',
-        );
+        expect(PlayerUtils.extractVideoId('dQw4w9WgXcQ'), 'dQw4w9WgXcQ');
       });
 
       test('returns null for invalid url', () {

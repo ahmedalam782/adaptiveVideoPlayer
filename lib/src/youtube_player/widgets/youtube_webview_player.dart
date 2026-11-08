@@ -144,7 +144,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       } else {
         _isWebViewAvailableOnWindows = true;
         if (_sharedWebViewEnvironment == null) {
-          final localAppData = Platform.environment['LOCALAPPDATA'] ??
+          final localAppData =
+              Platform.environment['LOCALAPPDATA'] ??
               Platform.environment['TEMP'] ??
               Directory.systemTemp.path;
           final userDataDir = '$localAppData\\AdaptiveVideoPlayer_WebView2';
@@ -184,7 +185,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   }
 
   void _syncMiniPlayerButton() {
-    final show = widget.config.visibility.showControls &&
+    final show =
+        widget.config.visibility.showControls &&
         widget.config.visibility.showMiniPlayerButton &&
         !NativePipService.isInPip.value;
     _webViewController?.evaluateJavascript(
@@ -202,7 +204,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
   /// Pass false while the video is already in a PiP window so the button
   /// does not sit on top of the mini player.
   void setMiniPlayerButtonVisible(bool show) {
-    final effectiveShow = show &&
+    final effectiveShow =
+        show &&
         widget.config.visibility.showControls &&
         widget.config.visibility.showMiniPlayerButton &&
         !NativePipService.isInPip.value;
@@ -244,8 +247,11 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.web_asset_off_rounded,
-                    color: Colors.orangeAccent, size: 48),
+                const Icon(
+                  Icons.web_asset_off_rounded,
+                  color: Colors.orangeAccent,
+                  size: 48,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   _initErrorMessage ??
@@ -260,7 +266,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
                   onPressed: () {
                     launchUrl(
                       Uri.parse(
-                          'https://developer.microsoft.com/en-us/microsoft-edge/webview2/'),
+                        'https://developer.microsoft.com/en-us/microsoft-edge/webview2/',
+                      ),
                       mode: LaunchMode.externalApplication,
                     );
                   },
@@ -273,24 +280,18 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
     }
 
     if (_usesLocalServer && _serverUrl == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.red),
-      );
+      return const Center(child: CircularProgressIndicator(color: Colors.red));
     }
 
     return InAppWebView(
       key: _inAppWebViewKey,
       webViewEnvironment: _sharedWebViewEnvironment,
       gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-        Factory<OneSequenceGestureRecognizer>(
-          () => EagerGestureRecognizer(),
-        ),
+        Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
       },
       initialUrlRequest: URLRequest(
         url: WebUri(_serverUrl!),
-        headers: const {
-          'Referer': 'https://www.youtube.com/',
-        },
+        headers: const {'Referer': 'https://www.youtube.com/'},
       ),
       initialSettings: InAppWebViewSettings(
         javaScriptEnabled: true,
@@ -304,8 +305,9 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         isElementFullscreenEnabled: false,
         iframeAllowFullscreen: true,
         iframeAllow: YouTubeJsScripts.iframeAllowPermissions,
-        userAgent:
-            _usesDesktopUserAgent ? YouTubeJsScripts.desktopUserAgent : null,
+        userAgent: _usesDesktopUserAgent
+            ? YouTubeJsScripts.desktopUserAgent
+            : null,
         supportMultipleWindows:
             true, // Need this TRUE for onCreateWindow to fire on target="_blank"
         useShouldOverrideUrlLoading: true,
@@ -320,8 +322,9 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
       ]),
       onPermissionRequest: (controller, request) async {
         return PermissionResponse(
-            resources: request.resources,
-            action: PermissionResponseAction.GRANT);
+          resources: request.resources,
+          action: PermissionResponseAction.GRANT,
+        );
       },
       onEnterFullscreen: (controller) async {
         log('Entered fullscreen in YouTubeWebViewPlayer');
@@ -352,7 +355,8 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         }
 
         final host = uri.host;
-        final isPlayerDocument = host == '127.0.0.1' ||
+        final isPlayerDocument =
+            host == '127.0.0.1' ||
             host == 'localhost' ||
             host == 'www.youtube.com' ||
             host == 'youtube.com' ||
@@ -392,7 +396,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
               widget.onReady?.call();
               final shouldPlay =
                   (widget.autoPlay ?? widget.config.playback.autoPlay) ||
-                      isDesktopPipMode();
+                  isDesktopPipMode();
               if (shouldPlay) {
                 play();
               }
@@ -446,7 +450,7 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
         // Inject videoId and settings after page loads
         final isAutoPlay =
             (widget.autoPlay ?? widget.config.playback.autoPlay) ||
-                isDesktopPipMode();
+            isDesktopPipMode();
         final autoplay = isAutoPlay ? 1 : 0;
         final mute = widget.config.playback.mute ? 1 : 0;
         final startAt = widget.startAt;
@@ -484,20 +488,27 @@ class YouTubeWebViewPlayerState extends State<YouTubeWebViewPlayer> {
 
   // Public control methods
   void play() => _webViewController?.evaluateJavascript(
-      source: YouTubeJsCommands.playVideo);
+    source: YouTubeJsCommands.playVideo,
+  );
   void pause() => _webViewController?.evaluateJavascript(
-      source: YouTubeJsCommands.pauseVideo);
+    source: YouTubeJsCommands.pauseVideo,
+  );
   void seekTo(int seconds) => _webViewController?.evaluateJavascript(
-      source: YouTubeJsCommands.seekTo(seconds));
+    source: YouTubeJsCommands.seekTo(seconds),
+  );
   void mute() => _webViewController?.evaluateJavascript(
-      source: YouTubeJsCommands.muteVideo);
+    source: YouTubeJsCommands.muteVideo,
+  );
   void unMute() => _webViewController?.evaluateJavascript(
-      source: YouTubeJsCommands.unMuteVideo);
+    source: YouTubeJsCommands.unMuteVideo,
+  );
   void setPlaybackRate(double rate) => _webViewController?.evaluateJavascript(
-      source: YouTubeJsCommands.setPlaybackRate(rate));
+    source: YouTubeJsCommands.setPlaybackRate(rate),
+  );
   void exitFullscreen() {
     _webViewController?.evaluateJavascript(
-        source: YouTubeJsCommands.exitFullscreen);
+      source: YouTubeJsCommands.exitFullscreen,
+    );
   }
 
   Future<int?> getCurrentTime() async {

@@ -30,7 +30,7 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
   final void Function(SubtitleTrack?)? onSubtitleSelected;
   final List<VideoChapter>? chapters;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final VoidCallback? onEnterFullscreen;
   final VoidCallback? onExitFullscreen;
   final VoidCallback? onSettingsPressed;
@@ -130,7 +130,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
     final iconColor = styling?.iconColor ?? Colors.white;
     final textColor = styling?.textColor ?? Colors.white;
 
-    final textDirection = messages?.resolveTextDirection(context) ??
+    final textDirection =
+        messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
 
@@ -140,7 +141,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
         builder: (context, constraints) {
           final isCompact = constraints.maxWidth < 500;
           final isUltraCompact = constraints.maxWidth < 380;
-          final canShowSkip = showSkipButtons &&
+          final canShowSkip =
+              showSkipButtons &&
               effectiveVisibility.showSkipButtons &&
               !isLive &&
               constraints.maxWidth > 720;
@@ -149,12 +151,14 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
           final showVolume = effectiveVisibility.showVolumeButton;
           final showTime = effectiveVisibility.showTimeDisplay && !isLive;
           final showFullscreen = effectiveVisibility.showFullscreenButton;
-          final showMiniPlayer = !inTopBar &&
+          final showMiniPlayer =
+              !inTopBar &&
               effectiveVisibility.showMiniPlayerButton &&
               onMiniPlayerPressed != null &&
               !isFullScreen &&
               constraints.maxWidth > 460;
-          final showSettings = !inTopBar &&
+          final showSettings =
+              !inTopBar &&
               effectiveVisibility.showSettingsButton &&
               constraints.maxWidth > 280;
           final showProgressBar =
@@ -162,14 +166,16 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
 
           final dynamicHeight =
               styling?.bottomBarHeight ?? (isCompact ? 42.0 : 46.0);
-          final dynamicMargin = styling?.bottomBarMargin ??
+          final dynamicMargin =
+              styling?.bottomBarMargin ??
               EdgeInsets.fromLTRB(
                 isCompact ? 10.0 : 16.0,
                 0.0,
                 isCompact ? 10.0 : 16.0,
                 isCompact ? 8.0 : 14.0,
               );
-          final dynamicPadding = styling?.bottomBarPadding ??
+          final dynamicPadding =
+              styling?.bottomBarPadding ??
               EdgeInsets.symmetric(
                 horizontal: isCompact ? 10.0 : 14.0,
                 vertical: 2.0,
@@ -187,8 +193,10 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                 final duration = value.duration;
 
                 final currentMs =
-                    (dragPosition ?? position.inMilliseconds.toDouble())
-                        .clamp(0.0, duration.inMilliseconds.toDouble());
+                    (dragPosition ?? position.inMilliseconds.toDouble()).clamp(
+                      0.0,
+                      duration.inMilliseconds.toDouble(),
+                    );
                 final maxMs = duration.inMilliseconds > 0
                     ? duration.inMilliseconds.toDouble()
                     : 0.0;
@@ -267,14 +275,15 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                             onTap: () {
                               controller.pause();
                               controller.seekTo(Duration.zero);
-                              onAnalyticsEvent
-                                  ?.call(PlayerEvents.videoStopped, {
-                                PlayerEvents.paramPosition: 0,
-                              });
+                              onAnalyticsEvent?.call(
+                                PlayerEvents.videoStopped,
+                                {PlayerEvents.paramPosition: 0},
+                              );
                             },
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4.0,
+                              ),
                               child: PlayerIcon.resolve(
                                 context,
                                 icon: styling?.icons.stopIcon,
@@ -298,8 +307,9 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                             behavior: HitTestBehavior.opaque,
                             onTap: onNextEpisode,
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4.0,
+                              ),
                               child: PlayerIcon.resolve(
                                 context,
                                 icon: styling?.icons.nextEpisodeIcon,
@@ -327,7 +337,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                 onTap: () => _seekRelative(-skipDuration),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 4.0),
+                                    horizontal: 4.0,
+                                  ),
                                   child: PlayerIcon.resolve(
                                     context,
                                     icon: styling?.icons.skipBackwardIcon,
@@ -348,7 +359,8 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                 onTap: () => _seekRelative(skipDuration),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 4.0),
+                                    horizontal: 4.0,
+                                  ),
                                   child: PlayerIcon.resolve(
                                     context,
                                     icon: styling?.icons.skipForwardIcon,
@@ -374,39 +386,46 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                             children: [
                               Text(
                                 _formatDuration(position),
-                                style: (styling?.timeTextStyle ??
-                                        TextStyle(
-                                          fontSize: isCompact ? 11.5 : 12.5,
-                                          fontWeight: FontWeight.w600,
-                                        ))
-                                    .copyWith(color: textColor),
+                                style:
+                                    (styling?.timeTextStyle ??
+                                            TextStyle(
+                                              fontSize: isCompact ? 11.5 : 12.5,
+                                              fontWeight: FontWeight.w600,
+                                            ))
+                                        .copyWith(color: textColor),
                               ),
                               if (!isUltraCompact) ...[
                                 Text(
                                   ' / ',
-                                  style: (styling?.timeTextStyle ??
-                                          TextStyle(
-                                            fontSize: isCompact ? 11.5 : 12.5,
-                                            fontWeight: FontWeight.w500,
-                                          ))
-                                      .copyWith(
-                                    color: textColor.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                  ),
+                                  style:
+                                      (styling?.timeTextStyle ??
+                                              TextStyle(
+                                                fontSize: isCompact
+                                                    ? 11.5
+                                                    : 12.5,
+                                                fontWeight: FontWeight.w500,
+                                              ))
+                                          .copyWith(
+                                            color: textColor.withValues(
+                                              alpha: 0.7,
+                                            ),
+                                          ),
                                 ),
                                 Text(
                                   _formatDuration(duration),
-                                  style: (styling?.timeTextStyle ??
-                                          TextStyle(
-                                            fontSize: isCompact ? 11.5 : 12.5,
-                                            fontWeight: FontWeight.w600,
-                                          ))
-                                      .copyWith(
-                                    color: textColor.withValues(
-                                      alpha: 0.9,
-                                    ),
-                                  ),
+                                  style:
+                                      (styling?.timeTextStyle ??
+                                              TextStyle(
+                                                fontSize: isCompact
+                                                    ? 11.5
+                                                    : 12.5,
+                                                fontWeight: FontWeight.w600,
+                                              ))
+                                          .copyWith(
+                                            color: textColor.withValues(
+                                              alpha: 0.9,
+                                            ),
+                                          ),
                                 ),
                               ],
                             ],
@@ -422,16 +441,18 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                             data: SliderTheme.of(context).copyWith(
                               trackHeight:
                                   styling?.progressBarTrackHeight ?? 3.5,
-                              thumbShape: styling?.progressBarThumbShape ??
+                              thumbShape:
+                                  styling?.progressBarThumbShape ??
                                   ((styling?.showProgressBarThumb ?? true)
                                       ? RoundSliderThumbShape(
                                           enabledThumbRadius:
                                               styling?.progressBarThumbRadius ??
-                                                  6.0,
+                                              6.0,
                                           pressedElevation: 3.0,
                                         )
                                       : const RoundSliderThumbShape(
-                                          enabledThumbRadius: 0.0)),
+                                          enabledThumbRadius: 0.0,
+                                        )),
                               overlayShape: RoundSliderOverlayShape(
                                 overlayRadius:
                                     styling?.progressBarOverlayRadius ?? 12.0,
@@ -439,11 +460,12 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                               activeTrackColor: playedColor,
                               inactiveTrackColor:
                                   styling?.progressBarBackgroundColor ??
-                                      Colors.white.withValues(alpha: 0.22),
+                                  Colors.white.withValues(alpha: 0.22),
                               thumbColor: handleColor,
                               trackShape: GradientSliderTrackShape(
                                 gradient: LinearGradient(
-                                    colors: [playedColor, handleColor]),
+                                  colors: [playedColor, handleColor],
+                                ),
                                 buffered: value.buffered,
                                 bufferedColor:
                                     styling?.progressBarBufferedColor,
@@ -458,13 +480,14 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                               onChanged: (val) {
                                 onDragChanged?.call(val);
                                 controller.seekTo(
-                                    Duration(milliseconds: val.round()));
+                                  Duration(milliseconds: val.round()),
+                                );
                               },
                               onChangeEnd: (val) {
                                 onDragEnd?.call(val);
                                 onAnalyticsEvent?.call(PlayerEvents.videoSeek, {
-                                  PlayerEvents.paramToPosition:
-                                      (val / 1000).round(),
+                                  PlayerEvents.paramToPosition: (val / 1000)
+                                      .round(),
                                 });
                               },
                             ),
@@ -475,8 +498,10 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
 
                       ConstrainedBox(
                         constraints: BoxConstraints(
-                          maxWidth:
-                              (constraints.maxWidth * 0.5).clamp(88.0, 560.0),
+                          maxWidth: (constraints.maxWidth * 0.5).clamp(
+                            88.0,
+                            560.0,
+                          ),
                         ),
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
@@ -503,8 +528,9 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                 SizedBox(width: isCompact ? 2.0 : 4.0),
                                 ConstrainedBox(
                                   constraints: BoxConstraints(
-                                    maxWidth:
-                                        constraints.maxWidth > 950 ? 150 : 80,
+                                    maxWidth: constraints.maxWidth > 950
+                                        ? 150
+                                        : 80,
                                   ),
                                   child: Tooltip(
                                     message: title!,
@@ -513,8 +539,9 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        color:
-                                            textColor.withValues(alpha: 0.85),
+                                        color: textColor.withValues(
+                                          alpha: 0.85,
+                                        ),
                                         fontSize: isCompact ? 11 : 12,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -558,10 +585,12 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                   onSpeedPressed != null) ...[
                                 SizedBox(width: isCompact ? 2.0 : 4.0),
                                 Tooltip(
-                                  message: messages?.playbackSpeedText ??
+                                  message:
+                                      messages?.playbackSpeedText ??
                                       'Playback Speed',
-                                  waitDuration:
-                                      const Duration(milliseconds: 500),
+                                  waitDuration: const Duration(
+                                    milliseconds: 500,
+                                  ),
                                   child: GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: onSpeedPressed,
@@ -593,10 +622,12 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                           subtitles!.isNotEmpty))) ...[
                                 SizedBox(width: isCompact ? 2.0 : 4.0),
                                 Tooltip(
-                                  message: messages?.audioAndSubtitlesText ??
+                                  message:
+                                      messages?.audioAndSubtitlesText ??
                                       'Audio & Subtitles',
-                                  waitDuration:
-                                      const Duration(milliseconds: 500),
+                                  waitDuration: const Duration(
+                                    milliseconds: 500,
+                                  ),
                                   child: GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: onAudioSubtitlesPressed,
@@ -626,8 +657,9 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                 SizedBox(width: isCompact ? 2.0 : 4.0),
                                 Tooltip(
                                   message: messages?.episodesText ?? 'Episodes',
-                                  waitDuration:
-                                      const Duration(milliseconds: 500),
+                                  waitDuration: const Duration(
+                                    milliseconds: 500,
+                                  ),
                                   child: GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: onEpisodesPressed,
@@ -673,8 +705,9 @@ class AdaptiveInlineBottomBar extends StatelessWidget {
                                 Tooltip(
                                   message:
                                       messages?.miniPlayerText ?? 'Miniplayer',
-                                  waitDuration:
-                                      const Duration(milliseconds: 500),
+                                  waitDuration: const Duration(
+                                    milliseconds: 500,
+                                  ),
                                   child: GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: onMiniPlayerPressed,

@@ -34,8 +34,8 @@ class ResponsiveSpeedPanel extends StatelessWidget {
   String _formatSpeedLabel(double speed, BuildContext context) {
     final normalWord =
         (messages?.resolveTextDirection(context) == TextDirection.rtl)
-            ? 'عادية'
-            : 'Normal';
+        ? 'عادية'
+        : 'Normal';
     if (speed == 1.0) {
       return '1x ($normalWord)';
     }
@@ -44,7 +44,8 @@ class ResponsiveSpeedPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textDirection = messages?.resolveTextDirection(context) ??
+    final textDirection =
+        messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
     final isRtl = textDirection == TextDirection.rtl;
@@ -162,8 +163,9 @@ class ResponsiveSpeedPanel extends StatelessWidget {
                                           width: 8,
                                           height: 8,
                                           decoration: BoxDecoration(
-                                            color: Colors.white
-                                                .withValues(alpha: 0.8),
+                                            color: Colors.white.withValues(
+                                              alpha: 0.8,
+                                            ),
                                             shape: BoxShape.circle,
                                           ),
                                         ),
@@ -194,8 +196,8 @@ class ResponsiveSpeedPanel extends StatelessWidget {
                             textAlign: index == 0
                                 ? TextAlign.start
                                 : (index == defaultSpeeds.length - 1
-                                    ? TextAlign.end
-                                    : TextAlign.center),
+                                      ? TextAlign.end
+                                      : TextAlign.center),
                             style: TextStyle(
                               color: isSelected
                                   ? Colors.white
@@ -423,8 +425,8 @@ class ResponsiveSpeedTrack extends StatelessWidget {
                     color: i == 0
                         ? Colors.transparent
                         : (i > start && i <= end
-                            ? Colors.white
-                            : Colors.white24),
+                              ? Colors.white
+                              : Colors.white24),
                   ),
                 ),
                 Expanded(
@@ -433,8 +435,8 @@ class ResponsiveSpeedTrack extends StatelessWidget {
                     color: i == count - 1
                         ? Colors.transparent
                         : (i >= start && i < end
-                            ? Colors.white
-                            : Colors.white24),
+                              ? Colors.white
+                              : Colors.white24),
                   ),
                 ),
               ],

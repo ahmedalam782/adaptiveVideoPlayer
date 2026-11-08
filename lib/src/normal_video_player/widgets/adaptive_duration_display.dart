@@ -36,7 +36,8 @@ class AdaptiveDurationDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = styling?.timeTextStyle ??
+    final style =
+        styling?.timeTextStyle ??
         styling?.settingItemTextStyle ??
         const TextStyle(
           color: Colors.white,
@@ -46,7 +47,8 @@ class AdaptiveDurationDisplay extends StatelessWidget {
 
     final textColor = styling?.textColor ?? Colors.white;
     final activeChapter = VideoChapter.findChapterAt(chapters, position);
-    final canShowChapter = isWide &&
+    final canShowChapter =
+        isWide &&
         activeChapter != null &&
         (visibility?.showChapterTitle ?? true);
 
@@ -65,22 +67,16 @@ class AdaptiveDurationDisplay extends StatelessWidget {
           ),
           Text(
             ' / ',
-            style: style.copyWith(
-              color: textColor.withValues(alpha: 0.7),
-            ),
+            style: style.copyWith(color: textColor.withValues(alpha: 0.7)),
           ),
           Text(
             formatDuration(duration),
-            style: style.copyWith(
-              color: textColor.withValues(alpha: 0.9),
-            ),
+            style: style.copyWith(color: textColor.withValues(alpha: 0.9)),
           ),
           if (canShowChapter) ...[
             Text(
               '  •  ',
-              style: style.copyWith(
-                color: textColor.withValues(alpha: 0.6),
-              ),
+              style: style.copyWith(color: textColor.withValues(alpha: 0.6)),
             ),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 120),

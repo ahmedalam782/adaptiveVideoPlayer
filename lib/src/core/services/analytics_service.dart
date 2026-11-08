@@ -3,7 +3,7 @@ import '../contracts/i_analytics_service.dart';
 /// Default analytics implementation delegating to an optional user-supplied callback.
 class CallbackAnalyticsService implements IAnalyticsService {
   final void Function(String event, Map<String, dynamic> data)?
-      _onAnalyticsEvent;
+  _onAnalyticsEvent;
 
   CallbackAnalyticsService([this._onAnalyticsEvent]);
 

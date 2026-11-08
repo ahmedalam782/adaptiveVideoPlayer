@@ -36,9 +36,7 @@ class NormalFullscreenOverlay extends StatelessWidget {
             backgroundColor: Colors.black,
             body: Directionality(
               textDirection: effectiveDirection,
-              child: SizedBox.expand(
-                child: child,
-              ),
+              child: SizedBox.expand(child: child),
             ),
           ),
         ),

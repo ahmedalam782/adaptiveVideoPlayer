@@ -7,7 +7,7 @@ class NormalPlayerErrorWidget extends StatelessWidget {
   final String errorMessage;
   final PlayerStyleConfig? styling;
   final Widget Function(BuildContext context, String errorMessage)?
-      customBuilder;
+  customBuilder;
   final VoidCallback? onRetry;
 
   const NormalPlayerErrorWidget({
@@ -42,7 +42,8 @@ class NormalPlayerErrorWidget extends StatelessWidget {
                   context,
                   icon: styling?.icons.errorIcon,
                   fallbackIcon: Icons.error_outline,
-                  defaultColor: styling?.errorIconColor ??
+                  defaultColor:
+                      styling?.errorIconColor ??
                       const Color.fromRGBO(255, 0, 0, 0.7),
                   defaultSize: 48,
                 ),
@@ -50,7 +51,8 @@ class NormalPlayerErrorWidget extends StatelessWidget {
                 Text(
                   errorMessage,
                   style: TextStyle(
-                    color: styling?.textColor ??
+                    color:
+                        styling?.textColor ??
                         const Color.fromRGBO(255, 0, 0, 0.7),
                     fontSize: 14,
                   ),

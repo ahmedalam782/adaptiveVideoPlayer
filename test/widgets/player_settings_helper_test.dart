@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_settings_helper.dart';
 
 void main() {
-  testWidgets('showPlayerSettingsSheet displays sheet',
-      (WidgetTester tester) async {
+  testWidgets('showPlayerSettingsSheet displays sheet', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

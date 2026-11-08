@@ -11,8 +11,9 @@ void setupHlsForWeb(String url, int playerId) {
   if (!url.contains('.m3u8')) return;
 
   // 1. Inject hls.js from CDN if not already loaded in the document
-  final existing =
-      web.document.querySelector('#${HlsJsConstants.hlsScriptElementId}');
+  final existing = web.document.querySelector(
+    '#${HlsJsConstants.hlsScriptElementId}',
+  );
   if (existing == null) {
     final script = web.HTMLScriptElement()
       ..id = HlsJsConstants.hlsScriptElementId

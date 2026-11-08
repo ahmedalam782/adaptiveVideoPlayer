@@ -44,9 +44,11 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
         currentQuality = widget.qualities![oldIndex];
       } else {
         final byUrl = widget.qualities!
-            .where((q) =>
-                q.url == currentQuality!.url &&
-                q.isLive == currentQuality!.isLive)
+            .where(
+              (q) =>
+                  q.url == currentQuality!.url &&
+                  q.isLive == currentQuality!.isLive,
+            )
             .firstOrNull;
         if (byUrl != null) {
           currentQuality = byUrl;
@@ -116,15 +118,17 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
     _didAttemptDecodeRecovery = false;
 
     try {
-      final isHls = widget.extension == VideoFileExtension.hls ||
+      final isHls =
+          widget.extension == VideoFileExtension.hls ||
           newQuality.url.contains('.m3u8');
-      final isDash = widget.extension == VideoFileExtension.dash ||
+      final isDash =
+          widget.extension == VideoFileExtension.dash ||
           newQuality.url.contains('.mpd');
       final formatHint = isHls
           ? VideoFormat.hls
           : isDash
-              ? VideoFormat.dash
-              : null;
+          ? VideoFormat.dash
+          : null;
 
       VideoPlayerController? cachedController;
       if (widget.config.enableCache &&
@@ -243,18 +247,21 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
             : 'Playing video from: $effectiveSource',
       );
 
-      final isHls = widget.extension == VideoFileExtension.hls ||
+      final isHls =
+          widget.extension == VideoFileExtension.hls ||
           effectiveSource.contains('.m3u8');
-      final isDash = widget.extension == VideoFileExtension.dash ||
+      final isDash =
+          widget.extension == VideoFileExtension.dash ||
           effectiveSource.contains('.mpd');
       final formatHint = isHls
           ? VideoFormat.hls
           : isDash
-              ? VideoFormat.dash
-              : null;
+          ? VideoFormat.dash
+          : null;
 
       final VideoPlayerController nextController;
-      final preloaded = widget.config.preloadedController ??
+      final preloaded =
+          widget.config.preloadedController ??
           AdaptiveVideoPreloader.take(effectiveSource);
 
       if (preloaded != null && preloaded.value.isInitialized) {
@@ -304,8 +311,9 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
 
       if (startAt != null && !effectiveIsLive) {
         final maxDur = videoPlayerController!.value.duration;
-        final target =
-            (maxDur > Duration.zero && startAt > maxDur) ? maxDur : startAt;
+        final target = (maxDur > Duration.zero && startAt > maxDur)
+            ? maxDur
+            : startAt;
         await videoPlayerController!.seekTo(target);
       }
 
@@ -342,7 +350,9 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
         try {
           await videoPlayerController!.play();
         } catch (playError) {
-          log('Unmuted autoplay blocked by browser, falling back to muted autoplay: $playError');
+          log(
+            'Unmuted autoplay blocked by browser, falling back to muted autoplay: $playError',
+          );
           try {
             await videoPlayerController!.setVolume(0.0);
             await videoPlayerController!.play();
@@ -407,19 +417,24 @@ mixin NormalPlayerControllerMixin on State<NormalVideoPlayer> {
           !_didAttemptDecodeRecovery) {
         _isRecoveringDecode = true;
         _didAttemptDecodeRecovery = true;
-        log('Attempting automatic recovery from video pipeline decode error...');
+        log(
+          'Attempting automatic recovery from video pipeline decode error...',
+        );
         final currentPos =
             videoPlayerController?.value.position ?? Duration.zero;
         initializeVideo(
-          startAt: currentPos,
-          wasPlaying: true,
-          onPlaybackUpdate: () => handleControllerPlaybackUpdate(onPipUpdate),
-          onEnsurePlayback: (_) {},
-        ).then((_) {
-          _isRecoveringDecode = false;
-        }).catchError((_) {
-          _isRecoveringDecode = false;
-        });
+              startAt: currentPos,
+              wasPlaying: true,
+              onPlaybackUpdate: () =>
+                  handleControllerPlaybackUpdate(onPipUpdate),
+              onEnsurePlayback: (_) {},
+            )
+            .then((_) {
+              _isRecoveringDecode = false;
+            })
+            .catchError((_) {
+              _isRecoveringDecode = false;
+            });
         return;
       }
 

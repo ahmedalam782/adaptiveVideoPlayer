@@ -39,9 +39,8 @@ class PlayerState {
   });
 
   /// Initial idle state
-  factory PlayerState.initial({bool isLive = false}) => PlayerState(
-        isLive: isLive,
-      );
+  factory PlayerState.initial({bool isLive = false}) =>
+      PlayerState(isLive: isLive);
 
   PlayerState copyWith({
     Duration? position,
@@ -102,20 +101,20 @@ class PlayerState {
 
   @override
   int get hashCode => Object.hash(
-        position,
-        duration,
-        buffered,
-        isPlaying,
-        isBuffering,
-        isCompleted,
-        isReady,
-        hasError,
-        errorMessage,
-        volume,
-        isMuted,
-        playbackSpeed,
-        isLive,
-        currentQuality,
-        currentSubtitle,
-      );
+    position,
+    duration,
+    buffered,
+    isPlaying,
+    isBuffering,
+    isCompleted,
+    isReady,
+    hasError,
+    errorMessage,
+    volume,
+    isMuted,
+    playbackSpeed,
+    isLive,
+    currentQuality,
+    currentSubtitle,
+  );
 }

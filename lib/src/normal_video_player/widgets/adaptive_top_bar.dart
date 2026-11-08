@@ -15,7 +15,7 @@ class AdaptiveTopBar extends StatelessWidget {
   final List<VideoQuality>? qualities;
   final void Function(VideoQuality)? onQualitySelected;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final bool? showBackButton;
   final PlayerTextConfig? messages;
   final PlayerStyleConfig? styling;
@@ -93,7 +93,8 @@ class AdaptiveTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textDirection = messages?.resolveTextDirection(context) ??
+    final textDirection =
+        messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
     final isRtl = textDirection == TextDirection.rtl;
@@ -109,7 +110,8 @@ class AdaptiveTopBar extends StatelessWidget {
           final isCompact = maxW < 420;
           final buttonSpacing = isCompact ? 6.0 : 8.0;
 
-          final lockButton = (visibility?.showScreenLockButton ?? true) &&
+          final lockButton =
+              (visibility?.showScreenLockButton ?? true) &&
                   onLockPressed != null
               ? AdaptiveCirclePillButton(
                   icon: Icons.lock_outline_rounded,
@@ -156,7 +158,8 @@ class AdaptiveTopBar extends StatelessWidget {
               AdaptiveCirclePillButton(
                 playerIcon: styling?.icons.settingsIcon,
                 icon: Icons.settings_outlined,
-                tooltip: messages?.playerSettingsText ??
+                tooltip:
+                    messages?.playerSettingsText ??
                     PlayerStrings.playerSettings,
                 onTap: onSettingsPressed!,
                 color: iconColor,
@@ -174,19 +177,21 @@ class AdaptiveTopBar extends StatelessWidget {
 
           final shouldShowActions =
               (showActions ?? visibility?.showActionsInTopBar ?? false) &&
-                  actionButtons.isNotEmpty;
+              actionButtons.isNotEmpty;
 
           // Trailing cluster (viewerCount + action buttons)
           final trailingWidgets = <Widget>[
-            if (lockButton != null) lockButton,
+            ?lockButton,
             if (viewerCount != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.45),
                       borderRadius: BorderRadius.circular(12),
@@ -235,7 +240,8 @@ class AdaptiveTopBar extends StatelessWidget {
             children: [
               if (hasBackButton) ...[
                 Tooltip(
-                  message: messages?.backText ??
+                  message:
+                      messages?.backText ??
                       messages?.exitFullscreenText ??
                       'Back',
                   child: GestureDetector(

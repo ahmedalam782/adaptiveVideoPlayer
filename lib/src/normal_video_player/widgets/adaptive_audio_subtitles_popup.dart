@@ -77,7 +77,8 @@ class _ResponsiveAudioSubtitlesPanelState
 
   @override
   Widget build(BuildContext context) {
-    final textDirection = widget.messages?.resolveTextDirection(context) ??
+    final textDirection =
+        widget.messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
     final isRtl = textDirection == TextDirection.rtl;
@@ -127,7 +128,8 @@ class _ResponsiveAudioSubtitlesPanelState
           decoration: widget.immersive
               ? const BoxDecoration(color: Color(0xF0141414))
               : BoxDecoration(
-                  color: widget.styling?.settingsBackgroundColor ??
+                  color:
+                      widget.styling?.settingsBackgroundColor ??
                       const Color(0xF21F1F1F),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
@@ -149,8 +151,10 @@ class _ResponsiveAudioSubtitlesPanelState
                       alignment: AlignmentDirectional.centerEnd,
                       child: IconButton(
                         onPressed: widget.onClose,
-                        icon: const Icon(Icons.close_rounded,
-                            color: Colors.white),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     Expanded(child: columns),

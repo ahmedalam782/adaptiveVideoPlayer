@@ -44,8 +44,9 @@ class AdaptiveFullscreenButton extends StatelessWidget {
             icon: isFullScreen
                 ? styling?.icons.exitFullscreenIcon
                 : styling?.icons.fullscreenIcon,
-            fallbackIcon:
-                isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+            fallbackIcon: isFullScreen
+                ? Icons.fullscreen_exit
+                : Icons.fullscreen,
             defaultColor: styling?.iconColor ?? Colors.white,
             defaultSize: 20,
           ),

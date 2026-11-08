@@ -39,7 +39,8 @@ class AdaptiveGlassmorphicContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveRadius = customBorderRadius ??
+    final effectiveRadius =
+        customBorderRadius ??
         (shape == BoxShape.circle ? null : BorderRadius.circular(borderRadius));
     final effectiveColor = color ?? Colors.black.withValues(alpha: 0.40);
     final effectiveBorderColor =
@@ -50,7 +51,8 @@ class AdaptiveGlassmorphicContainer extends StatelessWidget {
       shape: shape,
       borderRadius: shape == BoxShape.circle ? null : effectiveRadius,
       border: Border.all(color: effectiveBorderColor, width: borderWidth),
-      boxShadow: shadows ??
+      boxShadow:
+          shadows ??
           [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.25),

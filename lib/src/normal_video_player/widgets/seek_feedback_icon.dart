@@ -21,11 +21,11 @@ class SeekFeedbackIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final isNumberedIcon =
         configuredIcon?.iconData == Icons.replay_10_rounded ||
-            configuredIcon?.iconData == Icons.replay_5_rounded ||
-            configuredIcon?.iconData == Icons.replay_30_rounded ||
-            configuredIcon?.iconData == Icons.forward_10_rounded ||
-            configuredIcon?.iconData == Icons.forward_5_rounded ||
-            configuredIcon?.iconData == Icons.forward_30_rounded;
+        configuredIcon?.iconData == Icons.replay_5_rounded ||
+        configuredIcon?.iconData == Icons.replay_30_rounded ||
+        configuredIcon?.iconData == Icons.forward_10_rounded ||
+        configuredIcon?.iconData == Icons.forward_5_rounded ||
+        configuredIcon?.iconData == Icons.forward_30_rounded;
 
     if (configuredIcon != null && !isNumberedIcon) {
       return configuredIcon!.build(

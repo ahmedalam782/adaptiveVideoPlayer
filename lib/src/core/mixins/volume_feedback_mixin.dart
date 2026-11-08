@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 /// Builder callback for customizable volume feedback indicator UI
-typedef VolumeFeedbackBuilder = Widget Function(
-    BuildContext context, double volume);
+typedef VolumeFeedbackBuilder =
+    Widget Function(BuildContext context, double volume);
 
 /// Reusable mixin for handling temporary volume HUD feedback overlays with full customization.
 mixin VolumeFeedbackMixin<T extends StatefulWidget> on State<T> {
@@ -130,7 +130,8 @@ class DefaultVolumeFeedbackWidget extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               '${(volume * 100).toInt()}%',
-              style: textStyle ??
+              style:
+                  textStyle ??
                   const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

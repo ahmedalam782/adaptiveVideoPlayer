@@ -18,14 +18,16 @@ import '../../normal_video_player/utils/fullscreen_utils_export.dart';
 class ScreenProtectionService {
   ScreenProtectionService._();
 
-  static const MethodChannel _channel =
-      MethodChannel('adaptive_video_player/security');
+  static const MethodChannel _channel = MethodChannel(
+    'adaptive_video_player/security',
+  );
 
   static final Set<Object> _activeOwners = <Object>{};
 
   /// Notifier reflecting whether screen capture prevention is currently active.
-  static final ValueNotifier<bool> isProtectedNotifier =
-      ValueNotifier<bool>(false);
+  static final ValueNotifier<bool> isProtectedNotifier = ValueNotifier<bool>(
+    false,
+  );
 
   static const Object _defaultOwner = Object();
 

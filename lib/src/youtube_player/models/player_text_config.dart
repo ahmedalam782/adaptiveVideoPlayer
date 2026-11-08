@@ -231,52 +231,53 @@ class PlayerTextConfig {
     String backText = 'Back',
     String volumeText = 'Volume',
   }) : this(
-          languageCode: languageCode,
-          textDirection: textDirection,
-          invalidYoutubeUrlText: invalidYoutubeUrlText,
-          videoLoadFailedText: videoLoadFailedText,
-          videoUnavailableText: videoUnavailableText,
-          videoNotCompatibleText: videoNotCompatibleText,
-          videoCannotBeLoadedSecurityPolicyText:
-              videoCannotBeLoadedSecurityPolicyText,
-          playerSettingsText: playerSettingsText,
-          autoPlayText: autoPlayText,
-          loopVideoText: loopVideoText,
-          forceHdQualityText: forceHdQualityText,
-          enableCaptionsText: enableCaptionsText,
-          muteAudioText: muteAudioText,
-          unmuteAudioText: unmuteAudioText,
-          noQualitiesAvailableText: noQualitiesAvailableText,
-          noSubtitlesAvailableText: noSubtitlesAvailableText,
-          qualityText: qualityText,
-          subtitlesText: subtitlesText,
-          playbackSpeedText: playbackSpeedText,
-          normalSpeedText: normalSpeedText,
-          autoText: autoText,
-          offText: offText,
-          skipBackwardText: skipBackwardText,
-          skipForwardText: skipForwardText,
-          miniPlayerText: miniPlayerText,
-          restorePlayerText: restorePlayerText,
-          expandPlayerText: expandPlayerText,
-          closeMiniPlayerText: closeMiniPlayerText,
-          playText: playText,
-          pauseText: pauseText,
-          stopVideoText: stopVideoText,
-          fullscreenText: fullscreenText,
-          exitFullscreenText: exitFullscreenText,
-          liveText: liveText,
-          goLiveText: goLiveText,
-          speed2xText: speed2xText,
-          backText: backText,
-          volumeText: volumeText,
-        );
+         languageCode: languageCode,
+         textDirection: textDirection,
+         invalidYoutubeUrlText: invalidYoutubeUrlText,
+         videoLoadFailedText: videoLoadFailedText,
+         videoUnavailableText: videoUnavailableText,
+         videoNotCompatibleText: videoNotCompatibleText,
+         videoCannotBeLoadedSecurityPolicyText:
+             videoCannotBeLoadedSecurityPolicyText,
+         playerSettingsText: playerSettingsText,
+         autoPlayText: autoPlayText,
+         loopVideoText: loopVideoText,
+         forceHdQualityText: forceHdQualityText,
+         enableCaptionsText: enableCaptionsText,
+         muteAudioText: muteAudioText,
+         unmuteAudioText: unmuteAudioText,
+         noQualitiesAvailableText: noQualitiesAvailableText,
+         noSubtitlesAvailableText: noSubtitlesAvailableText,
+         qualityText: qualityText,
+         subtitlesText: subtitlesText,
+         playbackSpeedText: playbackSpeedText,
+         normalSpeedText: normalSpeedText,
+         autoText: autoText,
+         offText: offText,
+         skipBackwardText: skipBackwardText,
+         skipForwardText: skipForwardText,
+         miniPlayerText: miniPlayerText,
+         restorePlayerText: restorePlayerText,
+         expandPlayerText: expandPlayerText,
+         closeMiniPlayerText: closeMiniPlayerText,
+         playText: playText,
+         pauseText: pauseText,
+         stopVideoText: stopVideoText,
+         fullscreenText: fullscreenText,
+         exitFullscreenText: exitFullscreenText,
+         liveText: liveText,
+         goLiveText: goLiveText,
+         speed2xText: speed2xText,
+         backText: backText,
+         volumeText: volumeText,
+       );
 
   /// Deprecated convenience constructor.
   /// To localize the player into Arabic, provide Arabic strings in your app using
   /// [PlayerTextConfig.fromMap] or custom language files as demonstrated in the example app.
   @Deprecated(
-      'Use app-level language files (see example). Package defaults strictly to English.')
+    'Use app-level language files (see example). Package defaults strictly to English.',
+  )
   const PlayerTextConfig.arabic({
     String? languageCode = 'ar',
     TextDirection? textDirection = TextDirection.rtl,
@@ -323,56 +324,57 @@ class PlayerTextConfig {
     String audioDescriptionText = 'الوصف الصوتي',
     String audioAndSubtitlesText = 'الصوت والترجمة',
   }) : this(
-          languageCode: languageCode,
-          textDirection: textDirection,
-          invalidYoutubeUrlText: invalidYoutubeUrlText,
-          videoLoadFailedText: videoLoadFailedText,
-          videoUnavailableText: videoUnavailableText,
-          videoNotCompatibleText: videoNotCompatibleText,
-          videoCannotBeLoadedSecurityPolicyText:
-              videoCannotBeLoadedSecurityPolicyText,
-          playerSettingsText: playerSettingsText,
-          autoPlayText: autoPlayText,
-          loopVideoText: loopVideoText,
-          forceHdQualityText: forceHdQualityText,
-          enableCaptionsText: enableCaptionsText,
-          muteAudioText: muteAudioText,
-          unmuteAudioText: unmuteAudioText,
-          noQualitiesAvailableText: noQualitiesAvailableText,
-          noSubtitlesAvailableText: noSubtitlesAvailableText,
-          qualityText: qualityText,
-          subtitlesText: subtitlesText,
-          playbackSpeedText: playbackSpeedText,
-          normalSpeedText: normalSpeedText,
-          autoText: autoText,
-          offText: offText,
-          skipBackwardText: skipBackwardText,
-          skipForwardText: skipForwardText,
-          miniPlayerText: miniPlayerText,
-          restorePlayerText: restorePlayerText,
-          expandPlayerText: expandPlayerText,
-          closeMiniPlayerText: closeMiniPlayerText,
-          playText: playText,
-          pauseText: pauseText,
-          fullscreenText: fullscreenText,
-          exitFullscreenText: exitFullscreenText,
-          liveText: liveText,
-          goLiveText: goLiveText,
-          speed2xText: speed2xText,
-          backText: backText,
-          volumeText: volumeText,
-          episodesText: episodesText,
-          nextEpisodeText: nextEpisodeText,
-          audioText: audioText,
-          nowPlayingText: nowPlayingText,
-          audioDescriptionText: audioDescriptionText,
-          audioAndSubtitlesText: audioAndSubtitlesText,
-        );
+         languageCode: languageCode,
+         textDirection: textDirection,
+         invalidYoutubeUrlText: invalidYoutubeUrlText,
+         videoLoadFailedText: videoLoadFailedText,
+         videoUnavailableText: videoUnavailableText,
+         videoNotCompatibleText: videoNotCompatibleText,
+         videoCannotBeLoadedSecurityPolicyText:
+             videoCannotBeLoadedSecurityPolicyText,
+         playerSettingsText: playerSettingsText,
+         autoPlayText: autoPlayText,
+         loopVideoText: loopVideoText,
+         forceHdQualityText: forceHdQualityText,
+         enableCaptionsText: enableCaptionsText,
+         muteAudioText: muteAudioText,
+         unmuteAudioText: unmuteAudioText,
+         noQualitiesAvailableText: noQualitiesAvailableText,
+         noSubtitlesAvailableText: noSubtitlesAvailableText,
+         qualityText: qualityText,
+         subtitlesText: subtitlesText,
+         playbackSpeedText: playbackSpeedText,
+         normalSpeedText: normalSpeedText,
+         autoText: autoText,
+         offText: offText,
+         skipBackwardText: skipBackwardText,
+         skipForwardText: skipForwardText,
+         miniPlayerText: miniPlayerText,
+         restorePlayerText: restorePlayerText,
+         expandPlayerText: expandPlayerText,
+         closeMiniPlayerText: closeMiniPlayerText,
+         playText: playText,
+         pauseText: pauseText,
+         fullscreenText: fullscreenText,
+         exitFullscreenText: exitFullscreenText,
+         liveText: liveText,
+         goLiveText: goLiveText,
+         speed2xText: speed2xText,
+         backText: backText,
+         volumeText: volumeText,
+         episodesText: episodesText,
+         nextEpisodeText: nextEpisodeText,
+         audioText: audioText,
+         nowPlayingText: nowPlayingText,
+         audioDescriptionText: audioDescriptionText,
+         audioAndSubtitlesText: audioAndSubtitlesText,
+       );
 
   /// Deprecated convenience constructor.
   /// To localize into Spanish, provide Spanish translations in your app via [PlayerTextConfig.fromMap].
   @Deprecated(
-      'Use app-level language files (see example). Package defaults strictly to English.')
+    'Use app-level language files (see example). Package defaults strictly to English.',
+  )
   const PlayerTextConfig.spanish({
     String? languageCode = 'es',
     TextDirection? textDirection = TextDirection.ltr,
@@ -419,56 +421,57 @@ class PlayerTextConfig {
     String audioDescriptionText = 'Audiodescripción',
     String audioAndSubtitlesText = 'Audio y subtítulos',
   }) : this(
-          languageCode: languageCode,
-          textDirection: textDirection,
-          invalidYoutubeUrlText: invalidYoutubeUrlText,
-          videoLoadFailedText: videoLoadFailedText,
-          videoUnavailableText: videoUnavailableText,
-          videoNotCompatibleText: videoNotCompatibleText,
-          videoCannotBeLoadedSecurityPolicyText:
-              videoCannotBeLoadedSecurityPolicyText,
-          playerSettingsText: playerSettingsText,
-          autoPlayText: autoPlayText,
-          loopVideoText: loopVideoText,
-          forceHdQualityText: forceHdQualityText,
-          enableCaptionsText: enableCaptionsText,
-          muteAudioText: muteAudioText,
-          unmuteAudioText: unmuteAudioText,
-          noQualitiesAvailableText: noQualitiesAvailableText,
-          noSubtitlesAvailableText: noSubtitlesAvailableText,
-          qualityText: qualityText,
-          subtitlesText: subtitlesText,
-          playbackSpeedText: playbackSpeedText,
-          normalSpeedText: normalSpeedText,
-          autoText: autoText,
-          offText: offText,
-          skipBackwardText: skipBackwardText,
-          skipForwardText: skipForwardText,
-          miniPlayerText: miniPlayerText,
-          restorePlayerText: restorePlayerText,
-          expandPlayerText: expandPlayerText,
-          closeMiniPlayerText: closeMiniPlayerText,
-          playText: playText,
-          pauseText: pauseText,
-          fullscreenText: fullscreenText,
-          exitFullscreenText: exitFullscreenText,
-          liveText: liveText,
-          goLiveText: goLiveText,
-          speed2xText: speed2xText,
-          backText: backText,
-          volumeText: volumeText,
-          episodesText: episodesText,
-          nextEpisodeText: nextEpisodeText,
-          audioText: audioText,
-          nowPlayingText: nowPlayingText,
-          audioDescriptionText: audioDescriptionText,
-          audioAndSubtitlesText: audioAndSubtitlesText,
-        );
+         languageCode: languageCode,
+         textDirection: textDirection,
+         invalidYoutubeUrlText: invalidYoutubeUrlText,
+         videoLoadFailedText: videoLoadFailedText,
+         videoUnavailableText: videoUnavailableText,
+         videoNotCompatibleText: videoNotCompatibleText,
+         videoCannotBeLoadedSecurityPolicyText:
+             videoCannotBeLoadedSecurityPolicyText,
+         playerSettingsText: playerSettingsText,
+         autoPlayText: autoPlayText,
+         loopVideoText: loopVideoText,
+         forceHdQualityText: forceHdQualityText,
+         enableCaptionsText: enableCaptionsText,
+         muteAudioText: muteAudioText,
+         unmuteAudioText: unmuteAudioText,
+         noQualitiesAvailableText: noQualitiesAvailableText,
+         noSubtitlesAvailableText: noSubtitlesAvailableText,
+         qualityText: qualityText,
+         subtitlesText: subtitlesText,
+         playbackSpeedText: playbackSpeedText,
+         normalSpeedText: normalSpeedText,
+         autoText: autoText,
+         offText: offText,
+         skipBackwardText: skipBackwardText,
+         skipForwardText: skipForwardText,
+         miniPlayerText: miniPlayerText,
+         restorePlayerText: restorePlayerText,
+         expandPlayerText: expandPlayerText,
+         closeMiniPlayerText: closeMiniPlayerText,
+         playText: playText,
+         pauseText: pauseText,
+         fullscreenText: fullscreenText,
+         exitFullscreenText: exitFullscreenText,
+         liveText: liveText,
+         goLiveText: goLiveText,
+         speed2xText: speed2xText,
+         backText: backText,
+         volumeText: volumeText,
+         episodesText: episodesText,
+         nextEpisodeText: nextEpisodeText,
+         audioText: audioText,
+         nowPlayingText: nowPlayingText,
+         audioDescriptionText: audioDescriptionText,
+         audioAndSubtitlesText: audioAndSubtitlesText,
+       );
 
   /// Deprecated convenience constructor.
   /// To localize into French, provide French translations in your app via [PlayerTextConfig.fromMap].
   @Deprecated(
-      'Use app-level language files (see example). Package defaults strictly to English.')
+    'Use app-level language files (see example). Package defaults strictly to English.',
+  )
   const PlayerTextConfig.french({
     String? languageCode = 'fr',
     TextDirection? textDirection = TextDirection.ltr,
@@ -515,56 +518,57 @@ class PlayerTextConfig {
     String audioDescriptionText = 'Audiodescription',
     String audioAndSubtitlesText = 'Audio et sous-titres',
   }) : this(
-          languageCode: languageCode,
-          textDirection: textDirection,
-          invalidYoutubeUrlText: invalidYoutubeUrlText,
-          videoLoadFailedText: videoLoadFailedText,
-          videoUnavailableText: videoUnavailableText,
-          videoNotCompatibleText: videoNotCompatibleText,
-          videoCannotBeLoadedSecurityPolicyText:
-              videoCannotBeLoadedSecurityPolicyText,
-          playerSettingsText: playerSettingsText,
-          autoPlayText: autoPlayText,
-          loopVideoText: loopVideoText,
-          forceHdQualityText: forceHdQualityText,
-          enableCaptionsText: enableCaptionsText,
-          muteAudioText: muteAudioText,
-          unmuteAudioText: unmuteAudioText,
-          noQualitiesAvailableText: noQualitiesAvailableText,
-          noSubtitlesAvailableText: noSubtitlesAvailableText,
-          qualityText: qualityText,
-          subtitlesText: subtitlesText,
-          playbackSpeedText: playbackSpeedText,
-          normalSpeedText: normalSpeedText,
-          autoText: autoText,
-          offText: offText,
-          skipBackwardText: skipBackwardText,
-          skipForwardText: skipForwardText,
-          miniPlayerText: miniPlayerText,
-          restorePlayerText: restorePlayerText,
-          expandPlayerText: expandPlayerText,
-          closeMiniPlayerText: closeMiniPlayerText,
-          playText: playText,
-          pauseText: pauseText,
-          fullscreenText: fullscreenText,
-          exitFullscreenText: exitFullscreenText,
-          liveText: liveText,
-          goLiveText: goLiveText,
-          speed2xText: speed2xText,
-          backText: backText,
-          volumeText: volumeText,
-          episodesText: episodesText,
-          nextEpisodeText: nextEpisodeText,
-          audioText: audioText,
-          nowPlayingText: nowPlayingText,
-          audioDescriptionText: audioDescriptionText,
-          audioAndSubtitlesText: audioAndSubtitlesText,
-        );
+         languageCode: languageCode,
+         textDirection: textDirection,
+         invalidYoutubeUrlText: invalidYoutubeUrlText,
+         videoLoadFailedText: videoLoadFailedText,
+         videoUnavailableText: videoUnavailableText,
+         videoNotCompatibleText: videoNotCompatibleText,
+         videoCannotBeLoadedSecurityPolicyText:
+             videoCannotBeLoadedSecurityPolicyText,
+         playerSettingsText: playerSettingsText,
+         autoPlayText: autoPlayText,
+         loopVideoText: loopVideoText,
+         forceHdQualityText: forceHdQualityText,
+         enableCaptionsText: enableCaptionsText,
+         muteAudioText: muteAudioText,
+         unmuteAudioText: unmuteAudioText,
+         noQualitiesAvailableText: noQualitiesAvailableText,
+         noSubtitlesAvailableText: noSubtitlesAvailableText,
+         qualityText: qualityText,
+         subtitlesText: subtitlesText,
+         playbackSpeedText: playbackSpeedText,
+         normalSpeedText: normalSpeedText,
+         autoText: autoText,
+         offText: offText,
+         skipBackwardText: skipBackwardText,
+         skipForwardText: skipForwardText,
+         miniPlayerText: miniPlayerText,
+         restorePlayerText: restorePlayerText,
+         expandPlayerText: expandPlayerText,
+         closeMiniPlayerText: closeMiniPlayerText,
+         playText: playText,
+         pauseText: pauseText,
+         fullscreenText: fullscreenText,
+         exitFullscreenText: exitFullscreenText,
+         liveText: liveText,
+         goLiveText: goLiveText,
+         speed2xText: speed2xText,
+         backText: backText,
+         volumeText: volumeText,
+         episodesText: episodesText,
+         nextEpisodeText: nextEpisodeText,
+         audioText: audioText,
+         nowPlayingText: nowPlayingText,
+         audioDescriptionText: audioDescriptionText,
+         audioAndSubtitlesText: audioAndSubtitlesText,
+       );
 
   /// Deprecated convenience constructor.
   /// To localize into German, provide German translations in your app via [PlayerTextConfig.fromMap].
   @Deprecated(
-      'Use app-level language files (see example). Package defaults strictly to English.')
+    'Use app-level language files (see example). Package defaults strictly to English.',
+  )
   const PlayerTextConfig.german({
     String? languageCode = 'de',
     TextDirection? textDirection = TextDirection.ltr,
@@ -611,56 +615,57 @@ class PlayerTextConfig {
     String audioDescriptionText = 'Audiobeschreibung',
     String audioAndSubtitlesText = 'Audio und Untertitel',
   }) : this(
-          languageCode: languageCode,
-          textDirection: textDirection,
-          invalidYoutubeUrlText: invalidYoutubeUrlText,
-          videoLoadFailedText: videoLoadFailedText,
-          videoUnavailableText: videoUnavailableText,
-          videoNotCompatibleText: videoNotCompatibleText,
-          videoCannotBeLoadedSecurityPolicyText:
-              videoCannotBeLoadedSecurityPolicyText,
-          playerSettingsText: playerSettingsText,
-          autoPlayText: autoPlayText,
-          loopVideoText: loopVideoText,
-          forceHdQualityText: forceHdQualityText,
-          enableCaptionsText: enableCaptionsText,
-          muteAudioText: muteAudioText,
-          unmuteAudioText: unmuteAudioText,
-          noQualitiesAvailableText: noQualitiesAvailableText,
-          noSubtitlesAvailableText: noSubtitlesAvailableText,
-          qualityText: qualityText,
-          subtitlesText: subtitlesText,
-          playbackSpeedText: playbackSpeedText,
-          normalSpeedText: normalSpeedText,
-          autoText: autoText,
-          offText: offText,
-          skipBackwardText: skipBackwardText,
-          skipForwardText: skipForwardText,
-          miniPlayerText: miniPlayerText,
-          restorePlayerText: restorePlayerText,
-          expandPlayerText: expandPlayerText,
-          closeMiniPlayerText: closeMiniPlayerText,
-          playText: playText,
-          pauseText: pauseText,
-          fullscreenText: fullscreenText,
-          exitFullscreenText: exitFullscreenText,
-          liveText: liveText,
-          goLiveText: goLiveText,
-          speed2xText: speed2xText,
-          backText: backText,
-          volumeText: volumeText,
-          episodesText: episodesText,
-          nextEpisodeText: nextEpisodeText,
-          audioText: audioText,
-          nowPlayingText: nowPlayingText,
-          audioDescriptionText: audioDescriptionText,
-          audioAndSubtitlesText: audioAndSubtitlesText,
-        );
+         languageCode: languageCode,
+         textDirection: textDirection,
+         invalidYoutubeUrlText: invalidYoutubeUrlText,
+         videoLoadFailedText: videoLoadFailedText,
+         videoUnavailableText: videoUnavailableText,
+         videoNotCompatibleText: videoNotCompatibleText,
+         videoCannotBeLoadedSecurityPolicyText:
+             videoCannotBeLoadedSecurityPolicyText,
+         playerSettingsText: playerSettingsText,
+         autoPlayText: autoPlayText,
+         loopVideoText: loopVideoText,
+         forceHdQualityText: forceHdQualityText,
+         enableCaptionsText: enableCaptionsText,
+         muteAudioText: muteAudioText,
+         unmuteAudioText: unmuteAudioText,
+         noQualitiesAvailableText: noQualitiesAvailableText,
+         noSubtitlesAvailableText: noSubtitlesAvailableText,
+         qualityText: qualityText,
+         subtitlesText: subtitlesText,
+         playbackSpeedText: playbackSpeedText,
+         normalSpeedText: normalSpeedText,
+         autoText: autoText,
+         offText: offText,
+         skipBackwardText: skipBackwardText,
+         skipForwardText: skipForwardText,
+         miniPlayerText: miniPlayerText,
+         restorePlayerText: restorePlayerText,
+         expandPlayerText: expandPlayerText,
+         closeMiniPlayerText: closeMiniPlayerText,
+         playText: playText,
+         pauseText: pauseText,
+         fullscreenText: fullscreenText,
+         exitFullscreenText: exitFullscreenText,
+         liveText: liveText,
+         goLiveText: goLiveText,
+         speed2xText: speed2xText,
+         backText: backText,
+         volumeText: volumeText,
+         episodesText: episodesText,
+         nextEpisodeText: nextEpisodeText,
+         audioText: audioText,
+         nowPlayingText: nowPlayingText,
+         audioDescriptionText: audioDescriptionText,
+         audioAndSubtitlesText: audioAndSubtitlesText,
+       );
 
   /// Deprecated convenience constructor.
   /// To localize into Turkish, provide Turkish translations in your app via [PlayerTextConfig.fromMap].
   @Deprecated(
-      'Use app-level language files (see example). Package defaults strictly to English.')
+    'Use app-level language files (see example). Package defaults strictly to English.',
+  )
   const PlayerTextConfig.turkish({
     String? languageCode = 'tr',
     TextDirection? textDirection = TextDirection.ltr,
@@ -707,51 +712,51 @@ class PlayerTextConfig {
     String audioDescriptionText = 'Sesli Betimleme',
     String audioAndSubtitlesText = 'Ses ve Altyazılar',
   }) : this(
-          languageCode: languageCode,
-          textDirection: textDirection,
-          invalidYoutubeUrlText: invalidYoutubeUrlText,
-          videoLoadFailedText: videoLoadFailedText,
-          videoUnavailableText: videoUnavailableText,
-          videoNotCompatibleText: videoNotCompatibleText,
-          videoCannotBeLoadedSecurityPolicyText:
-              videoCannotBeLoadedSecurityPolicyText,
-          playerSettingsText: playerSettingsText,
-          autoPlayText: autoPlayText,
-          loopVideoText: loopVideoText,
-          forceHdQualityText: forceHdQualityText,
-          enableCaptionsText: enableCaptionsText,
-          muteAudioText: muteAudioText,
-          unmuteAudioText: unmuteAudioText,
-          noQualitiesAvailableText: noQualitiesAvailableText,
-          noSubtitlesAvailableText: noSubtitlesAvailableText,
-          qualityText: qualityText,
-          subtitlesText: subtitlesText,
-          playbackSpeedText: playbackSpeedText,
-          normalSpeedText: normalSpeedText,
-          autoText: autoText,
-          offText: offText,
-          skipBackwardText: skipBackwardText,
-          skipForwardText: skipForwardText,
-          miniPlayerText: miniPlayerText,
-          restorePlayerText: restorePlayerText,
-          expandPlayerText: expandPlayerText,
-          closeMiniPlayerText: closeMiniPlayerText,
-          playText: playText,
-          pauseText: pauseText,
-          fullscreenText: fullscreenText,
-          exitFullscreenText: exitFullscreenText,
-          liveText: liveText,
-          goLiveText: goLiveText,
-          speed2xText: speed2xText,
-          backText: backText,
-          volumeText: volumeText,
-          episodesText: episodesText,
-          nextEpisodeText: nextEpisodeText,
-          audioText: audioText,
-          nowPlayingText: nowPlayingText,
-          audioDescriptionText: audioDescriptionText,
-          audioAndSubtitlesText: audioAndSubtitlesText,
-        );
+         languageCode: languageCode,
+         textDirection: textDirection,
+         invalidYoutubeUrlText: invalidYoutubeUrlText,
+         videoLoadFailedText: videoLoadFailedText,
+         videoUnavailableText: videoUnavailableText,
+         videoNotCompatibleText: videoNotCompatibleText,
+         videoCannotBeLoadedSecurityPolicyText:
+             videoCannotBeLoadedSecurityPolicyText,
+         playerSettingsText: playerSettingsText,
+         autoPlayText: autoPlayText,
+         loopVideoText: loopVideoText,
+         forceHdQualityText: forceHdQualityText,
+         enableCaptionsText: enableCaptionsText,
+         muteAudioText: muteAudioText,
+         unmuteAudioText: unmuteAudioText,
+         noQualitiesAvailableText: noQualitiesAvailableText,
+         noSubtitlesAvailableText: noSubtitlesAvailableText,
+         qualityText: qualityText,
+         subtitlesText: subtitlesText,
+         playbackSpeedText: playbackSpeedText,
+         normalSpeedText: normalSpeedText,
+         autoText: autoText,
+         offText: offText,
+         skipBackwardText: skipBackwardText,
+         skipForwardText: skipForwardText,
+         miniPlayerText: miniPlayerText,
+         restorePlayerText: restorePlayerText,
+         expandPlayerText: expandPlayerText,
+         closeMiniPlayerText: closeMiniPlayerText,
+         playText: playText,
+         pauseText: pauseText,
+         fullscreenText: fullscreenText,
+         exitFullscreenText: exitFullscreenText,
+         liveText: liveText,
+         goLiveText: goLiveText,
+         speed2xText: speed2xText,
+         backText: backText,
+         volumeText: volumeText,
+         episodesText: episodesText,
+         nextEpisodeText: nextEpisodeText,
+         audioText: audioText,
+         nowPlayingText: nowPlayingText,
+         audioDescriptionText: audioDescriptionText,
+         audioAndSubtitlesText: audioAndSubtitlesText,
+       );
 
   /// Factory setting language code and resolving default text direction.
   /// Texts remain English by default unless customized.
@@ -780,11 +785,12 @@ class PlayerTextConfig {
   }) {
     const def = PlayerTextConfig();
     final cleanLang = languageCode?.trim().toLowerCase();
-    final resolvedDirection = textDirection ??
+    final resolvedDirection =
+        textDirection ??
         (cleanLang != null
             ? (_rtlLanguageCodes.contains(cleanLang)
-                ? TextDirection.rtl
-                : TextDirection.ltr)
+                  ? TextDirection.rtl
+                  : TextDirection.ltr)
             : null);
 
     return PlayerTextConfig(
@@ -799,7 +805,7 @@ class PlayerTextConfig {
           map['video_not_compatible'] ?? def.videoNotCompatibleText,
       videoCannotBeLoadedSecurityPolicyText:
           map['video_security_policy_error'] ??
-              def.videoCannotBeLoadedSecurityPolicyText,
+          def.videoCannotBeLoadedSecurityPolicyText,
       playerSettingsText: map['player_settings'] ?? def.playerSettingsText,
       autoPlayText: map['auto_play'] ?? def.autoPlayText,
       loopVideoText: map['loop_video'] ?? def.loopVideoText,
@@ -945,11 +951,12 @@ class PlayerTextConfig {
     TextDirection? textDirection,
   }) {
     final cleanLang = languageCode?.trim().toLowerCase();
-    final resolvedDirection = textDirection ??
+    final resolvedDirection =
+        textDirection ??
         (cleanLang != null
             ? (_rtlLanguageCodes.contains(cleanLang)
-                ? TextDirection.rtl
-                : TextDirection.ltr)
+                  ? TextDirection.rtl
+                  : TextDirection.ltr)
             : null);
 
     String resolveKey(String key, String fallback) {
@@ -965,29 +972,44 @@ class PlayerTextConfig {
     return PlayerTextConfig(
       languageCode: cleanLang,
       textDirection: resolvedDirection,
-      invalidYoutubeUrlText:
-          resolveKey('invalid_youtube_url', def.invalidYoutubeUrlText),
-      videoLoadFailedText:
-          resolveKey('video_load_failed', def.videoLoadFailedText),
-      videoUnavailableText:
-          resolveKey('video_unavailable', def.videoUnavailableText),
-      videoNotCompatibleText:
-          resolveKey('video_not_compatible', def.videoNotCompatibleText),
+      invalidYoutubeUrlText: resolveKey(
+        'invalid_youtube_url',
+        def.invalidYoutubeUrlText,
+      ),
+      videoLoadFailedText: resolveKey(
+        'video_load_failed',
+        def.videoLoadFailedText,
+      ),
+      videoUnavailableText: resolveKey(
+        'video_unavailable',
+        def.videoUnavailableText,
+      ),
+      videoNotCompatibleText: resolveKey(
+        'video_not_compatible',
+        def.videoNotCompatibleText,
+      ),
       videoCannotBeLoadedSecurityPolicyText: resolveKey(
-          'video_security_policy_error',
-          def.videoCannotBeLoadedSecurityPolicyText),
+        'video_security_policy_error',
+        def.videoCannotBeLoadedSecurityPolicyText,
+      ),
       playerSettingsText: resolveKey('player_settings', def.playerSettingsText),
       autoPlayText: resolveKey('auto_play', def.autoPlayText),
       loopVideoText: resolveKey('loop_video', def.loopVideoText),
-      forceHdQualityText:
-          resolveKey('force_hd_quality', def.forceHdQualityText),
+      forceHdQualityText: resolveKey(
+        'force_hd_quality',
+        def.forceHdQualityText,
+      ),
       enableCaptionsText: resolveKey('enable_captions', def.enableCaptionsText),
       muteAudioText: resolveKey('mute_audio', def.muteAudioText),
       unmuteAudioText: resolveKey('unmute_audio', def.unmuteAudioText),
-      noQualitiesAvailableText:
-          resolveKey('no_qualities_available', def.noQualitiesAvailableText),
-      noSubtitlesAvailableText:
-          resolveKey('no_subtitles_available', def.noSubtitlesAvailableText),
+      noQualitiesAvailableText: resolveKey(
+        'no_qualities_available',
+        def.noQualitiesAvailableText,
+      ),
+      noSubtitlesAvailableText: resolveKey(
+        'no_subtitles_available',
+        def.noSubtitlesAvailableText,
+      ),
       qualityText: resolveKey('quality', def.qualityText),
       subtitlesText: resolveKey('subtitles', def.subtitlesText),
       playbackSpeedText: resolveKey('playback_speed', def.playbackSpeedText),
@@ -999,8 +1021,10 @@ class PlayerTextConfig {
       miniPlayerText: resolveKey('mini_player', def.miniPlayerText),
       restorePlayerText: resolveKey('restore_player', def.restorePlayerText),
       expandPlayerText: resolveKey('expand_player', def.expandPlayerText),
-      closeMiniPlayerText:
-          resolveKey('close_mini_player', def.closeMiniPlayerText),
+      closeMiniPlayerText: resolveKey(
+        'close_mini_player',
+        def.closeMiniPlayerText,
+      ),
       playText: resolveKey('play', def.playText),
       pauseText: resolveKey('pause', def.pauseText),
       stopVideoText: resolveKey('stop_video', def.stopVideoText),
@@ -1015,10 +1039,14 @@ class PlayerTextConfig {
       nextEpisodeText: resolveKey('next_episode', def.nextEpisodeText),
       audioText: resolveKey('audio', def.audioText),
       nowPlayingText: resolveKey('now_playing', def.nowPlayingText),
-      audioDescriptionText:
-          resolveKey('audio_description', def.audioDescriptionText),
-      audioAndSubtitlesText:
-          resolveKey('audio_and_subtitles', def.audioAndSubtitlesText),
+      audioDescriptionText: resolveKey(
+        'audio_description',
+        def.audioDescriptionText,
+      ),
+      audioAndSubtitlesText: resolveKey(
+        'audio_and_subtitles',
+        def.audioAndSubtitlesText,
+      ),
     );
   }
 
@@ -1029,28 +1057,38 @@ class PlayerTextConfig {
     TextDirection? textDirection,
   }) {
     final cleanLang = languageCode?.trim().toLowerCase();
-    final resolvedDirection = textDirection ??
+    final resolvedDirection =
+        textDirection ??
         (cleanLang != null
             ? (_rtlLanguageCodes.contains(cleanLang)
-                ? TextDirection.rtl
-                : TextDirection.ltr)
+                  ? TextDirection.rtl
+                  : TextDirection.ltr)
             : null);
 
     const def = PlayerTextConfig();
     return PlayerTextConfig(
       languageCode: cleanLang,
       textDirection: resolvedDirection,
-      invalidYoutubeUrlText:
-          translate('invalid_youtube_url', def.invalidYoutubeUrlText),
-      videoLoadFailedText:
-          translate('video_load_failed', def.videoLoadFailedText),
-      videoUnavailableText:
-          translate('video_unavailable', def.videoUnavailableText),
-      videoNotCompatibleText:
-          translate('video_not_compatible', def.videoNotCompatibleText),
+      invalidYoutubeUrlText: translate(
+        'invalid_youtube_url',
+        def.invalidYoutubeUrlText,
+      ),
+      videoLoadFailedText: translate(
+        'video_load_failed',
+        def.videoLoadFailedText,
+      ),
+      videoUnavailableText: translate(
+        'video_unavailable',
+        def.videoUnavailableText,
+      ),
+      videoNotCompatibleText: translate(
+        'video_not_compatible',
+        def.videoNotCompatibleText,
+      ),
       videoCannotBeLoadedSecurityPolicyText: translate(
-          'video_security_policy_error',
-          def.videoCannotBeLoadedSecurityPolicyText),
+        'video_security_policy_error',
+        def.videoCannotBeLoadedSecurityPolicyText,
+      ),
       playerSettingsText: translate('player_settings', def.playerSettingsText),
       autoPlayText: translate('auto_play', def.autoPlayText),
       loopVideoText: translate('loop_video', def.loopVideoText),
@@ -1058,10 +1096,14 @@ class PlayerTextConfig {
       enableCaptionsText: translate('enable_captions', def.enableCaptionsText),
       muteAudioText: translate('mute_audio', def.muteAudioText),
       unmuteAudioText: translate('unmute_audio', def.unmuteAudioText),
-      noQualitiesAvailableText:
-          translate('no_qualities_available', def.noQualitiesAvailableText),
-      noSubtitlesAvailableText:
-          translate('no_subtitles_available', def.noSubtitlesAvailableText),
+      noQualitiesAvailableText: translate(
+        'no_qualities_available',
+        def.noQualitiesAvailableText,
+      ),
+      noSubtitlesAvailableText: translate(
+        'no_subtitles_available',
+        def.noSubtitlesAvailableText,
+      ),
       qualityText: translate('quality', def.qualityText),
       subtitlesText: translate('subtitles', def.subtitlesText),
       playbackSpeedText: translate('playback_speed', def.playbackSpeedText),
@@ -1073,8 +1115,10 @@ class PlayerTextConfig {
       miniPlayerText: translate('mini_player', def.miniPlayerText),
       restorePlayerText: translate('restore_player', def.restorePlayerText),
       expandPlayerText: translate('expand_player', def.expandPlayerText),
-      closeMiniPlayerText:
-          translate('close_mini_player', def.closeMiniPlayerText),
+      closeMiniPlayerText: translate(
+        'close_mini_player',
+        def.closeMiniPlayerText,
+      ),
       playText: translate('play', def.playText),
       pauseText: translate('pause', def.pauseText),
       stopVideoText: translate('stop_video', def.stopVideoText),
@@ -1089,10 +1133,14 @@ class PlayerTextConfig {
       nextEpisodeText: translate('next_episode', def.nextEpisodeText),
       audioText: translate('audio', def.audioText),
       nowPlayingText: translate('now_playing', def.nowPlayingText),
-      audioDescriptionText:
-          translate('audio_description', def.audioDescriptionText),
-      audioAndSubtitlesText:
-          translate('audio_and_subtitles', def.audioAndSubtitlesText),
+      audioDescriptionText: translate(
+        'audio_description',
+        def.audioDescriptionText,
+      ),
+      audioAndSubtitlesText: translate(
+        'audio_and_subtitles',
+        def.audioAndSubtitlesText,
+      ),
     );
   }
 
@@ -1256,7 +1304,7 @@ class PlayerTextConfig {
           videoNotCompatibleText ?? this.videoNotCompatibleText,
       videoCannotBeLoadedSecurityPolicyText:
           videoCannotBeLoadedSecurityPolicyText ??
-              this.videoCannotBeLoadedSecurityPolicyText,
+          this.videoCannotBeLoadedSecurityPolicyText,
       playerSettingsText: playerSettingsText ?? this.playerSettingsText,
       autoPlayText: autoPlayText ?? this.autoPlayText,
       loopVideoText: loopVideoText ?? this.loopVideoText,

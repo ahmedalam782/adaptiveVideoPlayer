@@ -53,8 +53,10 @@ class PlayerChromeUtils {
     required bool rtl,
   }) {
     if (count <= 1 || width <= 0) return 0;
-    final fromLeft =
-        ((dx / (width / count)) - 0.5).round().clamp(0, count - 1).toInt();
+    final fromLeft = ((dx / (width / count)) - 0.5)
+        .round()
+        .clamp(0, count - 1)
+        .toInt();
     return rtl ? count - 1 - fromLeft : fromLeft;
   }
 

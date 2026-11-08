@@ -24,10 +24,12 @@ class BufferPainter extends CustomPainter {
 
     for (final range in buffered) {
       final startFraction =
-          (range.start.inMilliseconds / duration.inMilliseconds)
-              .clamp(0.0, 1.0);
-      final endFraction =
-          (range.end.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0);
+          (range.start.inMilliseconds / duration.inMilliseconds).clamp(
+            0.0,
+            1.0,
+          );
+      final endFraction = (range.end.inMilliseconds / duration.inMilliseconds)
+          .clamp(0.0, 1.0);
       final double startX;
       final double endX;
       if (textDirection == TextDirection.rtl) {
@@ -129,8 +131,10 @@ class GradientSliderTrackShape extends SliderTrackShape
 
       for (final range in buffered) {
         final startFraction =
-            (range.start.inMilliseconds / duration.inMilliseconds)
-                .clamp(0.0, 1.0);
+            (range.start.inMilliseconds / duration.inMilliseconds).clamp(
+              0.0,
+              1.0,
+            );
         final endFraction = (range.end.inMilliseconds / duration.inMilliseconds)
             .clamp(0.0, 1.0);
         final double startX;
@@ -173,7 +177,11 @@ class GradientSliderTrackShape extends SliderTrackShape
         context.canvas.drawRRect(
           RRect.fromRectAndRadius(
             Rect.fromLTRB(
-                hoverLeft, trackRect.top, hoverRight, trackRect.bottom),
+              hoverLeft,
+              trackRect.top,
+              hoverRight,
+              trackRect.bottom,
+            ),
             radius,
           ),
           hoverPaint,
@@ -184,19 +192,29 @@ class GradientSliderTrackShape extends SliderTrackShape
     // 3. Draw active played track
     final Rect activeTrackRect = textDirection == TextDirection.rtl
         ? Rect.fromLTRB(
-            thumbCenter.dx, trackRect.top, trackRect.right, trackRect.bottom)
+            thumbCenter.dx,
+            trackRect.top,
+            trackRect.right,
+            trackRect.bottom,
+          )
         : Rect.fromLTRB(
-            trackRect.left, trackRect.top, thumbCenter.dx, trackRect.bottom);
+            trackRect.left,
+            trackRect.top,
+            thumbCenter.dx,
+            trackRect.bottom,
+          );
     final Paint activePaint = Paint()
-      ..shader = (textDirection == TextDirection.rtl
-              ? LinearGradient(
-                  begin: Alignment.centerRight,
-                  end: Alignment.centerLeft,
-                  colors: gradient.colors,
-                )
-              : gradient)
-          .createShader(
-              activeTrackRect.width > 0 ? activeTrackRect : trackRect);
+      ..shader =
+          (textDirection == TextDirection.rtl
+                  ? LinearGradient(
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
+                      colors: gradient.colors,
+                    )
+                  : gradient)
+              .createShader(
+                activeTrackRect.width > 0 ? activeTrackRect : trackRect,
+              );
 
     if (activeTrackRect.width > 0) {
       context.canvas.drawRRect(

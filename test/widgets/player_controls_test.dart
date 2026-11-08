@@ -26,11 +26,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: SeekButton(
-              icon: Icons.replay_10,
-              onTap: () {},
-              size: 48,
-            ),
+            body: SeekButton(icon: Icons.replay_10, onTap: () {}, size: 48),
           ),
         ),
       );

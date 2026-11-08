@@ -18,7 +18,7 @@ class AdaptiveSettingsButton extends StatelessWidget {
   final SubtitleTrack? currentSubtitleTrack;
   final ValueChanged<SubtitleTrack?>? onSubtitleSelected;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final VoidCallback? onPressed;
 
   const AdaptiveSettingsButton({
@@ -45,10 +45,14 @@ class AdaptiveSettingsButton extends StatelessWidget {
     final media = MediaQuery.of(context);
     final screenSize = media.size;
 
-    final rightPos = (screenSize.width - offset.dx - size.width)
-        .clamp(16.0, screenSize.width - 340.0);
-    final bottomPos = (screenSize.height - offset.dy + 8.0)
-        .clamp(16.0, screenSize.height - 360.0);
+    final rightPos = (screenSize.width - offset.dx - size.width).clamp(
+      16.0,
+      screenSize.width - 340.0,
+    );
+    final bottomPos = (screenSize.height - offset.dy + 8.0).clamp(
+      16.0,
+      screenSize.height - 360.0,
+    );
     final isWide = media.size.width > 600 || isFullScreen;
 
     if (isWide) {
@@ -85,7 +89,8 @@ class AdaptiveSettingsButton extends StatelessWidget {
                     ],
                   ),
                   child: Material(
-                    color: styling?.settingsBackgroundColor ??
+                    color:
+                        styling?.settingsBackgroundColor ??
                         const Color(0xF21F1F1F),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),

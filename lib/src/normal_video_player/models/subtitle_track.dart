@@ -57,10 +57,6 @@ class SubtitleTrack {
     required String title,
     required Future<String> Function() apiCall,
   }) {
-    return SubtitleTrack(
-      id: id,
-      title: title,
-      fetcher: apiCall,
-    );
+    return SubtitleTrack(id: id, title: title, fetcher: apiCall);
   }
 }

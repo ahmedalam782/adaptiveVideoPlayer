@@ -35,8 +35,8 @@ class NormalMiniPlayerContent extends StatelessWidget {
     final miniWidth = isOsPipWindow
         ? double.infinity
         : (screenWidth < 600
-            ? (screenWidth * 0.58).clamp(190.0, 240.0)
-            : 280.0);
+              ? (screenWidth * 0.58).clamp(190.0, 240.0)
+              : 280.0);
     final miniHeight = isOsPipWindow ? double.infinity : (miniWidth * 9 / 16);
 
     return Listener(
@@ -79,8 +79,8 @@ class NormalMiniPlayerContent extends StatelessWidget {
                     child: AspectRatio(
                       aspectRatio:
                           (value.isInitialized && value.aspectRatio > 0)
-                              ? value.aspectRatio
-                              : 16 / 9,
+                          ? value.aspectRatio
+                          : 16 / 9,
                       child: VideoPlayer(
                         controller,
                         key: AdaptiveVideoSurface.keyForController(controller),
@@ -93,7 +93,8 @@ class NormalMiniPlayerContent extends StatelessWidget {
                       isPlaying: value.isPlaying,
                       progress: progress,
                       textDirection: messages?.resolveTextDirection(context),
-                      closeTooltip: messages?.closeMiniPlayerText ??
+                      closeTooltip:
+                          messages?.closeMiniPlayerText ??
                           PlayerStrings.closeMiniPlayer,
                       expandTooltip:
                           messages?.expandPlayerText ?? PlayerStrings.expand,

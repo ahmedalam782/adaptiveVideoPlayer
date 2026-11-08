@@ -6,10 +6,7 @@ class VideoChapter {
   /// Timestamp where this chapter begins.
   final Duration startTime;
 
-  const VideoChapter({
-    required this.title,
-    required this.startTime,
-  });
+  const VideoChapter({required this.title, required this.startTime});
 
   /// Finds the active [VideoChapter] for a given playback [position].
   static VideoChapter? findChapterAt(

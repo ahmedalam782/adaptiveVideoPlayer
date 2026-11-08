@@ -83,9 +83,7 @@ class YouTubeDesktopFullscreenManager {
                 },
                 child: Scaffold(
                   backgroundColor: Colors.black,
-                  body: SizedBox.expand(
-                    child: desktopPlayerBuilder(),
-                  ),
+                  body: SizedBox.expand(child: desktopPlayerBuilder()),
                 ),
               ),
             ),
@@ -106,7 +104,8 @@ class YouTubeDesktopFullscreenManager {
     }
 
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    final isMobile = !kIsWeb &&
+    final isMobile =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
@@ -157,7 +156,8 @@ class YouTubeDesktopFullscreenManager {
       }
     }
 
-    final isMobile = !kIsWeb &&
+    final isMobile =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
@@ -169,8 +169,9 @@ class YouTubeDesktopFullscreenManager {
         DeviceOrientation.landscapeRight,
       ]);
     } else {
-      await SystemChrome.setPreferredOrientations(
-          [DeviceOrientation.portraitUp]);
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
     }
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
@@ -343,10 +344,7 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
 
   void _handleDrag(DragUpdateDetails details, bool isOsPipWindow) {
     if (isOsPipWindow) {
-      moveDesktopPipWindow(
-        details.delta.dx.round(),
-        details.delta.dy.round(),
-      );
+      moveDesktopPipWindow(details.delta.dx.round(), details.delta.dy.round());
     } else {
       setState(() {
         _offset += details.delta;
@@ -356,7 +354,8 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveDirection = widget.textDirection ??
+    final effectiveDirection =
+        widget.textDirection ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
     final isRtl = effectiveDirection == TextDirection.rtl;
@@ -381,9 +380,7 @@ class _YouTubeDesktopPipOverlayState extends State<_YouTubeDesktopPipOverlay> {
     final pipContent = isOsPipWindow
         ? Scaffold(
             backgroundColor: Colors.black,
-            body: SizedBox.expand(
-              child: content,
-            ),
+            body: SizedBox.expand(child: content),
           )
         : Stack(
             fit: StackFit.expand,

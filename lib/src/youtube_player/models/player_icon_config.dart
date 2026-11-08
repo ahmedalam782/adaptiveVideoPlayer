@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 
 /// Callback signature for dynamic icon builders giving context, color, and size.
-typedef PlayerIconBuilder = Widget Function(
-  BuildContext context,
-  Color color,
-  double size,
-);
+typedef PlayerIconBuilder =
+    Widget Function(BuildContext context, Color color, double size);
 
 /// A versatile icon definition for the video player that supports:
 /// - Standard Flutter [IconData]
@@ -40,16 +37,18 @@ class PlayerIcon {
 
   /// Creates a [PlayerIcon] from a standard Flutter [IconData]
   const PlayerIcon.icon(IconData icon, {Color? color, double? size})
-      : this(iconData: icon, color: color, size: size);
+    : this(iconData: icon, color: color, size: size);
 
   /// Creates a [PlayerIcon] wrapping any custom [Widget] (e.g. SvgPicture, custom container)
   const PlayerIcon.widget(Widget widget, {Color? color, double? size})
-      : this(widget: widget, color: color, size: size);
+    : this(widget: widget, color: color, size: size);
 
   /// Creates a [PlayerIcon] using a builder that dynamically receives [context], [color], and [size]
-  const PlayerIcon.builder(PlayerIconBuilder builder,
-      {Color? color, double? size})
-      : this(builder: builder, color: color, size: size);
+  const PlayerIcon.builder(
+    PlayerIconBuilder builder, {
+    Color? color,
+    double? size,
+  }) : this(builder: builder, color: color, size: size);
 
   /// Creates a [PlayerIcon] displaying a local raster asset (e.g. PNG, JPEG, WEBP)
   PlayerIcon.asset(
@@ -59,19 +58,19 @@ class PlayerIcon {
     double? size,
     BoxFit fit = BoxFit.contain,
     String? package,
-  })  : widget = Image.asset(
-          name,
-          key: key,
-          color: color,
-          width: size,
-          height: size,
-          fit: fit,
-          package: package,
-        ),
-        builder = null,
-        iconData = null,
-        color = color,
-        size = size;
+  }) : widget = Image.asset(
+         name,
+         key: key,
+         color: color,
+         width: size,
+         height: size,
+         fit: fit,
+         package: package,
+       ),
+       builder = null,
+       iconData = null,
+       color = color,
+       size = size;
 
   /// Creates a [PlayerIcon] displaying a network image
   PlayerIcon.network(
@@ -80,18 +79,18 @@ class PlayerIcon {
     Color? color,
     double? size,
     BoxFit fit = BoxFit.contain,
-  })  : widget = Image.network(
-          src,
-          key: key,
-          color: color,
-          width: size,
-          height: size,
-          fit: fit,
-        ),
-        builder = null,
-        iconData = null,
-        color = color,
-        size = size;
+  }) : widget = Image.network(
+         src,
+         key: key,
+         color: color,
+         width: size,
+         height: size,
+         fit: fit,
+       ),
+       builder = null,
+       iconData = null,
+       color = color,
+       size = size;
 
   /// Builds the widget with fallback defaults if not explicitly specified on this icon.
   Widget build(
@@ -114,18 +113,10 @@ class PlayerIcon {
       );
     }
     if (iconData != null) {
-      return Icon(
-        iconData,
-        color: effectiveColor,
-        size: effectiveSize,
-      );
+      return Icon(iconData, color: effectiveColor, size: effectiveSize);
     }
     if (fallbackIcon != null) {
-      return Icon(
-        fallbackIcon,
-        color: effectiveColor,
-        size: effectiveSize,
-      );
+      return Icon(fallbackIcon, color: effectiveColor, size: effectiveSize);
     }
     return const SizedBox.shrink();
   }

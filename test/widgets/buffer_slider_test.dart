@@ -21,8 +21,9 @@ void main() {
       expect(painter1.shouldRepaint(painterSame), isFalse);
     });
 
-    testWidgets('GradientSliderTrackShape renders within SliderTheme',
-        (tester) async {
+    testWidgets('GradientSliderTrackShape renders within SliderTheme', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -34,10 +35,7 @@ void main() {
                 inactiveTrackColor: Colors.grey,
                 thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.0),
               ),
-              child: Slider(
-                value: 0.5,
-                onChanged: (val) {},
-              ),
+              child: Slider(value: 0.5, onChanged: (val) {}),
             ),
           ),
         ),
@@ -47,37 +45,38 @@ void main() {
     });
 
     testWidgets(
-        'GradientSliderTrackShape in RTL paints active track from thumb to right',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Directionality(
-              textDirection: TextDirection.rtl,
-              child: SliderTheme(
-                data: const SliderThemeData(
-                  trackShape: GradientSliderTrackShape(),
-                  trackHeight: 4.0,
-                  activeTrackColor: Colors.red,
-                  inactiveTrackColor: Colors.grey,
-                  thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.0),
-                ),
-                child: SizedBox(
-                  width: 200,
-                  child: Slider(
-                    value: 0.2, // 20%
-                    min: 0.0,
-                    max: 1.0,
-                    onChanged: (_) {},
+      'GradientSliderTrackShape in RTL paints active track from thumb to right',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Directionality(
+                textDirection: TextDirection.rtl,
+                child: SliderTheme(
+                  data: const SliderThemeData(
+                    trackShape: GradientSliderTrackShape(),
+                    trackHeight: 4.0,
+                    activeTrackColor: Colors.red,
+                    inactiveTrackColor: Colors.grey,
+                    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.0),
+                  ),
+                  child: SizedBox(
+                    width: 200,
+                    child: Slider(
+                      value: 0.2, // 20%
+                      min: 0.0,
+                      max: 1.0,
+                      onChanged: (_) {},
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.byType(Slider), findsOneWidget);
-    });
+        expect(find.byType(Slider), findsOneWidget);
+      },
+    );
   });
 }

@@ -32,17 +32,19 @@ class AdaptiveSubtitleLayer extends StatelessWidget {
       right: 20,
       bottom: showControls && controlsVisible
           ? (controlsBottomInset ??
-              (styling?.bottomBarLayout == BottomBarLayout.inline
-                  ? 76.0
-                  : 96.0))
+                (styling?.bottomBarLayout == BottomBarLayout.inline
+                    ? 76.0
+                    : 96.0))
           : 20.0,
       child: subtitleBuilder != null
           ? subtitleBuilder!(context, subtitleText)
           : Align(
               alignment: Alignment.bottomCenter,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(8),
@@ -50,11 +52,14 @@ class AdaptiveSubtitleLayer extends StatelessWidget {
                 child: Text(
                   subtitleText,
                   textAlign: TextAlign.center,
-                  style: styling?.settingItemTextStyle
-                          ?.copyWith(fontSize: isFullScreen ? 20 : 16) ??
+                  style:
+                      styling?.settingItemTextStyle?.copyWith(
+                        fontSize: isFullScreen ? 20 : 16,
+                      ) ??
                       TextStyle(
-                          color: Colors.white,
-                          fontSize: isFullScreen ? 20 : 16),
+                        color: Colors.white,
+                        fontSize: isFullScreen ? 20 : 16,
+                      ),
                 ),
               ),
             ),

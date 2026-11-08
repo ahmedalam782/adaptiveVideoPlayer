@@ -11,8 +11,9 @@ typedef FullscreenChangeCallback = void Function(bool isFullscreen);
 class MacOSFullscreenService {
   MacOSFullscreenService._();
 
-  static const MethodChannel _channel =
-      MethodChannel('adaptive_video_player/window');
+  static const MethodChannel _channel = MethodChannel(
+    'adaptive_video_player/window',
+  );
   static final List<FullscreenChangeCallback> _listeners = [];
   static bool _isFullscreen = false;
   static bool _initialized = false;

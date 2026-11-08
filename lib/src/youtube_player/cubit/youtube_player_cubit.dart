@@ -9,7 +9,7 @@ export 'youtube_player_state.dart';
 /// normal and fullscreen modes using Flutter's built-in [ValueNotifier].
 class YoutubePlayerNotifier extends ValueNotifier<PlayerCubitState> {
   YoutubePlayerNotifier([PlayerCubitState? initialState])
-      : super(initialState ?? const PlayerCubitState());
+    : super(initialState ?? const PlayerCubitState());
 
   /// Current state getter
   PlayerCubitState get state => value;

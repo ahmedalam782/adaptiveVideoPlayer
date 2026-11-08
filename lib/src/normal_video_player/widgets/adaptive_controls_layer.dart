@@ -21,11 +21,15 @@ import 'adaptive_progress_bar.dart';
 import 'adaptive_speed_stepper_popup.dart';
 import 'adaptive_top_bar.dart';
 
-typedef AdaptiveControlsBuilder = Widget Function(
-    BuildContext context, VideoPlayerController controller, bool isFullScreen);
+typedef AdaptiveControlsBuilder =
+    Widget Function(
+      BuildContext context,
+      VideoPlayerController controller,
+      bool isFullScreen,
+    );
 
-typedef SubtitleBuilder = Widget Function(
-    BuildContext context, String subtitleText);
+typedef SubtitleBuilder =
+    Widget Function(BuildContext context, String subtitleText);
 
 /// A modern, feature-rich controls overlay layer for NormalVideoPlayer.
 /// Composed of dedicated widget components (Composite Pattern, OOP, SRP).
@@ -36,7 +40,7 @@ class AdaptiveControlsLayer extends StatefulWidget {
   final PlayerTextConfig? messages;
   final PlayerVisibilityConfig? visibility;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final List<VideoQuality>? qualities;
   final VideoQuality? currentQuality;
   final void Function(VideoQuality)? onQualitySelected;
@@ -134,7 +138,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
 
   bool get _hasTopBarContent {
     if (widget.isFullScreen) return false;
-    final showTitle = (widget.visibility?.showTitle ?? true) &&
+    final showTitle =
+        (widget.visibility?.showTitle ?? true) &&
         (widget.title?.isNotEmpty ?? false);
     return showTitle ||
         widget.isLive ||
@@ -152,8 +157,10 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
   void _updateSettingsOffset(Offset delta, BoxConstraints constraints) {
     final dialogWidth = widget.isFullScreen ? 330.0 : 300.0;
     final dialogMaxHeight = widget.isFullScreen ? 380.0 : 220.0;
-    final isRtl = (widget.messages ?? const PlayerTextConfig())
-            .resolveTextDirection(context) ==
+    final isRtl =
+        (widget.messages ?? const PlayerTextConfig()).resolveTextDirection(
+          context,
+        ) ==
         TextDirection.rtl;
     final minX = isRtl ? -8.0 : -(constraints.maxWidth - dialogWidth - 32.0);
     final maxX = isRtl ? (constraints.maxWidth - dialogWidth - 32.0) : 8.0;
@@ -181,7 +188,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
           Size(constraints.maxWidth, constraints.maxHeight),
         );
         if (tier == PlayerSurfaceTier.phone) {
-          final isRtl = (widget.messages ?? const PlayerTextConfig())
+          final isRtl =
+              (widget.messages ?? const PlayerTextConfig())
                   .resolveTextDirection(context) ==
               TextDirection.rtl;
           return MobileControlsSurface(
@@ -262,7 +270,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
           );
         }
         if (widget.screenLocked) {
-          final isRtl = (widget.messages ?? const PlayerTextConfig())
+          final isRtl =
+              (widget.messages ?? const PlayerTextConfig())
                   .resolveTextDirection(context) ==
               TextDirection.rtl;
           return MobileScreenLockBadge(
@@ -311,15 +320,17 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                     onExitFullscreen: widget.onExitFullscreen,
                     onMiniPlayerPressed: onMiniPlayer,
                     showSkipButtons: widget.visibility?.showSkipButtons ?? true,
-                    skipDuration: widget.visibility?.skipDuration ??
+                    skipDuration:
+                        widget.visibility?.skipDuration ??
                         const Duration(seconds: 10),
                     onSettingsPressed: () =>
                         setState(() => _showSettingsMenu = !_showSettingsMenu),
                     dragPosition: _dragPosition,
                     onDragChanged: (val) => setState(() => _dragPosition = val),
                     onDragEnd: (val) {
-                      widget.controller
-                          .seekTo(Duration(milliseconds: val.toInt()));
+                      widget.controller.seekTo(
+                        Duration(milliseconds: val.toInt()),
+                      );
                       setState(() => _dragPosition = null);
                     },
                     title: widget.title,
@@ -357,8 +368,9 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                           onDragChanged: (val) =>
                               setState(() => _dragPosition = val),
                           onDragEnd: (val) {
-                            widget.controller
-                                .seekTo(Duration(milliseconds: val.toInt()));
+                            widget.controller.seekTo(
+                              Duration(milliseconds: val.toInt()),
+                            );
                             setState(() => _dragPosition = null);
                           },
                           styling: widget.styling,
@@ -388,7 +400,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                         onMiniPlayerPressed: onMiniPlayer,
                         showSkipButtons:
                             widget.visibility?.showSkipButtons ?? true,
-                        skipDuration: widget.visibility?.skipDuration ??
+                        skipDuration:
+                            widget.visibility?.skipDuration ??
                             const Duration(seconds: 10),
                         title: widget.title,
                         episodes: widget.episodes,
@@ -413,7 +426,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                           _showSettingsMenu = false;
                         }),
                         onSettingsPressed: () => setState(
-                            () => _showSettingsMenu = !_showSettingsMenu),
+                          () => _showSettingsMenu = !_showSettingsMenu,
+                        ),
                       ),
                     ],
                   ),
@@ -498,7 +512,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                                 _showSettingsMenu = false;
                               }),
                               onSettingsPressed: () => setState(
-                                  () => _showSettingsMenu = !_showSettingsMenu),
+                                () => _showSettingsMenu = !_showSettingsMenu,
+                              ),
                               onMiniPlayerPressed: onMiniPlayer,
                               onLockPressed: widget.onToggleScreenLock,
                             ),
@@ -539,7 +554,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                 child: SafeArea(
                   child: AdaptiveCirclePillButton(
                     icon: Icons.lock_outline_rounded,
-                    tooltip: (widget.messages ?? const PlayerTextConfig())
+                    tooltip:
+                        (widget.messages ?? const PlayerTextConfig())
                                 .resolveTextDirection(context) ==
                             TextDirection.rtl
                         ? 'قفل الشاشة'
@@ -610,8 +626,10 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                     child: Focus(
                       autofocus: true,
                       child: Container(
-                        width: math.min(widget.isFullScreen ? 330.0 : 300.0,
-                            constraints.maxWidth - 24.0),
+                        width: math.min(
+                          widget.isFullScreen ? 330.0 : 300.0,
+                          constraints.maxWidth - 24.0,
+                        ),
                         constraints: BoxConstraints(
                           maxHeight: math.min(
                             widget.isFullScreen ? 380.0 : 280.0,
@@ -629,7 +647,8 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                           ],
                         ),
                         child: Material(
-                          color: widget.styling?.settingsBackgroundColor ??
+                          color:
+                              widget.styling?.settingsBackgroundColor ??
                               const Color(0xF21F1F1F),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -645,25 +664,32 @@ class _AdaptiveControlsLayerState extends State<AdaptiveControlsLayer> {
                               GestureDetector(
                                 behavior: HitTestBehavior.opaque,
                                 onPanUpdate: (details) => _updateSettingsOffset(
-                                    details.delta, constraints),
+                                  details.delta,
+                                  constraints,
+                                ),
                                 onDoubleTap: () => setState(
-                                    () => _settingsMenuOffset = Offset.zero),
+                                  () => _settingsMenuOffset = Offset.zero,
+                                ),
                                 child: MouseRegion(
                                   cursor: SystemMouseCursors.move,
                                   child: Container(
                                     width: double.infinity,
                                     padding: const EdgeInsets.only(
-                                        top: 8, bottom: 6),
+                                      top: 8,
+                                      bottom: 6,
+                                    ),
                                     color: Colors.transparent,
                                     child: Center(
                                       child: Container(
                                         width: 38,
                                         height: 4,
                                         decoration: BoxDecoration(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.35),
-                                          borderRadius:
-                                              BorderRadius.circular(2),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.35,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
                                         ),
                                       ),
                                     ),

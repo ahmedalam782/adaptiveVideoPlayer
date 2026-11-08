@@ -4,8 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('HlsJsConstants Tests', () {
     test('constants have expected values', () {
-      expect(HlsJsConstants.hlsCdnScriptUrl,
-          contains('https://cdn.jsdelivr.net/npm/hls.js@latest'));
+      expect(
+        HlsJsConstants.hlsCdnScriptUrl,
+        contains('https://cdn.jsdelivr.net/npm/hls.js@latest'),
+      );
       expect(HlsJsConstants.hlsScriptElementId, equals('hls-js-cdn-script'));
       expect(HlsJsConstants.hlsAttachedAttribute, equals('data-hls-attached'));
     });

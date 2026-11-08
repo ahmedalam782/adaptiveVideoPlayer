@@ -28,13 +28,16 @@ class AdaptiveVolumePopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = styling?.volumeSliderActiveColor ??
+    final activeColor =
+        styling?.volumeSliderActiveColor ??
         styling?.progressBarPlayedColor ??
         Colors.white;
-    final thumbColor = styling?.volumeSliderThumbColor ??
+    final thumbColor =
+        styling?.volumeSliderThumbColor ??
         styling?.progressBarHandleColor ??
         activeColor;
-    final inactiveColor = styling?.volumeSliderInactiveColor ??
+    final inactiveColor =
+        styling?.volumeSliderInactiveColor ??
         styling?.progressBarBackgroundColor ??
         Colors.white.withValues(alpha: 0.24);
     final containerColor =

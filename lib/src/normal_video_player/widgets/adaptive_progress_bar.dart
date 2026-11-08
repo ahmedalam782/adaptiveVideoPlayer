@@ -18,7 +18,7 @@ class AdaptiveProgressBar extends StatefulWidget {
   final PlayerTextConfig? messages;
   final PlayerVisibilityConfig? visibility;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
 
   const AdaptiveProgressBar({
     super.key,
@@ -167,10 +167,12 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
     bool isRtl = false,
   }) {
     const horizontalInset = 12.0;
-    final effectiveWidth =
-        (maxWidth - horizontalInset * 2).clamp(1.0, double.infinity);
-    final rawFraction =
-        ((localPosition.dx - horizontalInset) / effectiveWidth).clamp(0.0, 1.0);
+    final effectiveWidth = (maxWidth - horizontalInset * 2).clamp(
+      1.0,
+      double.infinity,
+    );
+    final rawFraction = ((localPosition.dx - horizontalInset) / effectiveWidth)
+        .clamp(0.0, 1.0);
     final fraction = isRtl ? (1.0 - rawFraction) : rawFraction;
     final durationMs = widget.controller.value.duration.inMilliseconds;
     if (durationMs > 0) {
@@ -200,27 +202,30 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
         final isInteracting = _isHovered || widget.dragPosition != null;
         final double? previewFraction =
             widget.dragPosition != null && duration > 0
-                ? (widget.dragPosition! / duration).clamp(0.0, 1.0)
-                : (_isHovered ? _hoverFraction : null);
+            ? (widget.dragPosition! / duration).clamp(0.0, 1.0)
+            : (_isHovered ? _hoverFraction : null);
         final Duration? previewDuration =
             previewFraction != null && duration > 0
-                ? Duration(milliseconds: (previewFraction * duration).round())
-                : null;
+            ? Duration(milliseconds: (previewFraction * duration).round())
+            : null;
         final VideoChapter? previewChapter = previewDuration != null
             ? VideoChapter.findChapterAt(widget.chapters, previewDuration)
             : null;
 
-        final activePreviewCtrl = (_previewController != null &&
+        final activePreviewCtrl =
+            (_previewController != null &&
                 _previewController!.value.isInitialized)
             ? _previewController
             : null;
 
-        final isRtlMode = (widget.playback?.mirrorProgressBarInRtl ?? true) &&
+        final isRtlMode =
+            (widget.playback?.mirrorProgressBarInRtl ?? true) &&
             (widget.messages?.resolveTextDirection(context) ==
                     TextDirection.rtl ||
                 Directionality.maybeOf(context) == TextDirection.rtl);
-        final effectiveTextDirection =
-            isRtlMode ? TextDirection.rtl : TextDirection.ltr;
+        final effectiveTextDirection = isRtlMode
+            ? TextDirection.rtl
+            : TextDirection.ltr;
 
         return Directionality(
           textDirection: effectiveTextDirection,
@@ -235,15 +240,17 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                     .clamp(1.0, double.infinity);
                 final previewX = previewFraction != null
                     ? (isRtlMode
-                        ? constraints.maxWidth -
-                            horizontalInset -
-                            previewFraction * trackWidth
-                        : horizontalInset + previewFraction * trackWidth)
+                          ? constraints.maxWidth -
+                                horizontalInset -
+                                previewFraction * trackWidth
+                          : horizontalInset + previewFraction * trackWidth)
                     : 0.0;
                 final tooltipLeft = (previewX - thumbWidth / 2).clamp(
                   0.0,
-                  (constraints.maxWidth - thumbWidth)
-                      .clamp(0.0, double.infinity),
+                  (constraints.maxWidth - thumbWidth).clamp(
+                    0.0,
+                    double.infinity,
+                  ),
                 );
 
                 Widget sliderContent = SizedBox(
@@ -272,46 +279,59 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                                         height: thumbHeight,
                                         decoration: BoxDecoration(
                                           color: Colors.black,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           border: Border.all(
                                             color: Colors.white,
                                             width: 1.6,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black
-                                                  .withValues(alpha: 0.55),
+                                              color: Colors.black.withValues(
+                                                alpha: 0.55,
+                                              ),
                                               blurRadius: 10,
                                               offset: const Offset(0, 3),
                                             ),
                                           ],
                                         ),
                                         child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(6.4),
+                                          borderRadius: BorderRadius.circular(
+                                            6.4,
+                                          ),
                                           child: FittedBox(
                                             fit: BoxFit.cover,
                                             clipBehavior: Clip.hardEdge,
                                             child: SizedBox(
-                                              width: activePreviewCtrl
-                                                          .value.size.width >
+                                              width:
+                                                  activePreviewCtrl
+                                                          .value
+                                                          .size
+                                                          .width >
                                                       0
                                                   ? activePreviewCtrl
-                                                      .value.size.width
+                                                        .value
+                                                        .size
+                                                        .width
                                                   : 320,
-                                              height: activePreviewCtrl
-                                                          .value.size.height >
+                                              height:
+                                                  activePreviewCtrl
+                                                          .value
+                                                          .size
+                                                          .height >
                                                       0
                                                   ? activePreviewCtrl
-                                                      .value.size.height
+                                                        .value
+                                                        .size
+                                                        .height
                                                   : 180,
                                               child: VideoPlayer(
                                                 activePreviewCtrl,
-                                                key: AdaptiveVideoSurface
-                                                    .keyForController(
-                                                  activePreviewCtrl,
-                                                ),
+                                                key:
+                                                    AdaptiveVideoSurface.keyForController(
+                                                      activePreviewCtrl,
+                                                    ),
                                               ),
                                             ),
                                           ),
@@ -327,8 +347,9 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xCC000000),
-                                          borderRadius:
-                                              BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
@@ -346,7 +367,8 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                                               ),
                                             Text(
                                               _formatPreviewTime(
-                                                  previewDuration),
+                                                previewDuration,
+                                              ),
                                               style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 12,
@@ -366,18 +388,21 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                         data: SliderTheme.of(context).copyWith(
                           trackHeight: isInteracting
                               ? (widget.styling?.progressBarHoverTrackHeight ??
-                                  5.5)
+                                    5.5)
                               : (widget.styling?.progressBarTrackHeight ?? 3.5),
-                          thumbShape: widget.styling?.progressBarThumbShape ??
+                          thumbShape:
+                              widget.styling?.progressBarThumbShape ??
                               ((widget.styling?.showProgressBarThumb ?? true)
                                   ? RoundSliderThumbShape(
                                       enabledThumbRadius: isInteracting
-                                          ? (widget.styling
-                                                  ?.progressBarHoverThumbRadius ??
-                                              7.5)
-                                          : (widget.styling
-                                                  ?.progressBarThumbRadius ??
-                                              6.0),
+                                          ? (widget
+                                                    .styling
+                                                    ?.progressBarHoverThumbRadius ??
+                                                7.5)
+                                          : (widget
+                                                    .styling
+                                                    ?.progressBarThumbRadius ??
+                                                6.0),
                                       pressedElevation: 4.0,
                                     )
                                   : const RoundSliderThumbShape(
@@ -388,12 +413,12 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                           overlayShape: RoundSliderOverlayShape(
                             overlayRadius:
                                 widget.styling?.progressBarOverlayRadius ??
-                                    12.0,
+                                12.0,
                           ),
                           activeTrackColor: playedColor,
                           inactiveTrackColor:
                               widget.styling?.progressBarBackgroundColor ??
-                                  Colors.white.withValues(alpha: 0.22),
+                              Colors.white.withValues(alpha: 0.22),
                           thumbColor: handleColor,
                           trackShape: GradientSliderTrackShape(
                             gradient: LinearGradient(
@@ -409,7 +434,9 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                         ),
                         child: Slider(
                           value: position.clamp(
-                              0.0, duration > 0 ? duration : 0.0),
+                            0.0,
+                            duration > 0 ? duration : 0.0,
+                          ),
                           min: 0.0,
                           max: duration > 0 ? duration : 0.0,
                           onChanged: (val) {
@@ -424,9 +451,9 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                             widget.onDragEnd(newPosition);
                             widget.onAnalyticsEvent
                                 ?.call(PlayerEvents.videoSeek, {
-                              PlayerEvents.paramToPosition:
-                                  (newPosition / 1000).round(),
-                            });
+                                  PlayerEvents.paramToPosition:
+                                      (newPosition / 1000).round(),
+                                });
                           },
                         ),
                       ),
@@ -455,10 +482,12 @@ class _AdaptiveProgressBarState extends State<AdaptiveProgressBar> {
                 final showRemaining =
                     widget.visibility?.showRemainingDuration ?? false;
                 if (showRemaining && duration > 0) {
-                  final remainingMs =
-                      (duration - position).clamp(0.0, double.infinity).toInt();
-                  final remainingText =
-                      _formatPreviewTime(Duration(milliseconds: remainingMs));
+                  final remainingMs = (duration - position)
+                      .clamp(0.0, double.infinity)
+                      .toInt();
+                  final remainingText = _formatPreviewTime(
+                    Duration(milliseconds: remainingMs),
+                  );
                   sliderContent = Row(
                     children: [
                       Expanded(child: sliderContent),

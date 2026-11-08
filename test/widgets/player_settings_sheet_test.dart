@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_settings_sheet.dart';
 
 void main() {
-  testWidgets('SettingsBottomSheet renders and updates options',
-      (WidgetTester tester) async {
+  testWidgets('SettingsBottomSheet renders and updates options', (
+    WidgetTester tester,
+  ) async {
     bool autoPlayVal = false;
     bool loopVal = false;
     bool hdVal = false;
@@ -62,9 +63,9 @@ void main() {
     // Tap AutoPlay
     expect(find.text('Test Auto'), findsOneWidget);
     final autoPlaySwitch = find.descendant(
-        of: find.ancestor(
-            of: find.text('Test Auto'), matching: find.byType(Row)),
-        matching: find.byType(Switch));
+      of: find.ancestor(of: find.text('Test Auto'), matching: find.byType(Row)),
+      matching: find.byType(Switch),
+    );
     await tester.tap(autoPlaySwitch);
     await tester.pumpAndSettle();
     expect(autoPlayVal, true);
@@ -72,9 +73,9 @@ void main() {
     // Tap Loop
     expect(find.text('Test Loop'), findsOneWidget);
     final loopSwitch = find.descendant(
-        of: find.ancestor(
-            of: find.text('Test Loop'), matching: find.byType(Row)),
-        matching: find.byType(Switch));
+      of: find.ancestor(of: find.text('Test Loop'), matching: find.byType(Row)),
+      matching: find.byType(Switch),
+    );
     await tester.tap(loopSwitch);
     await tester.pumpAndSettle();
     expect(loopVal, true);
@@ -82,8 +83,9 @@ void main() {
     // Tap HD
     expect(find.text('Test HD'), findsOneWidget);
     final hdSwitch = find.descendant(
-        of: find.ancestor(of: find.text('Test HD'), matching: find.byType(Row)),
-        matching: find.byType(Switch));
+      of: find.ancestor(of: find.text('Test HD'), matching: find.byType(Row)),
+      matching: find.byType(Switch),
+    );
     await tester.tap(hdSwitch);
     await tester.pumpAndSettle();
     expect(hdVal, true);
@@ -91,9 +93,12 @@ void main() {
     // Tap Caption
     expect(find.text('Test Captions'), findsOneWidget);
     final captionSwitch = find.descendant(
-        of: find.ancestor(
-            of: find.text('Test Captions'), matching: find.byType(Row)),
-        matching: find.byType(Switch));
+      of: find.ancestor(
+        of: find.text('Test Captions'),
+        matching: find.byType(Row),
+      ),
+      matching: find.byType(Switch),
+    );
     await tester.tap(captionSwitch);
     await tester.pumpAndSettle();
     expect(captionVal, true);
@@ -101,9 +106,9 @@ void main() {
     // Tap Mute
     expect(find.text('Test Mute'), findsOneWidget);
     final muteSwitch = find.descendant(
-        of: find.ancestor(
-            of: find.text('Test Mute'), matching: find.byType(Row)),
-        matching: find.byType(Switch));
+      of: find.ancestor(of: find.text('Test Mute'), matching: find.byType(Row)),
+      matching: find.byType(Switch),
+    );
     await tester.tap(muteSwitch);
     await tester.pumpAndSettle();
     expect(muteVal, true);
@@ -113,8 +118,9 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('SettingsBottomSheet respects visibility flags',
-      (WidgetTester tester) async {
+  testWidgets('SettingsBottomSheet respects visibility flags', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

@@ -70,10 +70,7 @@ class YouTubeDesktopPipPlaceholder extends StatelessWidget {
                         backgroundColor: Colors.white.withValues(alpha: 0.14),
                         foregroundColor: Colors.white,
                       ),
-                      icon: const Icon(
-                        Icons.open_in_full_rounded,
-                        size: 16,
-                      ),
+                      icon: const Icon(Icons.open_in_full_rounded, size: 16),
                       label: Text(
                         restorePlayerText,
                         style: const TextStyle(fontWeight: FontWeight.w600),

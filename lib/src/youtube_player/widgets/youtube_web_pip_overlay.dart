@@ -240,8 +240,10 @@ class _YouTubeWebPipOverlayState extends State<YouTubeWebPipOverlay> {
                 IconButton(
                   iconSize: 20,
                   padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 26, minHeight: 26),
+                  constraints: const BoxConstraints(
+                    minWidth: 26,
+                    minHeight: 26,
+                  ),
                   icon: Icon(
                     _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                     color: Colors.white,
@@ -251,18 +253,24 @@ class _YouTubeWebPipOverlayState extends State<YouTubeWebPipOverlay> {
                 IconButton(
                   iconSize: 18,
                   padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 26, minHeight: 26),
-                  icon: const Icon(Icons.aspect_ratio_rounded,
-                      color: Colors.white),
+                  constraints: const BoxConstraints(
+                    minWidth: 26,
+                    minHeight: 26,
+                  ),
+                  icon: const Icon(
+                    Icons.aspect_ratio_rounded,
+                    color: Colors.white,
+                  ),
                   tooltip: 'Restore',
                   onPressed: () => setState(() => _isMinimized = false),
                 ),
                 IconButton(
                   iconSize: 18,
                   padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 26, minHeight: 26),
+                  constraints: const BoxConstraints(
+                    minWidth: 26,
+                    minHeight: 26,
+                  ),
                   icon: const Icon(Icons.close_rounded, color: Colors.white),
                   tooltip: widget.closeTooltip,
                   onPressed: widget.onClose,
@@ -329,9 +337,7 @@ class _YouTubeWebPipOverlayState extends State<YouTubeWebPipOverlay> {
                       _togglePlayPause();
                     }
                   },
-                  child: const ColoredBox(
-                    color: Colors.transparent,
-                  ),
+                  child: const ColoredBox(color: Colors.transparent),
                 ),
               ),
 
@@ -502,8 +508,9 @@ class _YouTubeWebPipOverlayState extends State<YouTubeWebPipOverlay> {
                                   data: SliderThemeData(
                                     trackHeight: 3.0,
                                     activeTrackColor: const Color(0xFF8AB4F8),
-                                    inactiveTrackColor:
-                                        Colors.white.withValues(alpha: 0.25),
+                                    inactiveTrackColor: Colors.white.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     thumbColor: const Color(0xFF8AB4F8),
                                     thumbShape: const RoundSliderThumbShape(
                                       enabledThumbRadius: 5.0,
@@ -592,11 +599,7 @@ class _YouTubeWebPipOverlayState extends State<YouTubeWebPipOverlay> {
         borderRadius: BorderRadius.circular(4),
       ),
       child: const Center(
-        child: Icon(
-          Icons.play_arrow_rounded,
-          color: Colors.white,
-          size: 13,
-        ),
+        child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 13),
       ),
     );
   }

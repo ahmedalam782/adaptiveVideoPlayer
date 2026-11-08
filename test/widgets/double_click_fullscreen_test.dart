@@ -11,9 +11,7 @@ void main() {
 
     setUp(() {
       controller = VideoPlayerController.networkUrl(
-        Uri.parse(
-          'https://media.w3.org/2010/05/bunny/trailer.mp4',
-        ),
+        Uri.parse('https://media.w3.org/2010/05/bunny/trailer.mp4'),
       );
     });
 
@@ -33,90 +31,93 @@ void main() {
     }
 
     testWidgets(
-        'Double clicking with mouse enters fullscreen when in windowed mode',
-        (tester) async {
-      bool enterCalled = false;
-      bool exitCalled = false;
+      'Double clicking with mouse enters fullscreen when in windowed mode',
+      (tester) async {
+        bool enterCalled = false;
+        bool exitCalled = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 800,
-              height: 450,
-              child: BaseAdaptiveVideoPlayer(
-                controller: controller,
-                isFullScreen: false,
-                onEnterFullscreen: () => enterCalled = true,
-                onExitFullscreen: () => exitCalled = true,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await simulateMouseDoubleClick(tester);
-
-      expect(enterCalled, isTrue);
-      expect(exitCalled, isFalse);
-    });
-
-    testWidgets(
-        'Double clicking with mouse exits fullscreen when already in fullscreen mode',
-        (tester) async {
-      bool enterCalled = false;
-      bool exitCalled = false;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 800,
-              height: 450,
-              child: BaseAdaptiveVideoPlayer(
-                controller: controller,
-                isFullScreen: true,
-                onEnterFullscreen: () => enterCalled = true,
-                onExitFullscreen: () => exitCalled = true,
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await simulateMouseDoubleClick(tester);
-
-      expect(enterCalled, isFalse);
-      expect(exitCalled, isTrue);
-    });
-
-    testWidgets(
-        'Double click does not toggle fullscreen if doubleClickToggleFullscreen is false',
-        (tester) async {
-      bool enterCalled = false;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 800,
-              height: 450,
-              child: BaseAdaptiveVideoPlayer(
-                controller: controller,
-                isFullScreen: false,
-                visibility: const PlayerVisibilityConfig(
-                  doubleClickToggleFullscreen: false,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 450,
+                child: BaseAdaptiveVideoPlayer(
+                  controller: controller,
+                  isFullScreen: false,
+                  onEnterFullscreen: () => enterCalled = true,
+                  onExitFullscreen: () => exitCalled = true,
                 ),
-                onEnterFullscreen: () => enterCalled = true,
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await simulateMouseDoubleClick(tester);
+        await simulateMouseDoubleClick(tester);
 
-      expect(enterCalled, isFalse);
-    });
+        expect(enterCalled, isTrue);
+        expect(exitCalled, isFalse);
+      },
+    );
+
+    testWidgets(
+      'Double clicking with mouse exits fullscreen when already in fullscreen mode',
+      (tester) async {
+        bool enterCalled = false;
+        bool exitCalled = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 450,
+                child: BaseAdaptiveVideoPlayer(
+                  controller: controller,
+                  isFullScreen: true,
+                  onEnterFullscreen: () => enterCalled = true,
+                  onExitFullscreen: () => exitCalled = true,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await simulateMouseDoubleClick(tester);
+
+        expect(enterCalled, isFalse);
+        expect(exitCalled, isTrue);
+      },
+    );
+
+    testWidgets(
+      'Double click does not toggle fullscreen if doubleClickToggleFullscreen is false',
+      (tester) async {
+        bool enterCalled = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                height: 450,
+                child: BaseAdaptiveVideoPlayer(
+                  controller: controller,
+                  isFullScreen: false,
+                  visibility: const PlayerVisibilityConfig(
+                    doubleClickToggleFullscreen: false,
+                  ),
+                  onEnterFullscreen: () => enterCalled = true,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await simulateMouseDoubleClick(tester);
+
+        expect(enterCalled, isFalse);
+      },
+    );
   });
 }

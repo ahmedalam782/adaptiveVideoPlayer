@@ -46,7 +46,8 @@ class PlayerErrorWidget extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     errorMessage,
-                    style: errorTextStyle ??
+                    style:
+                        errorTextStyle ??
                         TextStyle(color: textColor, fontSize: 14),
                     textAlign: TextAlign.center,
                     maxLines: 3,

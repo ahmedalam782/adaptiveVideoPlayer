@@ -36,7 +36,8 @@ class _AdaptiveBufferingIndicatorState
   void initState() {
     super.initState();
     final value = widget.controller.value;
-    _showIndicator = value.isBuffering &&
+    _showIndicator =
+        value.isBuffering &&
         (value.isPlaying || value.position == Duration.zero);
     widget.controller.addListener(_onControllerUpdate);
   }
@@ -64,7 +65,8 @@ class _AdaptiveBufferingIndicatorState
 
   void _checkBuffering() {
     final value = widget.controller.value;
-    final isBuffering = value.isBuffering &&
+    final isBuffering =
+        value.isBuffering &&
         (value.isPlaying || value.position == Duration.zero);
 
     if (isBuffering) {
@@ -95,9 +97,7 @@ class _AdaptiveBufferingIndicatorState
     }
 
     if (widget.styling?.loadingIndicatorBuilder != null) {
-      return Center(
-        child: widget.styling!.loadingIndicatorBuilder!(context),
-      );
+      return Center(child: widget.styling!.loadingIndicatorBuilder!(context));
     }
 
     return Center(

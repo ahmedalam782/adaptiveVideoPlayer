@@ -52,20 +52,26 @@ class Win32FullscreenService {
       _savedPlacement = calloc<WINDOWPLACEMENT>();
       _savedPlacement!.ref.length = sizeOf<WINDOWPLACEMENT>();
 
-      final getWindowPlacement = user32.lookupFunction<
-          Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
-          int Function(int, Pointer<WINDOWPLACEMENT>)>('GetWindowPlacement');
+      final getWindowPlacement = user32
+          .lookupFunction<
+            Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
+            int Function(int, Pointer<WINDOWPLACEMENT>)
+          >('GetWindowPlacement');
       getWindowPlacement(hwnd, _savedPlacement!);
 
       // 3. Get monitor rect
-      final monitorFromWindow = user32.lookupFunction<
-          IntPtr Function(IntPtr, Uint32),
-          int Function(int, int)>('MonitorFromWindow');
+      final monitorFromWindow = user32
+          .lookupFunction<
+            IntPtr Function(IntPtr, Uint32),
+            int Function(int, int)
+          >('MonitorFromWindow');
       final hMonitor = monitorFromWindow(hwnd, monitorDefaultToPrimary);
 
-      final getMonitorInfo = user32.lookupFunction<
-          Int32 Function(IntPtr, Pointer<MONITORINFO>),
-          int Function(int, Pointer<MONITORINFO>)>('GetMonitorInfoW');
+      final getMonitorInfo = user32
+          .lookupFunction<
+            Int32 Function(IntPtr, Pointer<MONITORINFO>),
+            int Function(int, Pointer<MONITORINFO>)
+          >('GetMonitorInfoW');
 
       final miPtr = calloc<MONITORINFO>();
       miPtr.ref.cbSize = sizeOf<MONITORINFO>();
@@ -85,13 +91,26 @@ class Win32FullscreenService {
         try {
           // 4. Set style to borderless (removes title bar and window frame)
           setWindowLong(
-              user32, hwnd, gwlStyle, _savedStyle & ~wsOverlappedWindow);
+            user32,
+            hwnd,
+            gwlStyle,
+            _savedStyle & ~wsOverlappedWindow,
+          );
 
           // 5. Expand window across monitor (covers taskbar)
-          final setWindowPos = user32.lookupFunction<
-              Int32 Function(
-                  IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-              int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+          final setWindowPos = user32
+              .lookupFunction<
+                Int32 Function(
+                  IntPtr,
+                  IntPtr,
+                  Int32,
+                  Int32,
+                  Int32,
+                  Int32,
+                  Uint32,
+                ),
+                int Function(int, int, int, int, int, int, int)
+              >('SetWindowPos');
 
           setWindowPos(
             hwnd,
@@ -139,19 +158,29 @@ class Win32FullscreenService {
 
           // 2. Restore placement
           if (savedPlacement != null) {
-            final setWindowPlacement = user32.lookupFunction<
-                Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
-                int Function(
-                    int, Pointer<WINDOWPLACEMENT>)>('SetWindowPlacement');
+            final setWindowPlacement = user32
+                .lookupFunction<
+                  Int32 Function(IntPtr, Pointer<WINDOWPLACEMENT>),
+                  int Function(int, Pointer<WINDOWPLACEMENT>)
+                >('SetWindowPlacement');
             setWindowPlacement(hwnd, savedPlacement);
             calloc.free(savedPlacement);
           }
 
           // 3. Trigger frame changed so borders, title bar, and taskbar return
-          final setWindowPos = user32.lookupFunction<
-              Int32 Function(
-                  IntPtr, IntPtr, Int32, Int32, Int32, Int32, Uint32),
-              int Function(int, int, int, int, int, int, int)>('SetWindowPos');
+          final setWindowPos = user32
+              .lookupFunction<
+                Int32 Function(
+                  IntPtr,
+                  IntPtr,
+                  Int32,
+                  Int32,
+                  Int32,
+                  Int32,
+                  Uint32,
+                ),
+                int Function(int, int, int, int, int, int, int)
+              >('SetWindowPos');
 
           setWindowPos(
             hwnd,
@@ -167,7 +196,9 @@ class Win32FullscreenService {
                 swpFrameChanged,
           );
 
-          log('Exited native Windows fullscreen (restored window frame & taskbar)');
+          log(
+            'Exited native Windows fullscreen (restored window frame & taskbar)',
+          );
         } catch (e) {
           log('Error exiting Windows fullscreen: $e');
         }

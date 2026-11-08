@@ -86,7 +86,8 @@ class YouTubeJsCommands {
   }
 
   /// Shows or hides the YouTube Picture-in-Picture button on the host page and inner embed.
-  static String setShowMiniPlayer(bool show) => '''
+  static String setShowMiniPlayer(bool show) =>
+      '''
 (function() {
   if (typeof setShowMiniPlayer === "function") { setShowMiniPlayer(${show ? 'true' : 'false'}); }
   var msg = { type: 'adaptive-set-mini-player', show: ${show ? 'true' : 'false'} };

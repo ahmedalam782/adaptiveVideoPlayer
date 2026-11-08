@@ -21,31 +21,29 @@ class NativePlayerAdapter implements IVideoPlayerController {
   bool _isDisposed = false;
 
   NativePlayerAdapter({
-    required VideoPlayerController controller,
+    required this._controller,
     List<VideoQuality>? qualities,
     VideoQuality? initialQuality,
-    List<SubtitleTrack>? subtitles,
+    this._subtitles,
     SubtitleTrack? initialSubtitle,
     bool isLive = false,
-  })  : _controller = controller,
-        _qualities = qualities,
-        _currentQuality = initialQuality ??
-            (qualities != null && qualities.isNotEmpty
-                ? qualities.first
-                : null),
-        _subtitles = subtitles,
-        _currentSubtitle = initialSubtitle,
-        _isLive = isLive,
-        _stateNotifier = ValueNotifier<PlayerState>(
-          PlayerState(
-            isLive: isLive,
-            currentQuality: initialQuality ??
-                (qualities != null && qualities.isNotEmpty
-                    ? qualities.first
-                    : null),
-            currentSubtitle: initialSubtitle,
-          ),
-        ) {
+  }) : _qualities = qualities,
+       _currentQuality =
+           initialQuality ??
+           (qualities != null && qualities.isNotEmpty ? qualities.first : null),
+       _currentSubtitle = initialSubtitle,
+       _isLive = isLive,
+       _stateNotifier = ValueNotifier<PlayerState>(
+         PlayerState(
+           isLive: isLive,
+           currentQuality:
+               initialQuality ??
+               (qualities != null && qualities.isNotEmpty
+                   ? qualities.first
+                   : null),
+           currentSubtitle: initialSubtitle,
+         ),
+       ) {
     _controller.addListener(_onControllerUpdate);
     _syncState();
   }
@@ -83,7 +81,8 @@ class NativePlayerAdapter implements IVideoPlayerController {
       bufferedEnd = value.buffered.last.end;
     }
 
-    final isCompleted = value.isInitialized &&
+    final isCompleted =
+        value.isInitialized &&
         value.duration > Duration.zero &&
         value.position >= value.duration;
 
@@ -170,15 +169,17 @@ class NativePlayerAdapter implements IVideoPlayerController {
   @override
   Future<void> changeQuality(VideoQuality quality) async {
     _currentQuality = quality;
-    _stateNotifier.value =
-        _stateNotifier.value.copyWith(currentQuality: quality);
+    _stateNotifier.value = _stateNotifier.value.copyWith(
+      currentQuality: quality,
+    );
   }
 
   @override
   Future<void> changeSubtitle(SubtitleTrack? track) async {
     _currentSubtitle = track;
-    _stateNotifier.value =
-        _stateNotifier.value.copyWith(currentSubtitle: track);
+    _stateNotifier.value = _stateNotifier.value.copyWith(
+      currentSubtitle: track,
+    );
   }
 
   @override

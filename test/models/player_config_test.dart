@@ -28,51 +28,52 @@ void main() {
     });
 
     test(
-        'copyWith creates new instance with updated values including new color properties',
-        () {
-      const original = PlayerStyleConfig();
-      final updated = original.copyWith(
-        progressBarPlayedColor: Colors.blue,
-        progressBarHandleColor: Colors.green,
-        progressBarBufferedColor: Colors.grey,
-        progressBarBackgroundColor: Colors.black26,
-        controlsBackgroundColor: Colors.black54,
-        loadingIndicatorColor: Colors.yellow,
-        errorIconColor: Colors.orange,
-        iconColor: Colors.purple,
-        textColor: Colors.cyan,
-        backgroundColor: Colors.brown,
-        settingsBackgroundColor: Colors.teal,
-        settingItemBackgroundColor: Colors.pink,
-        switchInactiveThumbColor: Colors.black,
-        switchInactiveTrackColor: Colors.white,
-        timeTextStyle: const TextStyle(fontSize: 10),
-        settingsTitleStyle: const TextStyle(fontSize: 11),
-        settingItemTextStyle: const TextStyle(fontSize: 12),
-        errorTextStyle: const TextStyle(fontSize: 13),
-        useGlassmorphicControls: false,
-      );
+      'copyWith creates new instance with updated values including new color properties',
+      () {
+        const original = PlayerStyleConfig();
+        final updated = original.copyWith(
+          progressBarPlayedColor: Colors.blue,
+          progressBarHandleColor: Colors.green,
+          progressBarBufferedColor: Colors.grey,
+          progressBarBackgroundColor: Colors.black26,
+          controlsBackgroundColor: Colors.black54,
+          loadingIndicatorColor: Colors.yellow,
+          errorIconColor: Colors.orange,
+          iconColor: Colors.purple,
+          textColor: Colors.cyan,
+          backgroundColor: Colors.brown,
+          settingsBackgroundColor: Colors.teal,
+          settingItemBackgroundColor: Colors.pink,
+          switchInactiveThumbColor: Colors.black,
+          switchInactiveTrackColor: Colors.white,
+          timeTextStyle: const TextStyle(fontSize: 10),
+          settingsTitleStyle: const TextStyle(fontSize: 11),
+          settingItemTextStyle: const TextStyle(fontSize: 12),
+          errorTextStyle: const TextStyle(fontSize: 13),
+          useGlassmorphicControls: false,
+        );
 
-      expect(updated.progressBarPlayedColor, Colors.blue);
-      expect(updated.progressBarHandleColor, Colors.green);
-      expect(updated.progressBarBufferedColor, Colors.grey);
-      expect(updated.progressBarBackgroundColor, Colors.black26);
-      expect(updated.controlsBackgroundColor, Colors.black54);
-      expect(updated.loadingIndicatorColor, Colors.yellow);
-      expect(updated.errorIconColor, Colors.orange);
-      expect(updated.iconColor, Colors.purple);
-      expect(updated.textColor, Colors.cyan);
-      expect(updated.backgroundColor, Colors.brown);
-      expect(updated.settingsBackgroundColor, Colors.teal);
-      expect(updated.settingItemBackgroundColor, Colors.pink);
-      expect(updated.switchInactiveThumbColor, Colors.black);
-      expect(updated.switchInactiveTrackColor, Colors.white);
-      expect(updated.timeTextStyle?.fontSize, 10);
-      expect(updated.settingsTitleStyle?.fontSize, 11);
-      expect(updated.settingItemTextStyle?.fontSize, 12);
-      expect(updated.errorTextStyle?.fontSize, 13);
-      expect(updated.useGlassmorphicControls, false);
-    });
+        expect(updated.progressBarPlayedColor, Colors.blue);
+        expect(updated.progressBarHandleColor, Colors.green);
+        expect(updated.progressBarBufferedColor, Colors.grey);
+        expect(updated.progressBarBackgroundColor, Colors.black26);
+        expect(updated.controlsBackgroundColor, Colors.black54);
+        expect(updated.loadingIndicatorColor, Colors.yellow);
+        expect(updated.errorIconColor, Colors.orange);
+        expect(updated.iconColor, Colors.purple);
+        expect(updated.textColor, Colors.cyan);
+        expect(updated.backgroundColor, Colors.brown);
+        expect(updated.settingsBackgroundColor, Colors.teal);
+        expect(updated.settingItemBackgroundColor, Colors.pink);
+        expect(updated.switchInactiveThumbColor, Colors.black);
+        expect(updated.switchInactiveTrackColor, Colors.white);
+        expect(updated.timeTextStyle?.fontSize, 10);
+        expect(updated.settingsTitleStyle?.fontSize, 11);
+        expect(updated.settingItemTextStyle?.fontSize, 12);
+        expect(updated.errorTextStyle?.fontSize, 13);
+        expect(updated.useGlassmorphicControls, false);
+      },
+    );
   });
 
   group('PlayerTextConfig', () {
@@ -83,8 +84,10 @@ void main() {
       expect(config.videoLoadFailedText, 'Failed to load video');
       expect(config.videoUnavailableText, 'Video unavailable');
       expect(config.videoNotCompatibleText, 'Video format not compatible');
-      expect(config.videoCannotBeLoadedSecurityPolicyText,
-          'Video cannot be loaded due to security policy');
+      expect(
+        config.videoCannotBeLoadedSecurityPolicyText,
+        'Video cannot be loaded due to security policy',
+      );
       expect(config.playerSettingsText, 'Player Settings');
       expect(config.autoPlayText, 'Auto Play');
       expect(config.loopVideoText, 'Loop Video');
@@ -233,65 +236,69 @@ void main() {
     });
 
     test(
-        'copyWith creates new instance with updated values including new visibility toggles',
-        () {
-      const original = PlayerVisibilityConfig();
-      final updated = original.copyWith(
-        showControls: false,
-        showFullscreenButton: false,
-        showSettingsButton: false,
-        showAutoPlaySetting: false,
-        showLoopSetting: false,
-        showForceHDSetting: false,
-        showCaptionsSetting: false,
-        showMuteSetting: false,
-        showSkipButtons: false,
-        showMiniPlayerButton: false,
-        showVolumeButton: false,
-        showTimeDisplay: false,
-        showProgressBar: false,
-        showCenterPlayPause: false,
-        showLiveBadge: false,
-        showQualitySetting: false,
-        showSubtitlesSetting: false,
-        showPlaybackSpeedSetting: false,
-        showChapterTitle: false,
-        skipDuration: const Duration(seconds: 15),
-      );
+      'copyWith creates new instance with updated values including new visibility toggles',
+      () {
+        const original = PlayerVisibilityConfig();
+        final updated = original.copyWith(
+          showControls: false,
+          showFullscreenButton: false,
+          showSettingsButton: false,
+          showAutoPlaySetting: false,
+          showLoopSetting: false,
+          showForceHDSetting: false,
+          showCaptionsSetting: false,
+          showMuteSetting: false,
+          showSkipButtons: false,
+          showMiniPlayerButton: false,
+          showVolumeButton: false,
+          showTimeDisplay: false,
+          showProgressBar: false,
+          showCenterPlayPause: false,
+          showLiveBadge: false,
+          showQualitySetting: false,
+          showSubtitlesSetting: false,
+          showPlaybackSpeedSetting: false,
+          showChapterTitle: false,
+          skipDuration: const Duration(seconds: 15),
+        );
 
-      expect(updated.showControls, false);
-      expect(updated.showFullscreenButton, false);
-      expect(updated.showSettingsButton, false);
-      expect(updated.showAutoPlaySetting, false);
-      expect(updated.showLoopSetting, false);
-      expect(updated.showForceHDSetting, false);
-      expect(updated.showCaptionsSetting, false);
-      expect(updated.showMuteSetting, false);
-      expect(updated.showSkipButtons, false);
-      expect(updated.showMiniPlayerButton, false);
-      expect(updated.showVolumeButton, false);
-      expect(updated.showTimeDisplay, false);
-      expect(updated.showProgressBar, false);
-      expect(updated.showCenterPlayPause, false);
-      expect(updated.showLiveBadge, false);
-      expect(updated.showQualitySetting, false);
-      expect(updated.showSubtitlesSetting, false);
-      expect(updated.showPlaybackSpeedSetting, false);
-      expect(updated.showChapterTitle, false);
-      expect(updated.skipDuration, const Duration(seconds: 15));
-    });
+        expect(updated.showControls, false);
+        expect(updated.showFullscreenButton, false);
+        expect(updated.showSettingsButton, false);
+        expect(updated.showAutoPlaySetting, false);
+        expect(updated.showLoopSetting, false);
+        expect(updated.showForceHDSetting, false);
+        expect(updated.showCaptionsSetting, false);
+        expect(updated.showMuteSetting, false);
+        expect(updated.showSkipButtons, false);
+        expect(updated.showMiniPlayerButton, false);
+        expect(updated.showVolumeButton, false);
+        expect(updated.showTimeDisplay, false);
+        expect(updated.showProgressBar, false);
+        expect(updated.showCenterPlayPause, false);
+        expect(updated.showLiveBadge, false);
+        expect(updated.showQualitySetting, false);
+        expect(updated.showSubtitlesSetting, false);
+        expect(updated.showPlaybackSpeedSetting, false);
+        expect(updated.showChapterTitle, false);
+        expect(updated.skipDuration, const Duration(seconds: 15));
+      },
+    );
 
     test(
-        'showMiniPlayerButton defaults to true across platforms and respects overrides',
-        () {
-      const explicitTrue = PlayerVisibilityConfig(showMiniPlayerButton: true);
-      expect(explicitTrue.showMiniPlayerButton, true);
+      'showMiniPlayerButton defaults to true across platforms and respects overrides',
+      () {
+        const explicitTrue = PlayerVisibilityConfig(showMiniPlayerButton: true);
+        expect(explicitTrue.showMiniPlayerButton, true);
 
-      const explicitFalse = PlayerVisibilityConfig(showMiniPlayerButton: false);
-      expect(explicitFalse.showMiniPlayerButton, false);
+        const explicitFalse = PlayerVisibilityConfig(
+          showMiniPlayerButton: false,
+        );
+        expect(explicitFalse.showMiniPlayerButton, false);
 
-      expect(const PlayerVisibilityConfig().showMiniPlayerButton, true);
-    });
+        expect(const PlayerVisibilityConfig().showMiniPlayerButton, true);
+      },
+    );
   });
 
   group('PlayerPlaybackConfig', () {

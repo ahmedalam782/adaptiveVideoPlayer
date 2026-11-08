@@ -1,6 +1,5 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 
 import '../../core/services/native_pip_service.dart';
@@ -79,7 +78,7 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer>, WidgetsBindingObserver {
         state == AppLifecycleState.hidden) {
       final ctrl = activePipController;
       if (ctrl != null && ctrl.value.isInitialized && ctrl.value.isPlaying) {
-        if (!kIsWeb && Platform.isIOS) {
+        if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS)) {
           NativePipService.updatePlaybackState(
             isPlaying: true,
             url: ctrl.dataSource,
@@ -133,14 +132,16 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer>, WidgetsBindingObserver {
     if (inPip &&
         ctrl != null &&
         !kIsWeb &&
-        Platform.isIOS &&
+        (defaultTargetPlatform == TargetPlatform.iOS) &&
         ctrl.value.isPlaying) {
       _pausedFlutterForIosPip = true;
       ctrl.pause();
     }
     if (mounted) {
       setState(() {});
-      if (inPip && ctrl != null && (kIsWeb || !Platform.isIOS)) {
+      if (inPip &&
+          ctrl != null &&
+          (kIsWeb || !(defaultTargetPlatform == TargetPlatform.iOS))) {
         final currentPlaying = ctrl.value.isPlaying;
         lastReportedPipPlaying = currentPlaying;
         NativePipService.updatePlaybackState(
@@ -222,7 +223,7 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer>, WidgetsBindingObserver {
 
   void openMiniPlayer() async {
     if (onLeaveFullscreenForPip()) {
-      if (!kIsWeb && Platform.isMacOS) {
+      if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.macOS)) {
         markDesktopFullscreenExited();
         NativePipService.isInPip.value = true;
       }
@@ -231,10 +232,10 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer>, WidgetsBindingObserver {
     }
     if (!mounted) return;
     if (!kIsWeb &&
-        (Platform.isAndroid ||
-            Platform.isIOS ||
-            Platform.isWindows ||
-            Platform.isMacOS)) {
+        ((defaultTargetPlatform == TargetPlatform.android) ||
+            (defaultTargetPlatform == TargetPlatform.iOS) ||
+            (defaultTargetPlatform == TargetPlatform.windows) ||
+            (defaultTargetPlatform == TargetPlatform.macOS))) {
       final ctrl = activePipController;
       final entered = await NativePipService.enterPip(
         url: ctrl?.dataSource,
@@ -259,8 +260,9 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer>, WidgetsBindingObserver {
     late final OverlayEntry entry;
     entry = OverlayEntry(
       builder: (overlayCtx) {
-        final effectiveMessages =
-            mounted ? resolveEffectiveMessages(context) : initialMessages;
+        final effectiveMessages = mounted
+            ? resolveEffectiveMessages(context)
+            : initialMessages;
         final styling = mounted ? widget.styling : initialStyling;
         final activeCtrl =
             activePipController ?? activeBackgroundMiniController ?? ctrl;
@@ -318,8 +320,9 @@ mixin NormalPlayerPipMixin on State<NormalVideoPlayer>, WidgetsBindingObserver {
       onEnsurePlaybackContinues(wasPlaying);
     }
     if (mounted) setState(() {});
-    widget.onAnalyticsEvent
-        ?.call('mini_player_closed', {'paused': pauseOnClose});
+    widget.onAnalyticsEvent?.call('mini_player_closed', {
+      'paused': pauseOnClose,
+    });
   }
 
   void handlePipDisposal(VoidCallback onStandardDispose) {

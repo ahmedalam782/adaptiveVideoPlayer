@@ -19,7 +19,7 @@ class AdaptivePlayerSettingsSheet extends StatefulWidget {
   final SubtitleTrack? currentSubtitleTrack;
   final void Function(SubtitleTrack?)? onSubtitleSelected;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final VoidCallback? onDismiss;
 
   const AdaptivePlayerSettingsSheet({
@@ -127,7 +127,7 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
   final VoidCallback onOpenQualities;
   final VoidCallback onOpenSubtitles;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
 
   const AdaptiveSettingsMainMenu({
     super.key,
@@ -171,7 +171,8 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
               messages?.qualityText ?? 'Quality (Resolution)',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: styling?.settingItemTextStyle ??
+              style:
+                  styling?.settingItemTextStyle ??
                   const TextStyle(color: Colors.white),
             ),
             trailing: ConstrainedBox(
@@ -186,7 +187,8 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: styling?.iconColor.withValues(alpha: 0.7) ??
+                        color:
+                            styling?.iconColor.withValues(alpha: 0.7) ??
                             Colors.white70,
                       ),
                     ),
@@ -194,7 +196,8 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                   const SizedBox(width: 4),
                   Icon(
                     Icons.chevron_right,
-                    color: styling?.iconColor.withValues(alpha: 0.7) ??
+                    color:
+                        styling?.iconColor.withValues(alpha: 0.7) ??
                         Colors.white70,
                     size: 20,
                   ),
@@ -202,22 +205,28 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
               ),
             ),
             onTap: () {
-              onAnalyticsEvent
-                  ?.call(PlayerEvents.resolutionSettingsClicked, {});
+              onAnalyticsEvent?.call(
+                PlayerEvents.resolutionSettingsClicked,
+                {},
+              );
               if (qualities != null && qualities!.isNotEmpty) {
                 onOpenQualities();
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  backgroundColor: styling?.settingsBackgroundColor ??
-                      const Color(0xFF212121),
-                  behavior: SnackBarBehavior.floating,
-                  content: Text(
-                    messages?.noQualitiesAvailableText ??
-                        PlayerStrings.noQualitiesAvailable,
-                    style: styling?.settingItemTextStyle ??
-                        const TextStyle(color: Colors.white),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor:
+                        styling?.settingsBackgroundColor ??
+                        const Color(0xFF212121),
+                    behavior: SnackBarBehavior.floating,
+                    content: Text(
+                      messages?.noQualitiesAvailableText ??
+                          PlayerStrings.noQualitiesAvailable,
+                      style:
+                          styling?.settingItemTextStyle ??
+                          const TextStyle(color: Colors.white),
+                    ),
                   ),
-                ));
+                );
               }
             },
           ),
@@ -236,7 +245,8 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
               messages?.subtitlesText ?? PlayerStrings.subtitles,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: styling?.settingItemTextStyle ??
+              style:
+                  styling?.settingItemTextStyle ??
                   const TextStyle(color: Colors.white),
             ),
             trailing: ConstrainedBox(
@@ -252,7 +262,8 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: styling?.iconColor.withValues(alpha: 0.7) ??
+                        color:
+                            styling?.iconColor.withValues(alpha: 0.7) ??
                             Colors.white70,
                       ),
                     ),
@@ -260,7 +271,8 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
                   const SizedBox(width: 4),
                   Icon(
                     Icons.chevron_right,
-                    color: styling?.iconColor.withValues(alpha: 0.7) ??
+                    color:
+                        styling?.iconColor.withValues(alpha: 0.7) ??
                         Colors.white70,
                     size: 20,
                   ),
@@ -272,17 +284,21 @@ class AdaptiveSettingsMainMenu extends StatelessWidget {
               if (subtitles != null && subtitles!.isNotEmpty) {
                 onOpenSubtitles();
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  backgroundColor: styling?.settingsBackgroundColor ??
-                      const Color(0xFF212121),
-                  behavior: SnackBarBehavior.floating,
-                  content: Text(
-                    messages?.noSubtitlesAvailableText ??
-                        PlayerStrings.noSubtitlesAvailable,
-                    style: styling?.settingItemTextStyle ??
-                        const TextStyle(color: Colors.white),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor:
+                        styling?.settingsBackgroundColor ??
+                        const Color(0xFF212121),
+                    behavior: SnackBarBehavior.floating,
+                    content: Text(
+                      messages?.noSubtitlesAvailableText ??
+                          PlayerStrings.noSubtitlesAvailable,
+                      style:
+                          styling?.settingItemTextStyle ??
+                          const TextStyle(color: Colors.white),
+                    ),
                   ),
-                ));
+                );
               }
             },
           ),

@@ -106,15 +106,16 @@ class ResponsiveAudioSubtitleColumns extends StatelessWidget {
                           ),
                         ]
                       : audioList
-                          .map(
-                            (audio) => ResponsiveAudioOption(
-                              audio: audio,
-                              isSelected: selectedAudio?.id == audio.id ||
-                                  (selectedAudio == null && audio.isDefault),
-                              onTap: () => onAudioSelected(audio),
-                            ),
-                          )
-                          .toList(),
+                            .map(
+                              (audio) => ResponsiveAudioOption(
+                                audio: audio,
+                                isSelected:
+                                    selectedAudio?.id == audio.id ||
+                                    (selectedAudio == null && audio.isDefault),
+                                onTap: () => onAudioSelected(audio),
+                              ),
+                            )
+                            .toList(),
                 ),
               ),
             ],

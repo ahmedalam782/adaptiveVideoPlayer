@@ -78,7 +78,8 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final inNativePip = NativePipService.isInPip.value;
-    final isMobile = !kIsWeb &&
+    final isMobile =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     final effectiveDir = config.text.resolveTextDirection(context);
@@ -121,14 +122,16 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                   final isCover = config.style.videoFit == BoxFit.cover;
                   // wasPlaying is null until fullscreen or PiP has observed
                   // playback. Until then, honor the configured autoPlay flag.
-                  final shouldAutoPlay = fullscreenManager.isInPip ||
+                  final shouldAutoPlay =
+                      fullscreenManager.isInPip ||
                       (fullscreenManager.wasPlaying ??
                           config.playback.autoPlay);
                   return Stack(
                     alignment: Alignment.center,
                     children: [
                       Center(
-                        child: (isCover ||
+                        child:
+                            (isCover ||
                                 (!constraints.maxWidth.isFinite &&
                                     !constraints.maxHeight.isFinite))
                             ? SizedBox.expand(
@@ -205,12 +208,13 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                         PositionedDirectional(
                           top: 12,
                           start: 12,
-                          child: (liveBadgeBuilder ?? config.liveBadgeBuilder)
+                          child:
+                              (liveBadgeBuilder ?? config.liveBadgeBuilder)
                                   ?.call(
-                                context,
-                                isLive: isLive,
-                                viewerCount: viewerCount,
-                              ) ??
+                                    context,
+                                    isLive: isLive,
+                                    viewerCount: viewerCount,
+                                  ) ??
                               YouTubeLiveBadge(
                                 isLive: isLive,
                                 viewerCount: viewerCount,
@@ -224,8 +228,9 @@ class YouTubeDesktopPlayerWithOverlay extends StatelessWidget {
                           child: PipPlaybackChrome(
                             isPlaying: isPlaying,
                             progress: pipProgress,
-                            textDirection:
-                                config.text.resolveTextDirection(context),
+                            textDirection: config.text.resolveTextDirection(
+                              context,
+                            ),
                             closeTooltip: config.text.closeMiniPlayerText,
                             expandTooltip: config.text.expandPlayerText,
                             playTooltip: config.text.playText,

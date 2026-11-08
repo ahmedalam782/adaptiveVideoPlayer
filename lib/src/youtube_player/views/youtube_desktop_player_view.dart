@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -57,7 +56,8 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
   int _durationSeconds = 0;
   bool _backgroundPipRequested = false;
 
-  bool get _usesWebViewPip => !kIsWeb && Platform.isIOS;
+  bool get _usesWebViewPip =>
+      !kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS);
 
   @override
   void initState() {
@@ -65,7 +65,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
     WidgetsBinding.instance.addObserver(this);
     NativePipService.isInPip.addListener(_onNativePipModeChanged);
     NativePipService.pipAction.addListener(_onPipActionReceived);
-    if (!kIsWeb && Platform.isAndroid) {
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android)) {
       NativePipService.setPipEnabled(true);
     } else if (_usesWebViewPip) {
       // The hidden AVPlayer would start a second video and reload it.
@@ -91,7 +91,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
       }
       return;
     }
-    if (!kIsWeb && Platform.isAndroid) {
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android)) {
       if ((state == AppLifecycleState.paused ||
               state == AppLifecycleState.inactive ||
               state == AppLifecycleState.hidden) &&
@@ -134,7 +134,8 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
   void _syncMiniPlayerButtonForPip() {
     final inPip =
         widget.fullscreenManager.isInPip || NativePipService.isInPip.value;
-    final show = !inPip &&
+    final show =
+        !inPip &&
         widget.config.visibility.showControls &&
         widget.config.visibility.showMiniPlayerButton;
     widget.desktopWebViewKey.currentState?.setMiniPlayerButtonVisible(show);
@@ -291,7 +292,9 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
       await player?.enterPictureInPicture();
       return;
     }
-    if (!kIsWeb && (Platform.isAndroid || Platform.isWindows)) {
+    if (!kIsWeb &&
+        ((defaultTargetPlatform == TargetPlatform.android) ||
+            (defaultTargetPlatform == TargetPlatform.windows))) {
       final entered = await NativePipService.enterPip();
       if (entered) return;
     }
@@ -349,7 +352,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
             _isHovered = true;
           }
         });
-        if (!kIsWeb && Platform.isAndroid) {
+        if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android)) {
           NativePipService.updatePlaybackState(isPlaying: playing);
         }
         if (playing) {
@@ -371,7 +374,7 @@ class _YouTubeDesktopPlayerViewState extends State<YouTubeDesktopPlayerView>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    if (!kIsWeb && Platform.isAndroid) {
+    if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android)) {
       NativePipService.updatePlaybackState(isPlaying: false);
     }
     NativePipService.isInPip.removeListener(_onNativePipModeChanged);

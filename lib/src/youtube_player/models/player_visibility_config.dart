@@ -18,7 +18,7 @@ class PlayerVisibilityConfig {
   /// because automatic background PiP activates when leaving the app.
   bool get showMiniPlayerButton {
     if (_showMiniPlayerButton != null) {
-      return _showMiniPlayerButton!;
+      return _showMiniPlayerButton;
     }
     return true;
   }
@@ -139,7 +139,7 @@ class PlayerVisibilityConfig {
     this.showControls = true,
     this.showFullscreenButton = true,
     this.showSettingsButton = true,
-    bool? showMiniPlayerButton,
+    this._showMiniPlayerButton,
     this.showVolumeButton = true,
     this.showTimeDisplay = true,
     this.showProgressBar = true,
@@ -177,7 +177,7 @@ class PlayerVisibilityConfig {
     this.skipDuration = const Duration(seconds: 10),
     this.controlsHideTimeout = const Duration(seconds: 3),
     this.volumeFeedbackTimeout = const Duration(milliseconds: 1200),
-  }) : _showMiniPlayerButton = showMiniPlayerButton;
+  });
 
   /// Creates a copy with updated values
   PlayerVisibilityConfig copyWith({

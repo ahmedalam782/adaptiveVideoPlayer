@@ -44,12 +44,15 @@ mixin YouTubePlayerPipMixin on State<YouTubeVideoPlayer> {
     onPauseVideo();
 
     if (kIsWeb) {
-      final effectiveConfig =
-          mounted ? resolveEffectiveConfig(context) : widget.config;
-      final isRtl = effectiveConfig.text.resolveTextDirection(context) ==
+      final effectiveConfig = mounted
+          ? resolveEffectiveConfig(context)
+          : widget.config;
+      final isRtl =
+          effectiveConfig.text.resolveTextDirection(context) ==
           TextDirection.rtl;
-      final currentLang =
-          isRtl ? 'ar' : (effectiveConfig.text.languageCode ?? 'en');
+      final currentLang = isRtl
+          ? 'ar'
+          : (effectiveConfig.text.languageCode ?? 'en');
       pipWebIframeId =
           'youtube-iframe-pip-$currentVideoId-${DateTime.now().millisecondsSinceEpoch}';
       registerYoutubeWebIframe(
@@ -156,8 +159,9 @@ mixin YouTubePlayerPipMixin on State<YouTubeVideoPlayer> {
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            Colors.black
-                                                .withValues(alpha: 0.80),
+                                            Colors.black.withValues(
+                                              alpha: 0.80,
+                                            ),
                                             Colors.transparent,
                                           ],
                                         ),

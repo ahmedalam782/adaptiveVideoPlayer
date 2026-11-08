@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/setting_item.dart';
 
 void main() {
-  testWidgets('SettingItem renders correctly and handles tap',
-      (WidgetTester tester) async {
+  testWidgets('SettingItem renders correctly and handles tap', (
+    WidgetTester tester,
+  ) async {
     bool isTapped = false;
 
     await tester.pumpWidget(
@@ -41,8 +42,9 @@ void main() {
     expect(isTapped, false);
   });
 
-  testWidgets('SettingItem builds with default properties',
-      (WidgetTester tester) async {
+  testWidgets('SettingItem builds with default properties', (
+    WidgetTester tester,
+  ) async {
     bool isTapped = false;
 
     await tester.pumpWidget(

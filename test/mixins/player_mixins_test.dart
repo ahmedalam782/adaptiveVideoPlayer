@@ -7,8 +7,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('NormalPlayerSubtitlesMixin Tests', () {
-    testWidgets('Subtitles mixin initializes and changes track correctly',
-        (tester) async {
+    testWidgets('Subtitles mixin initializes and changes track correctly', (
+      tester,
+    ) async {
       const track1 = SubtitleTrack(
         id: 'en',
         title: 'English',
@@ -27,8 +28,9 @@ void main() {
       );
 
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: player)));
-      final state =
-          tester.state<NormalVideoPlayerState>(find.byType(NormalVideoPlayer));
+      final state = tester.state<NormalVideoPlayerState>(
+        find.byType(NormalVideoPlayer),
+      );
 
       state.initSubtitles();
       await tester.pump();
@@ -53,16 +55,19 @@ void main() {
 
   group('NormalPlayerPipMixin Background Miniplayer Tests', () {
     test('disposeBackgroundMiniPlayer cleans up without throwing', () {
-      expect(() => NormalPlayerPipMixin.disposeBackgroundMiniPlayer(),
-          returnsNormally);
+      expect(
+        () => NormalPlayerPipMixin.disposeBackgroundMiniPlayer(),
+        returnsNormally,
+      );
       expect(NormalPlayerPipMixin.activeBackgroundMiniEntry, isNull);
       expect(NormalPlayerPipMixin.activeBackgroundMiniController, isNull);
     });
   });
 
   group('NormalVideoPlayer Configuration Model Tests', () {
-    testWidgets('NormalVideoPlayer initializes from VideoConfig model',
-        (tester) async {
+    testWidgets('NormalVideoPlayer initializes from VideoConfig model', (
+      tester,
+    ) async {
       const config = VideoConfig(
         videoUrl: 'https://example.com/test.mp4',
         isFile: false,
@@ -77,8 +82,9 @@ void main() {
       expect(player.isLive, isTrue);
       expect(player.viewerCount, equals('1.2k'));
 
-      final fromConfigPlayer =
-          const NormalVideoPlayer.fromConfig(config: config);
+      final fromConfigPlayer = const NormalVideoPlayer.fromConfig(
+        config: config,
+      );
       expect(fromConfigPlayer.config, equals(config));
     });
 

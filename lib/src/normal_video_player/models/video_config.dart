@@ -67,7 +67,7 @@ class VideoConfig {
 
   /// Custom error widget builder
   final Widget Function(BuildContext context, String errorMessage)?
-      errorBuilder;
+  errorBuilder;
 
   /// Optional custom fullscreen service injection (DIP)
   final IFullscreenService? fullscreenService;
@@ -80,7 +80,7 @@ class VideoConfig {
 
   /// Analytics hook for external tracking of video events
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
 
   /// Optional explicit video file extension (e.g. VideoFileExtension.hls for extensionless streams)
   final VideoFileExtension? extension;

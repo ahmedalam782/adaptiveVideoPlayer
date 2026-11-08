@@ -32,8 +32,11 @@ class MobileScreenLockBadge extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 1.4),
                 ),
-                child: const Icon(Icons.lock_outline_rounded,
-                    color: Colors.white, size: 26),
+                child: const Icon(
+                  Icons.lock_outline_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
               const SizedBox(height: 8),
               Text(

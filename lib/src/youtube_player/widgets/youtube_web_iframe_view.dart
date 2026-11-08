@@ -8,10 +8,7 @@ import '../utils/youtube_web_export.dart';
 class YouTubeWebIframeView extends StatelessWidget {
   final String viewId;
 
-  const YouTubeWebIframeView({
-    super.key,
-    required this.viewId,
-  });
+  const YouTubeWebIframeView({super.key, required this.viewId});
 
   @override
   Widget build(BuildContext context) {

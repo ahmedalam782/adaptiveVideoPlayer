@@ -76,7 +76,8 @@ class _ResponsiveEpisodesPanelState extends State<ResponsiveEpisodesPanel>
 
   @override
   Widget build(BuildContext context) {
-    final textDirection = widget.messages?.resolveTextDirection(context) ??
+    final textDirection =
+        widget.messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
     final isRtl = textDirection == TextDirection.rtl;
@@ -103,7 +104,8 @@ class _ResponsiveEpisodesPanelState extends State<ResponsiveEpisodesPanel>
           width: widget.maxWidth ?? 440,
           constraints: BoxConstraints(maxHeight: widget.maxHeight ?? 520),
           decoration: BoxDecoration(
-            color: widget.styling?.settingsBackgroundColor ??
+            color:
+                widget.styling?.settingsBackgroundColor ??
                 const Color(0xF2181818),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
@@ -123,8 +125,10 @@ class _ResponsiveEpisodesPanelState extends State<ResponsiveEpisodesPanel>
             children: [
               // Header
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -139,8 +143,11 @@ class _ResponsiveEpisodesPanelState extends State<ResponsiveEpisodesPanel>
                     ),
                     if (widget.onClose != null)
                       IconButton(
-                        icon: const Icon(Icons.close_rounded,
-                            color: Colors.white70, size: 20),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white70,
+                          size: 20,
+                        ),
                         onPressed: widget.onClose,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -153,22 +160,27 @@ class _ResponsiveEpisodesPanelState extends State<ResponsiveEpisodesPanel>
               // Episodes List
               Expanded(
                 child: ListView.separated(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   itemCount: widget.episodes.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final ep = widget.episodes[index];
-                    final isCurrent = _selectedEpisode?.id == ep.id ||
+                    final isCurrent =
+                        _selectedEpisode?.id == ep.id ||
                         (_selectedEpisode == null && index == 0);
 
                     return ResponsiveEpisodeListCard(
                       episode: ep,
                       isCurrent: isCurrent,
                       isRtl: isRtl,
-                      playedColor: widget.styling?.progressBarPlayedColor ??
+                      playedColor:
+                          widget.styling?.progressBarPlayedColor ??
                           const Color(0xFFE50914),
-                      nowPlayingText: widget.messages?.nowPlayingText ??
+                      nowPlayingText:
+                          widget.messages?.nowPlayingText ??
                           (isRtl ? 'يعرض الآن' : 'Now Playing'),
                       wave: _waveController,
                       onTap: () {

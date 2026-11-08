@@ -161,7 +161,8 @@ class _AdaptiveVolumeControlState extends State<AdaptiveVolumeControl> {
       valueListenable: widget.controller,
       builder: (context, VideoPlayerValue value, child) {
         final isMuted = value.volume == 0;
-        final showSlider = widget.allowExpand &&
+        final showSlider =
+            widget.allowExpand &&
             (widget.alwaysShowSlider ||
                 _isVolumeHovered ||
                 _isDraggingVolume ||

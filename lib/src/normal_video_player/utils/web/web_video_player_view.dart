@@ -69,14 +69,11 @@ class _VideoPlayerState extends State<VideoPlayer> {
   Widget build(BuildContext context) {
     if (_playerId == -1) return Container();
     final rotation = widget.controller.value.rotationCorrection;
-    final view =
-        platform_interface.VideoPlayerPlatform.instance.buildViewWithOptions(
-      platform_interface.VideoViewOptions(playerId: _playerId),
-    );
+    final view = platform_interface.VideoPlayerPlatform.instance
+        .buildViewWithOptions(
+          platform_interface.VideoViewOptions(playerId: _playerId),
+        );
     if (rotation == 0) return view;
-    return RotatedBox(
-      quarterTurns: (rotation / 90).round(),
-      child: view,
-    );
+    return RotatedBox(quarterTurns: (rotation / 90).round(), child: view);
   }
 }

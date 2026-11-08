@@ -28,7 +28,8 @@ class FakePlatformWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setPlatformNavigationDelegate(
-      PlatformNavigationDelegate delegate) async {}
+    PlatformNavigationDelegate delegate,
+  ) async {}
 
   @override
   Future<void> loadRequest(LoadRequestParams params) async {}
@@ -62,9 +63,7 @@ class FakePlatformNavigationDelegate extends PlatformNavigationDelegate {
   ) async {}
 
   @override
-  Future<void> setOnPageFinished(
-    PageEventCallback onPageFinished,
-  ) async {}
+  Future<void> setOnPageFinished(PageEventCallback onPageFinished) async {}
 
   @override
   Future<void> setOnWebResourceError(

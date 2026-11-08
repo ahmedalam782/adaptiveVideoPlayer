@@ -41,7 +41,8 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
 
     final window = MediaQuery.maybeSizeOf(context) ?? Size.zero;
     final player = context.size ?? window;
-    final tier = PlayerSurfaceScope.maybeOf(context) ??
+    final tier =
+        PlayerSurfaceScope.maybeOf(context) ??
         resolvePlayerSurfaceTier(window: window, player: player);
 
     _fullscreenOverlay = OverlayEntry(
@@ -74,7 +75,8 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
 
     enterBrowserFullscreen();
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    final isMobile = !kIsWeb &&
+    final isMobile =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
@@ -118,7 +120,8 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
 
     exitBrowserFullscreen();
 
-    final isMobile = !kIsWeb &&
+    final isMobile =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     if (isMobile) {
@@ -130,8 +133,9 @@ class NormalFullscreenCoordinator extends ChangeNotifier {
         DeviceOrientation.landscapeRight,
       ]);
     } else {
-      await SystemChrome.setPreferredOrientations(
-          [DeviceOrientation.portraitUp]);
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
     }
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,

@@ -59,10 +59,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.videoPlayerOptions,
     this.httpHeaders = const <String, String>{},
     this.viewType = platform_interface.VideoViewType.textureView,
-  })  : dataSource = url.toString(),
-        dataSourceType = platform_interface.DataSourceType.network,
-        package = null,
-        super(const VideoPlayerValue(duration: Duration.zero));
+  }) : dataSource = url.toString(),
+       dataSourceType = platform_interface.DataSourceType.network,
+       package = null,
+       super(const VideoPlayerValue(duration: Duration.zero));
 
   /// Stub construct for assets.
   VideoPlayerController.asset(
@@ -70,10 +70,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.package,
     this.videoPlayerOptions,
     this.viewType = platform_interface.VideoViewType.textureView,
-  })  : dataSourceType = platform_interface.DataSourceType.asset,
-        formatHint = null,
-        httpHeaders = const <String, String>{},
-        super(const VideoPlayerValue(duration: Duration.zero));
+  }) : dataSourceType = platform_interface.DataSourceType.asset,
+       formatHint = null,
+       httpHeaders = const <String, String>{},
+       super(const VideoPlayerValue(duration: Duration.zero));
 
   /// Web-stub for local file constructor. Throws [UnsupportedError].
   VideoPlayerController.file(
@@ -81,11 +81,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.videoPlayerOptions,
     this.httpHeaders = const <String, String>{},
     this.viewType = platform_interface.VideoViewType.textureView,
-  })  : dataSource = '',
-        dataSourceType = platform_interface.DataSourceType.file,
-        package = null,
-        formatHint = null,
-        super(const VideoPlayerValue(duration: Duration.zero)) {
+  }) : dataSource = '',
+       dataSourceType = platform_interface.DataSourceType.file,
+       package = null,
+       formatHint = null,
+       super(const VideoPlayerValue(duration: Duration.zero)) {
     throw UnsupportedError('Local file playback is not supported on Web');
   }
 
@@ -124,7 +124,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       viewType: viewType,
     );
 
-    _playerId = (await platform_interface.VideoPlayerPlatform.instance
+    _playerId =
+        (await platform_interface.VideoPlayerPlatform.instance
             .createWithOptions(creationOptions)) ??
         -1;
 
@@ -262,8 +263,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         target > value.duration) {
       target = value.duration;
     }
-    await platform_interface.VideoPlayerPlatform.instance
-        .seekTo(_playerId, target);
+    await platform_interface.VideoPlayerPlatform.instance.seekTo(
+      _playerId,
+      target,
+    );
     _updatePosition(target);
   }
 
@@ -283,21 +286,27 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> setPlaybackSpeed(double speed) async {
     value = value.copyWith(playbackSpeed: speed);
     if (value.isPlaying) {
-      await platform_interface.VideoPlayerPlatform.instance
-          .setPlaybackSpeed(_playerId, speed);
+      await platform_interface.VideoPlayerPlatform.instance.setPlaybackSpeed(
+        _playerId,
+        speed,
+      );
     }
   }
 
   Future<void> _applyLooping() async {
     if (_playerId == -1) return;
-    await platform_interface.VideoPlayerPlatform.instance
-        .setLooping(_playerId, value.isLooping);
+    await platform_interface.VideoPlayerPlatform.instance.setLooping(
+      _playerId,
+      value.isLooping,
+    );
   }
 
   Future<void> _applyVolume() async {
     if (_playerId == -1) return;
-    await platform_interface.VideoPlayerPlatform.instance
-        .setVolume(_playerId, value.volume);
+    await platform_interface.VideoPlayerPlatform.instance.setVolume(
+      _playerId,
+      value.volume,
+    );
   }
 
   Future<void> _applyPlayPause() async {
@@ -306,8 +315,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     if (value.isPlaying) {
       try {
-        final playFuture =
-            platform_interface.VideoPlayerPlatform.instance.play(_playerId);
+        final playFuture = platform_interface.VideoPlayerPlatform.instance.play(
+          _playerId,
+        );
         _pendingPlayOperation = playFuture;
         await playFuture;
       } catch (e) {
@@ -329,8 +339,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             .getPosition(_playerId);
         _updatePosition(pos);
       });
-      await platform_interface.VideoPlayerPlatform.instance
-          .setPlaybackSpeed(_playerId, value.playbackSpeed);
+      await platform_interface.VideoPlayerPlatform.instance.setPlaybackSpeed(
+        _playerId,
+        value.playbackSpeed,
+      );
     } else {
       _timer?.cancel();
 

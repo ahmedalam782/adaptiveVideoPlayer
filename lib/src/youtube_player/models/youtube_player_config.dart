@@ -15,15 +15,16 @@ export 'player_visibility_config.dart';
 
 /// Builder type definitions for customizing player widgets.
 typedef YouTubeLoadingBuilder = Widget Function(BuildContext context);
-typedef YouTubeErrorBuilder = Widget Function(
-    BuildContext context, String errorMessage);
-typedef YouTubeReplayBuilder = Widget Function(
-    BuildContext context, VoidCallback onRestart);
-typedef YouTubeLiveBadgeBuilder = Widget Function(
-  BuildContext context, {
-  required bool isLive,
-  String? viewerCount,
-});
+typedef YouTubeErrorBuilder =
+    Widget Function(BuildContext context, String errorMessage);
+typedef YouTubeReplayBuilder =
+    Widget Function(BuildContext context, VoidCallback onRestart);
+typedef YouTubeLiveBadgeBuilder =
+    Widget Function(
+      BuildContext context, {
+      required bool isLive,
+      String? viewerCount,
+    });
 
 /// Complete configuration model for YouTube player (Composite / Facade Pattern).
 /// Combines style, text, visibility, playback, and custom builders into one model.

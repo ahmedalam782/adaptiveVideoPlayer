@@ -30,23 +30,24 @@ void main() {
     });
 
     test(
-        'multi-owner reference counting keeps protection active until all unregister',
-        () async {
-      final owner1 = Object();
-      final owner2 = Object();
+      'multi-owner reference counting keeps protection active until all unregister',
+      () async {
+        final owner1 = Object();
+        final owner2 = Object();
 
-      await ScreenProtectionService.registerOwner(owner1);
-      await ScreenProtectionService.registerOwner(owner2);
-      expect(ScreenProtectionService.isProtected, true);
+        await ScreenProtectionService.registerOwner(owner1);
+        await ScreenProtectionService.registerOwner(owner2);
+        expect(ScreenProtectionService.isProtected, true);
 
-      // Unregistering owner1 still leaves owner2 active
-      await ScreenProtectionService.unregisterOwner(owner1);
-      expect(ScreenProtectionService.isProtected, true);
+        // Unregistering owner1 still leaves owner2 active
+        await ScreenProtectionService.unregisterOwner(owner1);
+        expect(ScreenProtectionService.isProtected, true);
 
-      // Unregistering owner2 turns off protection
-      await ScreenProtectionService.unregisterOwner(owner2);
-      expect(ScreenProtectionService.isProtected, false);
-    });
+        // Unregistering owner2 turns off protection
+        await ScreenProtectionService.unregisterOwner(owner2);
+        expect(ScreenProtectionService.isProtected, false);
+      },
+    );
 
     test('setEnabledFor toggles state per owner', () async {
       final owner = Object();
@@ -70,19 +71,21 @@ void main() {
       expect(ScreenProtectionService.isProtected, false);
     });
 
-    test('convenience methods enable, disable, and setEnabled work as expected',
-        () async {
-      await ScreenProtectionService.enable();
-      expect(ScreenProtectionService.isProtected, true);
+    test(
+      'convenience methods enable, disable, and setEnabled work as expected',
+      () async {
+        await ScreenProtectionService.enable();
+        expect(ScreenProtectionService.isProtected, true);
 
-      await ScreenProtectionService.disable();
-      expect(ScreenProtectionService.isProtected, false);
+        await ScreenProtectionService.disable();
+        expect(ScreenProtectionService.isProtected, false);
 
-      await ScreenProtectionService.setEnabled(true);
-      expect(ScreenProtectionService.isProtected, true);
+        await ScreenProtectionService.setEnabled(true);
+        expect(ScreenProtectionService.isProtected, true);
 
-      await ScreenProtectionService.setEnabled(false);
-      expect(ScreenProtectionService.isProtected, false);
-    });
+        await ScreenProtectionService.setEnabled(false);
+        expect(ScreenProtectionService.isProtected, false);
+      },
+    );
   });
 }

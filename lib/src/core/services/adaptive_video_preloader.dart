@@ -52,8 +52,8 @@ class AdaptiveVideoPreloader {
       final formatHint = isHls
           ? VideoFormat.hls
           : isDash
-              ? VideoFormat.dash
-              : null;
+          ? VideoFormat.dash
+          : null;
 
       final controller = VideoPlayerController.networkUrl(
         Uri.parse(url),

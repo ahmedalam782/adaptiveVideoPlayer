@@ -58,8 +58,9 @@ class AdaptiveLoopToggle extends StatelessWidget {
                   return PlayerIcon.resolve(
                     context,
                     icon: styling?.icons.loopIcon,
-                    fallbackIcon:
-                        isLooping ? Icons.repeat_rounded : Icons.pause_rounded,
+                    fallbackIcon: isLooping
+                        ? Icons.repeat_rounded
+                        : Icons.pause_rounded,
                     defaultColor: Colors.black87,
                     defaultSize: 9,
                   );

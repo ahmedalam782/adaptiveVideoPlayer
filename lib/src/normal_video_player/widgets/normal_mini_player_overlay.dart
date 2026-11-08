@@ -32,10 +32,7 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
 
   void _onDragDelta(Offset delta, bool isOsPipWindow) {
     if (isOsPipWindow) {
-      moveDesktopPipWindow(
-        delta.dx.round(),
-        delta.dy.round(),
-      );
+      moveDesktopPipWindow(delta.dx.round(), delta.dy.round());
     } else {
       setState(() {
         _offset += delta;
@@ -55,7 +52,8 @@ class _NormalMiniPlayerOverlayState extends State<NormalMiniPlayerOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final textDirection = widget.messages?.resolveTextDirection(context) ??
+    final textDirection =
+        widget.messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
     final isRtl = textDirection == TextDirection.rtl;

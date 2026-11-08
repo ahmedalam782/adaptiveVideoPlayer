@@ -17,8 +17,10 @@ void main() {
       expect(YouTubeJsHandler.onToggleFullscreen, 'onToggleFullscreen');
       expect(YouTubeJsHandler.onOpenPip, 'onOpenPip');
       expect(YouTubeJsHandler.onTouchActivity, 'onTouchActivity');
-      expect(YouTubeJsHandler.onControlsVisibilityChanged,
-          'onControlsVisibilityChanged');
+      expect(
+        YouTubeJsHandler.onControlsVisibilityChanged,
+        'onControlsVisibilityChanged',
+      );
     });
   });
 
@@ -28,10 +30,14 @@ void main() {
       expect(YouTubeJsCommands.pauseVideo, 'pauseVideo();');
       expect(YouTubeJsCommands.muteVideo, 'muteVideo();');
       expect(YouTubeJsCommands.unMuteVideo, 'unMuteVideo();');
-      expect(YouTubeJsCommands.exitFullscreen,
-          contains('document.exitFullscreen()'));
-      expect(YouTubeJsCommands.getCurrentTime,
-          contains('player.getCurrentTime()'));
+      expect(
+        YouTubeJsCommands.exitFullscreen,
+        contains('document.exitFullscreen()'),
+      );
+      expect(
+        YouTubeJsCommands.getCurrentTime,
+        contains('player.getCurrentTime()'),
+      );
       expect(YouTubeJsCommands.isPlaying, contains('player.getPlayerState()'));
     });
 
@@ -60,16 +66,26 @@ void main() {
         dir: 'ltr',
         controls: 0,
       );
-      expect(initWithControls,
-          "initPlayer('abc123xyz', 1, 0, 15, 'en', 'ltr', 0);");
-      expect(YouTubeJsCommands.setShowMiniPlayer(true),
-          contains('setShowMiniPlayer(true)'));
-      expect(YouTubeJsCommands.setShowMiniPlayer(false),
-          contains('setShowMiniPlayer(false)'));
-      expect(YouTubeJsCommands.setPipButtonCompact(true),
-          contains('setPipButtonCompact(true)'));
-      expect(YouTubeJsCommands.setPipButtonCompact(false),
-          contains('setPipButtonCompact(false)'));
+      expect(
+        initWithControls,
+        "initPlayer('abc123xyz', 1, 0, 15, 'en', 'ltr', 0);",
+      );
+      expect(
+        YouTubeJsCommands.setShowMiniPlayer(true),
+        contains('setShowMiniPlayer(true)'),
+      );
+      expect(
+        YouTubeJsCommands.setShowMiniPlayer(false),
+        contains('setShowMiniPlayer(false)'),
+      );
+      expect(
+        YouTubeJsCommands.setPipButtonCompact(true),
+        contains('setPipButtonCompact(true)'),
+      );
+      expect(
+        YouTubeJsCommands.setPipButtonCompact(false),
+        contains('setPipButtonCompact(false)'),
+      );
     });
   });
 
@@ -77,13 +93,19 @@ void main() {
     test('scripts and permissions constants are non-empty and well-formed', () {
       expect(YouTubeJsScripts.desktopUserAgent, contains('Chrome'));
       expect(YouTubeJsScripts.iframeAllowPermissions, contains('fullscreen'));
-      expect(YouTubeJsScripts.injectedPlayerScript,
-          contains('function updatePlayerStyles()'));
+      expect(
+        YouTubeJsScripts.injectedPlayerScript,
+        contains('function updatePlayerStyles()'),
+      );
       expect(YouTubeJsScripts.injectedPlayerScript, contains('sendToFlutter'));
-      expect(YouTubeJsScripts.injectedPlayerScript,
-          contains('isEmbedPlayerDocument'));
-      expect(YouTubeJsScripts.injectedPlayerScript,
-          contains('adaptive-pip-anchor'));
+      expect(
+        YouTubeJsScripts.injectedPlayerScript,
+        contains('isEmbedPlayerDocument'),
+      );
+      expect(
+        YouTubeJsScripts.injectedPlayerScript,
+        contains('adaptive-pip-anchor'),
+      );
     });
   });
 }

@@ -18,7 +18,7 @@ class MobilePlayerChrome extends StatelessWidget {
   final PlayerPlaybackConfig? playback;
   final List<VideoChapter>? chapters;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final String? title;
   final VideoEpisode? currentEpisode;
   final List<VideoEpisode>? episodes;
@@ -71,7 +71,8 @@ class MobilePlayerChrome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textDirection = messages?.resolveTextDirection(context) ??
+    final textDirection =
+        messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
     final isRtl = textDirection == TextDirection.rtl;
@@ -88,7 +89,8 @@ class MobilePlayerChrome extends StatelessWidget {
           final showLabels = phoneBox;
           final showTopBar = constraints.maxHeight >= 95;
           final showCenterTransport = constraints.maxHeight >= 55;
-          final showProgressBar = effectiveVisibility.showProgressBar &&
+          final showProgressBar =
+              effectiveVisibility.showProgressBar &&
               !isLive &&
               constraints.maxHeight >= 25;
           final verticalPadding = constraints.maxHeight < 80 ? 2.0 : 8.0;
@@ -247,7 +249,8 @@ class MobileTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasAudio = onAudioSubtitlesPressed != null &&
+    final hasAudio =
+        onAudioSubtitlesPressed != null &&
         visibility.showAudioSubtitlesButton &&
         ((audioTracks != null && audioTracks!.isNotEmpty) ||
             (subtitles != null && subtitles!.isNotEmpty));
@@ -283,7 +286,8 @@ class MobileTopBar extends StatelessWidget {
         if (hasAudio)
           MobileRoundIconButton(
             icon: Icons.closed_caption_outlined,
-            tooltip: messages?.audioAndSubtitlesText ??
+            tooltip:
+                messages?.audioAndSubtitlesText ??
                 (isRtl ? 'الصوت والترجمة' : 'Audio & Subtitles'),
             onTap: onAudioSubtitlesPressed!,
           ),
@@ -331,7 +335,7 @@ class MobileCenterTransport extends StatelessWidget {
   final bool isLive;
   final bool compact;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
 
   const MobileCenterTransport({
     super.key,
@@ -366,7 +370,10 @@ class MobileCenterTransport extends StatelessWidget {
             if (visibility.showCenterPlayPause) ...[
               SizedBox(width: compact ? 28 : 40),
               MobilePlayIcon(
-                  controller: controller, styling: styling, compact: compact),
+                controller: controller,
+                styling: styling,
+                compact: compact,
+              ),
               SizedBox(width: compact ? 28 : 40),
             ],
             if (showSkip)
@@ -501,13 +508,15 @@ class MobileActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasTracks = (audioTracks != null && audioTracks!.isNotEmpty) ||
+    final hasTracks =
+        (audioTracks != null && audioTracks!.isNotEmpty) ||
         (subtitles != null && subtitles!.isNotEmpty);
     final actions = <Widget>[
       if (visibility.showNextEpisodeButton && onNextEpisode != null)
         MobileLabeledAction(
           icon: Icons.skip_next_rounded,
-          label: messages?.nextEpisodeText ??
+          label:
+              messages?.nextEpisodeText ??
               (isRtl ? 'الحلقة التالية' : 'Next Episode'),
           showLabel: showLabels,
           onTap: onNextEpisode!,
@@ -517,7 +526,8 @@ class MobileActionRow extends StatelessWidget {
           hasTracks)
         MobileLabeledAction(
           icon: Icons.subtitles_outlined,
-          label: messages?.audioAndSubtitlesText ??
+          label:
+              messages?.audioAndSubtitlesText ??
               (isRtl ? 'الصوت والترجمة' : 'Audio & Subtitles'),
           showLabel: showLabels,
           onTap: onAudioSubtitlesPressed!,
@@ -536,8 +546,9 @@ class MobileActionRow extends StatelessWidget {
         ValueListenableBuilder<VideoPlayerValue>(
           valueListenable: controller,
           builder: (context, value, _) {
-            final rateLabel =
-                PlayerChromeUtils.playbackRateLabel(value.playbackSpeed);
+            final rateLabel = PlayerChromeUtils.playbackRateLabel(
+              value.playbackSpeed,
+            );
             return MobileLabeledAction(
               icon: Icons.speed_rounded,
               label: isRtl ? 'السرعة ($rateLabel)' : 'Speed ($rateLabel)',
@@ -549,7 +560,8 @@ class MobileActionRow extends StatelessWidget {
       if (visibility.showSettingsButton && onSettingsPressed != null)
         MobileLabeledAction(
           icon: Icons.settings_outlined,
-          label: messages?.playerSettingsText ??
+          label:
+              messages?.playerSettingsText ??
               (isRtl ? 'الإعدادات' : 'Settings'),
           showLabel: showLabels,
           onTap: onSettingsPressed!,
@@ -687,8 +699,9 @@ class MobileBrightnessSlider extends StatelessWidget {
                       inactiveTrackColor: Colors.white24,
                       thumbColor: Colors.white,
                       overlayShape: SliderComponentShape.noOverlay,
-                      thumbShape:
-                          const RoundSliderThumbShape(enabledThumbRadius: 5),
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 5,
+                      ),
                     ),
                     child: Slider(
                       value: value.clamp(0.15, 1.0),

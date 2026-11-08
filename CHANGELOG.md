@@ -1,3 +1,10 @@
+## 2.0.3
+
+- **Fix (WASM import graph):** Removed direct `dart:io` platform checks from shared PiP/player code, conditionally exported the local HTTP server, and kept the native caching package export out of web builds.
+- **Compatibility:** Requires Flutter 3.44+ and Dart 3.12+ for the plugin-author Kotlin migration. Android hosts using legacy AGP must supply Kotlin 2.0+; the example uses Kotlin 2.2.20.
+- **Fix (Android Built-in Kotlin):** Configured JVM 17 through `kotlin.compilerOptions` and removed legacy Kotlin plugin and `android.kotlinOptions` configuration.
+- **Quality Assurance:** 260 unit and widget tests pass; `flutter analyze` reports no issues.
+
 ## 2.0.2
 
 - **Fix (Android Built-in Kotlin):**

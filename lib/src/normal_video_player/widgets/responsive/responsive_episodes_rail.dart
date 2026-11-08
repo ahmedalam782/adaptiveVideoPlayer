@@ -36,7 +36,8 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
   Widget build(BuildContext context) {
     if (widget.episodes.isEmpty) return const SizedBox.shrink();
 
-    final textDirection = widget.messages?.resolveTextDirection(context) ??
+    final textDirection =
+        widget.messages?.resolveTextDirection(context) ??
         Directionality.maybeOf(context) ??
         TextDirection.ltr;
     final isRtl = textDirection == TextDirection.rtl;
@@ -49,8 +50,8 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
     );
     final selectedSeason =
         (_activeSeason != null && seasons.contains(_activeSeason))
-            ? _activeSeason!
-            : (seasons.contains(currentSeason) ? currentSeason : seasons.first);
+        ? _activeSeason!
+        : (seasons.contains(currentSeason) ? currentSeason : seasons.first);
     final visible = groups[selectedSeason] ?? widget.episodes;
     final playedColor =
         widget.styling?.progressBarPlayedColor ?? const Color(0xFFE50914);
@@ -88,7 +89,9 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
                         ],
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 8),
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF2C2C2C),
                             borderRadius: BorderRadius.circular(20),
@@ -107,8 +110,10 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              const Icon(Icons.expand_more_rounded,
-                                  color: Colors.white),
+                              const Icon(
+                                Icons.expand_more_rounded,
+                                color: Colors.white,
+                              ),
                             ],
                           ),
                         ),
@@ -128,8 +133,10 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: widget.onClose,
-                        icon: const Icon(Icons.close_rounded,
-                            color: Colors.white),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                        ),
                       ),
                   ],
                 ),
@@ -138,7 +145,7 @@ class _ResponsiveEpisodesRailState extends State<ResponsiveEpisodesRail> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: visible.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 14),
+                    separatorBuilder: (_, _) => const SizedBox(width: 14),
                     itemBuilder: (context, index) {
                       final episode = visible[index];
                       return ResponsiveEpisodeRailCard(
@@ -189,7 +196,7 @@ class ResponsiveEpisodeRailCard extends StatelessWidget {
               : Image.network(
                   episode.thumbnailUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Icon(
+                  errorBuilder: (_, _, _) => const Icon(
                     Icons.movie_creation_outlined,
                     color: Colors.white38,
                     size: 32,
@@ -197,11 +204,7 @@ class ResponsiveEpisodeRailCard extends StatelessWidget {
                 ),
         ),
         const Center(
-          child: Icon(
-            Icons.play_arrow_rounded,
-            color: Colors.white,
-            size: 36,
-          ),
+          child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
         ),
         Positioned(
           left: 0,
@@ -362,8 +365,10 @@ class ResponsiveEpisodeRailCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       length,
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                   if ((episode.description ?? '').isNotEmpty) ...[

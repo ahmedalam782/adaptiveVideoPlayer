@@ -32,7 +32,7 @@ class BaseAdaptiveVideoPlayer extends StatefulWidget {
   final PlayerTextConfig? messages;
   final PlayerVisibilityConfig? visibility;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final List<VideoQuality>? qualities;
   final VideoQuality? currentQuality;
   final void Function(VideoQuality)? onQualitySelected;
@@ -117,7 +117,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
         onVolumeChanged: showVolumeFeedback,
         onEnterFullscreen: widget.onEnterFullscreen,
         onExitFullscreen: widget.onExitFullscreen,
-        textDirection: widget.messages?.resolveTextDirection(context) ??
+        textDirection:
+            widget.messages?.resolveTextDirection(context) ??
             Directionality.of(context),
       );
 
@@ -129,8 +130,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
     widget.controller.addListener(_videoListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        widget.onAnalyticsEvent?.call('video_initialized',
-            {'duration': widget.controller.value.duration.inSeconds});
+        widget.onAnalyticsEvent?.call('video_initialized', {
+          'duration': widget.controller.value.duration.inSeconds,
+        });
       }
     });
   }
@@ -140,12 +142,14 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
     final isPlaying = widget.controller.value.isPlaying;
     if (isPlaying) {
       widget.controller.pause();
-      widget.onAnalyticsEvent?.call('video_paused',
-          {'position': widget.controller.value.position.inSeconds});
+      widget.onAnalyticsEvent?.call('video_paused', {
+        'position': widget.controller.value.position.inSeconds,
+      });
     } else {
       widget.controller.play();
-      widget.onAnalyticsEvent?.call('video_played',
-          {'position': widget.controller.value.position.inSeconds});
+      widget.onAnalyticsEvent?.call('video_played', {
+        'position': widget.controller.value.position.inSeconds,
+      });
     }
     setState(() => controlsVisible = true);
     startHideTimer();
@@ -167,7 +171,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
       return;
     }
 
-    final isMouse = _lastTapDownDetails?.kind == PointerDeviceKind.mouse ||
+    final isMouse =
+        _lastTapDownDetails?.kind == PointerDeviceKind.mouse ||
         _lastTapDownDetails?.kind == PointerDeviceKind.trackpad ||
         (_lastTapDownDetails?.kind != PointerDeviceKind.touch &&
             _lastTapDownDetails?.kind != PointerDeviceKind.stylus &&
@@ -182,8 +187,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
       // With mouse (web & desktop): 1 click plays if paused, closes/pauses if open (playing).
       if (isPlaying) {
         widget.controller.pause();
-        widget.onAnalyticsEvent?.call('video_paused',
-            {'position': widget.controller.value.position.inSeconds});
+        widget.onAnalyticsEvent?.call('video_paused', {
+          'position': widget.controller.value.position.inSeconds,
+        });
         setState(() => controlsVisible = true);
         hideTimer?.cancel();
       } else {
@@ -193,8 +199,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
           widget.controller.seekTo(Duration.zero);
         }
         widget.controller.play();
-        widget.onAnalyticsEvent?.call('video_played',
-            {'position': widget.controller.value.position.inSeconds});
+        widget.onAnalyticsEvent?.call('video_played', {
+          'position': widget.controller.value.position.inSeconds,
+        });
         startHideTimer();
       }
       return;
@@ -205,8 +212,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
       if (controlsVisible) {
         // If controls were already open, 1 tap closes (pauses) video playback
         widget.controller.pause();
-        widget.onAnalyticsEvent?.call('video_paused',
-            {'position': widget.controller.value.position.inSeconds});
+        widget.onAnalyticsEvent?.call('video_paused', {
+          'position': widget.controller.value.position.inSeconds,
+        });
         hideTimer?.cancel();
       } else {
         // If controls were hidden, 1 tap opens controls
@@ -221,8 +229,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
         widget.controller.seekTo(Duration.zero);
       }
       widget.controller.play();
-      widget.onAnalyticsEvent?.call('video_played',
-          {'position': widget.controller.value.position.inSeconds});
+      widget.onAnalyticsEvent?.call('video_played', {
+        'position': widget.controller.value.position.inSeconds,
+      });
       startHideTimer();
     }
   }
@@ -304,13 +313,15 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
       width: (widget.isFullScreen || isCover) ? double.infinity : null,
       height: (widget.isFullScreen || isCover) ? double.infinity : null,
       child: Stack(
-        fit:
-            (widget.isFullScreen || isCover) ? StackFit.expand : StackFit.loose,
+        fit: (widget.isFullScreen || isCover)
+            ? StackFit.expand
+            : StackFit.loose,
         alignment: Alignment.center,
         children: [
           Center(
-            child:
-                isCover ? SizedBox.expand(child: videoContent) : videoContent,
+            child: isCover
+                ? SizedBox.expand(child: videoContent)
+                : videoContent,
           ),
 
           ValueListenableBuilder<double>(
@@ -405,8 +416,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                         ? null
                         : (details) => handleDoubleTap(details, startHideTimer),
                     onDoubleTap: () {},
-                    onLongPressStart:
-                        _screenLocked ? null : handleLongPressStart,
+                    onLongPressStart: _screenLocked
+                        ? null
+                        : handleLongPressStart,
                     onLongPressEnd: _screenLocked ? null : handleLongPressEnd,
                     onLongPressCancel: _screenLocked ? null : stopHold2xSpeed,
                   ),
@@ -417,7 +429,10 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                       ignoring: !controlsVisible,
                       child: widget.controlsBuilder != null
                           ? widget.controlsBuilder!(
-                              context, widget.controller, widget.isFullScreen)
+                              context,
+                              widget.controller,
+                              widget.isFullScreen,
+                            )
                           : AdaptiveControlsLayer(
                               controller: widget.controller,
                               isFullScreen: widget.isFullScreen,
@@ -449,8 +464,9 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                               audioTracks: widget.audioTracks,
                               currentAudioTrack: widget.currentAudioTrack,
                               onAudioTrackSelected: widget.onAudioTrackSelected,
-                              brightnessListenable:
-                                  mobileChrome ? _brightness : null,
+                              brightnessListenable: mobileChrome
+                                  ? _brightness
+                                  : null,
                               screenLocked: _screenLocked,
                               onToggleScreenLock: () {
                                 setState(() {
@@ -494,8 +510,8 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
               // 22px track. Keep the prompt in the gap above that track.
               bottom:
                   constraints.maxHeight >= 100 && constraints.maxWidth >= 100
-                      ? 124
-                      : 48,
+                  ? 124
+                  : 48,
               end: 12,
               child: ValueListenableBuilder<VideoPlayerValue>(
                 valueListenable: widget.controller,
@@ -514,10 +530,11 @@ class _BaseAdaptiveVideoPlayerState extends State<BaseAdaptiveVideoPlayer>
                   }
                   final isRtl =
                       (widget.messages?.resolveTextDirection(context) ??
-                              Directionality.maybeOf(context)) ==
-                          TextDirection.rtl;
+                          Directionality.maybeOf(context)) ==
+                      TextDirection.rtl;
                   return MobileNextEpisodePrompt(
-                    nextLabel: widget.messages?.nextEpisodeText ??
+                    nextLabel:
+                        widget.messages?.nextEpisodeText ??
                         (isRtl ? 'الحلقة التالية' : 'Next Episode'),
                     creditsLabel: isRtl ? 'مشاهدة الشارة' : 'Watch credits',
                     onNext: widget.onNextEpisode!,

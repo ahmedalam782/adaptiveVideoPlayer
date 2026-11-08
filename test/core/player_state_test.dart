@@ -21,8 +21,10 @@ void main() {
         isPlaying: true,
         volume: 0.8,
         isMuted: true,
-        currentQuality:
-            const VideoQuality(title: '1080p', url: 'https://example.com/1080'),
+        currentQuality: const VideoQuality(
+          title: '1080p',
+          url: 'https://example.com/1080',
+        ),
         currentSubtitle: const SubtitleTrack(id: 'en', title: 'English'),
       );
 

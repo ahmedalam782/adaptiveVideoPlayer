@@ -10,7 +10,7 @@ class AdaptiveLiveIndicator extends StatelessWidget {
   final List<VideoQuality>? qualities;
   final void Function(VideoQuality)? onQualitySelected;
   final void Function(String event, Map<String, dynamic> data)?
-      onAnalyticsEvent;
+  onAnalyticsEvent;
   final PlayerTextConfig? messages;
   final PlayerStyleConfig? styling;
 

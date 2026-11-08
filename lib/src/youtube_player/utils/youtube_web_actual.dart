@@ -123,15 +123,18 @@ bool isYoutubeWebFullscreen() {
   }
 }
 
-typedef YoutubeWebInfoCallback = void Function({
-  double? currentTime,
-  double? duration,
-  int? playerState,
-  bool? isMuted,
-});
+typedef YoutubeWebInfoCallback =
+    void Function({
+      double? currentTime,
+      double? duration,
+      int? playerState,
+      bool? isMuted,
+    });
 
 void listenToYoutubeWebMessages(
-    String viewId, YoutubeWebInfoCallback callback) {
+  String viewId,
+  YoutubeWebInfoCallback callback,
+) {
   try {
     web.window.addEventListener(
       'message',

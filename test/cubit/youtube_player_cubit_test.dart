@@ -153,8 +153,10 @@ void main() {
         cubit.setAutoPlay(true);
         cubit.setMuted(true);
 
-        final capturedState =
-            cubit.captureStateForFullscreen(const Duration(seconds: 42), true);
+        final capturedState = cubit.captureStateForFullscreen(
+          const Duration(seconds: 42),
+          true,
+        );
 
         expect(capturedState.position, const Duration(seconds: 42));
         expect(capturedState.isPlaying, true);
