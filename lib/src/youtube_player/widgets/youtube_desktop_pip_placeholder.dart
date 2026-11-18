@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Restore button placeholder UI shown in desktop views when player is docked in PiP mode.
 class YouTubeDesktopPipPlaceholder extends StatelessWidget {

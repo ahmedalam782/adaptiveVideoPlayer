@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Callback signature for dynamic icon builders giving context, color, and size.
 typedef PlayerIconBuilder =

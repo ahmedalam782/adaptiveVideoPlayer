@@ -2,7 +2,7 @@ import 'package:adaptive_video_player/src/youtube_player/widgets/player_error_wi
 import 'package:adaptive_video_player/src/youtube_player/widgets/player_loading_widget.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/youtube_live_badge.dart';
 import 'package:adaptive_video_player/src/youtube_player/widgets/youtube_replay_overlay.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_video_player/src/normal_video_player/models/audio_track.dart';
 import 'package:adaptive_video_player/src/normal_video_player/models/subtitle_track.dart';

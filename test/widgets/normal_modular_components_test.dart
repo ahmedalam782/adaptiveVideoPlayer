@@ -1,5 +1,5 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_video_player/src/youtube_player/models/player_text_config.dart';
 import 'package:adaptive_video_player/src/youtube_player/models/player_visibility_config.dart';

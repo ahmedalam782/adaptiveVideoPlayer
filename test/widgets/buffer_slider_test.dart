@@ -1,6 +1,6 @@
 import 'package:adaptive_video_player/src/normal_video_player/utils/video_player_web_safe.dart';
 import 'package:adaptive_video_player/src/normal_video_player/widgets/buffer_slider.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

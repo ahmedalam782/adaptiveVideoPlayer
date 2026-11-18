@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/services/native_pip_service.dart';
 import '../../youtube_player/models/player_text_config.dart';

@@ -1,6 +1,6 @@
 import 'package:adaptive_video_player/adaptive_video_player.dart';
 import 'package:adaptive_video_player/src/normal_video_player/mixins/normal_player_pip_mixin.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

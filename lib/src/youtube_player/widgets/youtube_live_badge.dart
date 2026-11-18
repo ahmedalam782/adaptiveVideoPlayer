@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Live badge and viewer count indicator for YouTube player.
 class YouTubeLiveBadge extends StatelessWidget {

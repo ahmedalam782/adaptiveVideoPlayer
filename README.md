@@ -3,16 +3,16 @@
 A comprehensive Flutter video player package that seamlessly handles both **YouTube videos** and **direct video URLs** with adaptive player selection. Works on **Android, iOS, macOS, Windows, Linux, and Web** — with platform-specific engines tuned for each target.
 
 [![pub package](https://img.shields.io/pub/v/adaptive_video_player.svg)](https://pub.dev/packages/adaptive_video_player)
-[![Flutter](https://img.shields.io/badge/Flutter-3.44.0%2B-02569B?logo=flutter)](https://flutter.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.47.0%2B-02569B?logo=flutter)](https://flutter.dev)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20Web-blue)](https://flutter.dev)
 [![WASM Ready](https://img.shields.io/badge/WASM-Ready-brightgreen)](https://dart.dev/web/wasm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## 🎉 What's New in the v2.0.3 release candidate
+## 🎉 What's New in the v2.0.4 release candidate
 
-This branch prepares a follow-up release with WebAssembly import fixes and updated Android Kotlin Gradle configuration. The package score is calculated by pub.dev after publication; the current published v2.0.2 score is **150/160**. See the [release verification notes](doc/VERIFICATION.md) for checks and remaining limits.
+This branch prepares a follow-up release that migrates to `package:material_ui` (fixing the `flutter/material.dart` deprecation lints) and requires Flutter 3.47+. It also carries the 2.0.3 WebAssembly import fixes and Android Kotlin Gradle configuration. The package score is calculated by pub.dev after publication; the current published v2.0.2 score is **150/160**. See the [release verification notes](doc/VERIFICATION.md) for checks and remaining limits.
 
 ### 🤖 Android Built-in Kotlin
 - Uses `kotlin.compilerOptions` with JVM 17 and removes legacy Kotlin plugin configuration flagged by pub.dev.

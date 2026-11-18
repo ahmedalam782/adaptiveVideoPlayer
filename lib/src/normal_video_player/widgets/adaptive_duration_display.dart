@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../youtube_player/models/player_style_config.dart';
 import '../../youtube_player/models/player_visibility_config.dart';

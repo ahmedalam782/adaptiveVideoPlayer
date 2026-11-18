@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Fullscreen toggle button for YouTube desktop player overlay.
 class YouTubeDesktopFullscreenButton extends StatelessWidget {

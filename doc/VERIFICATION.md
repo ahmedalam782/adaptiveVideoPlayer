@@ -4,7 +4,7 @@
 
 The supplied pub.dev report lost 10 platform points because the public library reached `dart:io` during WASM analysis. Shared PiP and desktop view platform checks now use Flutter's platform APIs. The local HTTP server has a conditional native implementation and browser stub. The public cache API conditionally exports its native package so it does not enter the web import graph.
 
-Android's plugin Gradle script no longer applies KGP or uses `android.kotlinOptions`; it uses `kotlin.compilerOptions` with JVM 17. This follows [Flutter's plugin-author migration](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors) and requires **Flutter 3.44+ / Dart 3.12+**. The example's existing AGP 8.11.1 / Kotlin 2.2.20 host builds successfully; a fully built-in-Kotlin AGP 9 host was not tested. Flutter warns that the example's AGP/Kotlin versions will need upgrading in the future.
+Android's plugin Gradle script no longer applies KGP or uses `android.kotlinOptions`; it uses `kotlin.compilerOptions` with JVM 17. This follows [Flutter's plugin-author migration](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors) and requires **Flutter 3.47+ / Dart 3.12+** (raised from 3.44 by the `material_ui` migration). The example's existing AGP 8.11.1 / Kotlin 2.2.20 host builds successfully; a fully built-in-Kotlin AGP 9 host was not tested. Flutter warns that the example's AGP/Kotlin versions will need upgrading in the future.
 
 | Check | Result |
 |---|---|

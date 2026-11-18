@@ -1,13 +1,13 @@
 name: adaptive_video_player
 description: "A Flutter video player for YouTube and direct video URLs with adaptive controls. Supports Android, iOS, Windows, macOS, Linux, and Web."
-version: 2.0.3
+version: 2.0.4
 homepage: https://github.com/ahmedalam782/vidoes_player
 repository: https://github.com/ahmedalam782/vidoes_player
 issue_tracker: https://github.com/ahmedalam782/vidoes_player/issues
 
 environment:
   sdk: ">=3.12.0 <4.0.0"
-  flutter: ">=3.44.0"
+  flutter: ">=3.47.0"
 
 platforms:
   android:
@@ -27,6 +27,7 @@ topics:
 dependencies:
   flutter:
     sdk: flutter
+  material_ui: ^1.11.1
   flutter_inappwebview: ^6.1.5
   url_launcher: ^6.3.3
   video_player: ^2.14.1

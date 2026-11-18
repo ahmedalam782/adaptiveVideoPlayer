@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A widget shown in place of the normal player when the video is floating in MiniPlayer mode.
 class NormalMiniPlayerPlaceholder extends StatelessWidget {

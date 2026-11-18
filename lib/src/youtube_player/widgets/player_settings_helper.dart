@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'player_settings_sheet.dart';
 
 /// Helper function to show player settings bottom sheet

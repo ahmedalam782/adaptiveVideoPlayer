@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Individual setting item widget for YouTube player settings
 class SettingItem extends StatelessWidget {

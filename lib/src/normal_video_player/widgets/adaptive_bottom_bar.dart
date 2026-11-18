@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../../core/constants/player_events.dart';
 import '../../core/constants/player_strings.dart';
 import '../../core/widgets/adaptive_glassmorphic_container.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 export 'player_error_widget.dart';
 export 'player_loading_widget.dart';

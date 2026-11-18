@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../models/video_chapter.dart';
 import '../utils/video_player_web_safe.dart';
 

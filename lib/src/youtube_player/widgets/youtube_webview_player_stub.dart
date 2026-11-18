@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../models/youtube_player_config.dart';
 
 /// Stub for YouTubeWebViewPlayer — used on Web where dart:io is not available.

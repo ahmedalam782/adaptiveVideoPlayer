@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'full_features_example_screen.dart';
 
 /// Single unified screen entry point for the Adaptive Video Player example.

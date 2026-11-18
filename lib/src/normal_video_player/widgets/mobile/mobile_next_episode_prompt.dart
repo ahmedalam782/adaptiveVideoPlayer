@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Phone end-of-episode actions: next episode and watch credits.
 class MobileNextEpisodePrompt extends StatelessWidget {

@@ -1,3 +1,9 @@
+## 2.0.4
+
+- **Fix (Static analysis):** Migrated every `package:flutter/material.dart` import to `package:material_ui/material_ui.dart` across the package, tests and example app, resolving the 98 deprecation lints reported by pub.dev.
+- **Breaking (Compatibility):** Added the `material_ui: ^1.11.1` dependency and raised the minimum to Flutter 3.47+ (Dart 3.12+).
+- **Quality Assurance:** 260 unit and widget tests pass; `flutter analyze` reports no issues.
+
 ## 2.0.3
 
 - **Fix (WASM import graph):** Removed direct `dart:io` platform checks from shared PiP/player code, conditionally exported the local HTTP server, and kept the native caching package export out of web builds.

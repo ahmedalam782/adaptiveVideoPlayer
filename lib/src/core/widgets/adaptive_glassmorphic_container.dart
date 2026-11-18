@@ -1,5 +1,5 @@
 import 'dart:ui';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A reusable luxury glassmorphic container with backdrop blur, translucent fill,
 /// subtle illuminated borders, and soft ambient shadows (Clean Architecture & SRP).

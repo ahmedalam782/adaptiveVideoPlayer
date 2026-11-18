@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'src/core/contracts/i_analytics_service.dart';
 import 'src/core/contracts/i_fullscreen_service.dart';

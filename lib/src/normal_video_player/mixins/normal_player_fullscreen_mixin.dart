@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../coordinator/normal_fullscreen_coordinator.dart';
 import '../normal_video_player.dart';

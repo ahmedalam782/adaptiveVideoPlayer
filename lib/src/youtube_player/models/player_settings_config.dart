@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Configuration class for player settings bottom sheet.
 class PlayerSettingsConfig {
